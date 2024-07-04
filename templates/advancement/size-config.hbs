@@ -1,10 +1,10 @@
 <form autocomplete="off">
-    {{> "dnd5e.advancement-controls"}}
+    {{> "skjaald.advancement-controls"}}
 
     <div class="form-group">
-        <label>{{localize "DND5E.AdvancementHint"}}</label>
+        <label>{{localize "SKJAALD.AdvancementHint"}}</label>
         <textarea name="configuration.hint" placeholder="{{default.hint}}">{{configuration.hint}}</textarea>
     </div>
 
-    {{> "dnd5e.trait-list" choices=sizes prefix="configuration.sizes"}}
+    {{> "skjaald.trait-list" choices=sizes prefix="configuration.sizes"}}
 </form>

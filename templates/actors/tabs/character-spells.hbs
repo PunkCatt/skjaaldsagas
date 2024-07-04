@@ -5,26 +5,26 @@
         <div class="header">
             <h3>{{ label }}</h3>
             <button type="button" class="radio-button" data-action="spellcasting"
-                    data-tooltip="DND5E.SpellAbilitySet" aria-pressed="{{#if primary}}true{{else}}false{{/if}}"
-                    aria-label="{{ localize "DND5E.SpellAbilitySet" }}"></button>
+                    data-tooltip="SKJAALD.SpellAbilitySet" aria-pressed="{{#if primary}}true{{else}}false{{/if}}"
+                    aria-label="{{ localize "SKJAALD.SpellAbilitySet" }}"></button>
         </div>
         <div class="info">
             <div class="ability">
-                <span class="label">{{ localize "DND5E.Ability" }}</span>
+                <span class="label">{{ localize "SKJAALD.Ability" }}</span>
                 <span class="value">
                     <span class="sign">{{ ability.sign }}</span>
                     {{ ability.value }}
                 </span>
             </div>
             <div class="attack">
-                <span class="label">{{ localize "DND5E.Attack" }}</span>
+                <span class="label">{{ localize "SKJAALD.Attack" }}</span>
                 <span class="value">
                     <span class="sign">{{ attack.sign }}</span>
                     {{ attack.value }}
                 </span>
             </div>
             <div class="save">
-                <span class="label">{{ localize "DND5E.SpellDC" }}</span>
+                <span class="label">{{ localize "SKJAALD.SpellDC" }}</span>
                 <span class="value">{{ save }}</span>
             </div>
         </div>
@@ -36,15 +36,15 @@
 <{{ elements.inventory }} class="inventory-element" v2>
 
     {{!-- Searching & Filtering --}}
-    <item-list-controls for="spellbook" label="{{ localize "DND5E.SpellsSearch" }}" sort="multi" sort-modes="apm"
+    <item-list-controls for="spellbook" label="{{ localize "SKJAALD.SpellsSearch" }}" sort="multi" sort-modes="apm"
                         collection="items" keep-empty>
         <datalist>
-            <option value="action">{{ localize "DND5E.Action" }}</option>
-            <option value="bonus">{{ localize "DND5E.BonusAction" }}</option>
-            <option value="reaction">{{ localize "DND5E.Reaction" }}</option>
-            <option value="concentration">{{ localize "DND5E.Concentration" }}</option>
-            <option value="ritual">{{ localize "DND5E.Ritual" }}</option>
-            <option value="prepared">{{ localize "DND5E.Prepared" }}</option>
+            <option value="action">{{ localize "SKJAALD.Action" }}</option>
+            <option value="bonus">{{ localize "SKJAALD.BonusAction" }}</option>
+            <option value="reaction">{{ localize "SKJAALD.Reaction" }}</option>
+            <option value="concentration">{{ localize "SKJAALD.Concentration" }}</option>
+            <option value="ritual">{{ localize "SKJAALD.Ritual" }}</option>
+            <option value="prepared">{{ localize "SKJAALD.Prepared" }}</option>
             {{#each config.spellSchools}}
             <option value="{{ @key }}">{{ label }}</option>
             {{/each}}
@@ -56,22 +56,22 @@
 
         {{!-- Sections --}}
         {{#each spellbook}}
-        <div class="items-section card" {{ dnd5e-dataset dataset }}>
+        <div class="items-section card" {{ skjaald-dataset dataset }}>
 
             {{!-- Section Header --}}
             <div class="items-header header">
                 <h3 class="item-name spell-header">{{ localize label }}</h3>
-                <div class="item-header item-school">{{ localize "DND5E.SpellHeader.School" }}</div>
-                <div class="item-header item-usage">{{ localize "DND5E.SpellHeader.Time" }}</div>
-                <div class="item-header item-range">{{ localize "DND5E.SpellHeader.Range" }}</div>
-                <div class="item-header item-target">{{ localize "DND5E.SpellHeader.Target" }}</div>
-                <div class="item-header item-roll">{{ localize "DND5E.SpellHeader.Roll" }}</div>
-                <div class="item-header item-uses spell-uses">{{ localize "DND5E.Uses" }}</div>
-                <div class="item-header item-formula">{{ localize "DND5E.SpellHeader.Formula" }}</div>
+                <div class="item-header item-school">{{ localize "SKJAALD.SpellHeader.School" }}</div>
+                <div class="item-header item-usage">{{ localize "SKJAALD.SpellHeader.Time" }}</div>
+                <div class="item-header item-range">{{ localize "SKJAALD.SpellHeader.Range" }}</div>
+                <div class="item-header item-target">{{ localize "SKJAALD.SpellHeader.Target" }}</div>
+                <div class="item-header item-roll">{{ localize "SKJAALD.SpellHeader.Roll" }}</div>
+                <div class="item-header item-uses spell-uses">{{ localize "SKJAALD.Uses" }}</div>
+                <div class="item-header item-formula">{{ localize "SKJAALD.SpellHeader.Formula" }}</div>
                 <div class="item-header item-controls"></div>
                 {{#if (and usesSlots @root.editable)}}
-                <a class="config-button" data-action="spellSlots" data-tooltip="DND5E.SpellSlotsConfig"
-                   aria-label="{{ localize "DND5E.SpellSlotsConfig" }}">
+                <a class="config-button" data-action="spellSlots" data-tooltip="SKJAALD.SpellSlotsConfig"
+                   aria-label="{{ localize "SKJAALD.SpellSlotsConfig" }}">
                     <i class="fas fa-cog"></i>
                 </a>
                 {{/if}}
@@ -83,7 +83,7 @@
                 {{#each pips}}
                 <button type="button" class="{{ classes }}" data-n="{{ n }}" data-tooltip="{{ tooltip }}"
                         aria-label="{{ label }}" aria-pressed="{{ filled }}">
-                    <dnd5e-icon src="systems/dnd5e/icons/svg/spell-slot.svg"></dnd5e-icon>
+                    <skjaald-icon src="systems/skjaald/icons/svg/spell-slot.svg"></skjaald-icon>
                 </button>
                 {{/each}}
             </div>
@@ -92,7 +92,7 @@
             {{!-- Section Contents --}}
             <ol class="item-list unlist">
                 {{#each spells as |item|}}
-                {{#dnd5e-itemContext item as |ctx|}}
+                {{#skjaald-itemContext item as |ctx|}}
 
                 {{!-- Spells --}}
                 <li class="item" data-item-id="{{ item.id }}" data-entry-id="{{ item.id }}"
@@ -106,7 +106,7 @@
                          data-action="use" aria-label="{{ item.name }}">
                         {{#if ctx.concentration}}
                         <i class="concentration fas fa-arrow-rotate-left fa-spin fa-spin-reverse"
-                           aria-label="{{ localize "DND5E.Concentration" }}"></i>
+                           aria-label="{{ localize "SKJAALD.Concentration" }}"></i>
                         {{/if}}
                         <img class="item-image gold-icon" src="{{ item.img }}" alt="{{ item.name }}">
                         <div class="name name-stacked">
@@ -124,7 +124,7 @@
                             {{#each item.labels.components.all}}
                             {{#if tag}}
                             <span aria-label="{{ label }}">
-                                <dnd5e-icon src="{{ icon }}"></dnd5e-icon>
+                                <skjaald-icon src="{{ icon }}"></skjaald-icon>
                             </span>
                             {{/if}}
                             {{/each}}
@@ -135,7 +135,7 @@
                     <div class="item-detail item-school" data-tooltip="{{ item.labels.school }}"
                          aria-label="{{ item.labels.school }}">
                         {{#with (lookup @root.config.spellSchools item.system.school) as |schoolConfig|}}
-                        <dnd5e-icon src="{{ schoolConfig.icon }}"></dnd5e-icon>
+                        <skjaald-icon src="{{ schoolConfig.icon }}"></skjaald-icon>
                         {{/with}}
                     </div>
 
@@ -195,7 +195,7 @@
                             <span class="formula">{{ formula }}</span>
                             {{#with (lookup @root.labels.damageAndHealing damageType)}}
                             <span data-tooltip="{{ label }}" aria-label="{{ label }}">
-                                <dnd5e-icon src="{{ icon }}"></dnd5e-icon>
+                                <skjaald-icon src="{{ icon }}"></skjaald-icon>
                             </span>
                             {{/with}}
                         </div>
@@ -207,14 +207,14 @@
 
                         {{#if @root.editable}}
                         {{!-- Editing --}}
-                        <a class="item-control item-action" data-action="edit" data-tooltip="DND5E.ItemEdit"
-                           aria-label="{{ localize "DND5E.ItemEdit" }}">
+                        <a class="item-control item-action" data-action="edit" data-tooltip="SKJAALD.ItemEdit"
+                           aria-label="{{ localize "SKJAALD.ItemEdit" }}">
                             <i class="fas fa-pen-to-square"></i>
                         </a>
 
                         {{!-- Deleting --}}
-                        <a class="item-control item-action" data-action="delete" data-tooltip="DND5E.ItemDelete"
-                           aria-label="{{ localize "DND5E.ItemDelete" }}">
+                        <a class="item-control item-action" data-action="delete" data-tooltip="SKJAALD.ItemDelete"
+                           aria-label="{{ localize "SKJAALD.ItemDelete" }}">
                             <i class="fas fa-trash"></i>
                         </a>
                         {{else if @root.owner}}
@@ -231,7 +231,7 @@
 
                         {{!-- Context Menu --}}
                         <a class="item-control interface-only" data-context-menu
-                           aria-label="{{ localize "DND5E.AdditionalControls" }}">
+                           aria-label="{{ localize "SKJAALD.AdditionalControls" }}">
                             <i class="fas fa-ellipsis-vertical"></i>
                         </a>
 
@@ -239,7 +239,7 @@
 
                 </li>
 
-                {{/dnd5e-itemContext}}
+                {{/skjaald-itemContext}}
                 {{/each}}
             </ol>
 

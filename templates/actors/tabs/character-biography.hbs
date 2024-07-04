@@ -2,13 +2,13 @@
     <div class="textbox-half">
         <h3 class="icon">
             {{#if icon}}<i class="{{ icon }}"></i>
-            {{~else if svg}}<dnd5e-icon src="systems/dnd5e/icons/svg/{{svg}}.svg"></dnd5e-icon>{{/if}}
+            {{~else if svg}}<skjaald-icon src="systems/skjaald/icons/svg/{{svg}}.svg"></skjaald-icon>{{/if}}
             <span class="roboto-upper">{{ localize label }}</span>
         </h3>
         {{#if @root.editable}}
         <textarea class="untext" name="{{ name }}">{{ value }}</textarea>
         {{else}}
-        <p>{{ dnd5e-textFormat value }}</p>
+        <p>{{ skjaald-textFormat value }}</p>
         {{/if}}
     </div>
 {{/inline}}
@@ -36,17 +36,17 @@
     {{!-- Ideals, Bonds, Flaws, Personality Traits, & Appearance --}}
     <div class="middle flexrow">
         <div class="left">
-            {{~> "textbox" name="system.details.ideal" value=system.details.ideal label="DND5E.Ideals"
+            {{~> "textbox" name="system.details.ideal" value=system.details.ideal label="SKJAALD.Ideals"
                 icon="fas fa-seedling" ~}}
-            {{~> "textbox" name="system.details.bond" value=system.details.bond label="DND5E.Bonds"
+            {{~> "textbox" name="system.details.bond" value=system.details.bond label="SKJAALD.Bonds"
                 icon="fas fa-link" ~}}
-            {{~> "textbox" name="system.details.flaw" value=system.details.flaw label="DND5E.Flaws"
+            {{~> "textbox" name="system.details.flaw" value=system.details.flaw label="SKJAALD.Flaws"
                 icon="fas fa-heart-crack" ~}}
         </div>
         <div class="right">
-            {{~> "textbox" name="system.details.trait" value=system.details.trait label="DND5E.PersonalityTraits"
+            {{~> "textbox" name="system.details.trait" value=system.details.trait label="SKJAALD.PersonalityTraits"
                 icon="fas fa-puzzle-piece" ~}}
-            {{~> "textbox" name="system.details.appearance" value=system.details.appearance label="DND5E.Appearance"
+            {{~> "textbox" name="system.details.appearance" value=system.details.appearance label="SKJAALD.Appearance"
                 icon="fas fa-image-portrait" ~}}
         </div>
     </div>
@@ -55,8 +55,8 @@
     <div class="bottom">
         <h3 class="icon">
             <i class="fas fa-feather"></i>
-            <dnd5e-icon src="systems/dnd5e/icons/svg/ink-pot.svg"></dnd5e-icon>
-            <span class="roboto-upper">{{ localize "DND5E.Biography" }}</span>
+            <skjaald-icon src="systems/skjaald/icons/svg/ink-pot.svg"></skjaald-icon>
+            <span class="roboto-upper">{{ localize "SKJAALD.Biography" }}</span>
         </h3>
         {{ editor biographyHTML target="system.details.biography.value" button=false editable=@root.editable
                   engine="prosemirror" collaborate=false }}

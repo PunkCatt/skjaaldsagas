@@ -10,8 +10,8 @@
         <div class="mod">
             {{#if @root.editable}}
             <a class="config-button" data-action="ability"
-               data-tooltip="{{ localize "DND5E.AbilityConfigure" ability=label }}"
-               aria-label="{{ localize "DND5E.AbilityConfigure" ability=label }}">
+               data-tooltip="{{ localize "SKJAALD.AbilityConfigure" ability=label }}"
+               aria-label="{{ localize "SKJAALD.AbilityConfigure" ability=label }}">
                 <i class="fas fa-cog"></i>
             </a>
             {{else}}
@@ -52,27 +52,27 @@
         <div class="right">
 
             {{!-- Level --}}
-            <div class="level" aria-label="{{ localize "DND5E.LevelNumber" }}">{{ system.details.level }}</div>
+            <div class="level" aria-label="{{ localize "SKJAALD.LevelNumber" }}">{{ system.details.level }}</div>
 
             {{!-- Inspiration --}}
             <button type="button" class="inspiration unbutton" data-action="toggleInspiration"
-                    aria-label="{{ localize "DND5E.Inspiration" }}" data-tooltip="DND5E.Inspiration"
+                    aria-label="{{ localize "SKJAALD.Inspiration" }}" data-tooltip="SKJAALD.Inspiration"
                     aria-pressed="{{ system.attributes.inspiration }}"></button>
 
             <div>
                 {{!-- Resting & Special Traits --}}
                 {{#if actor.isOwner}}
                 <div class="sheet-header-buttons">
-                    <button type="button" class="short-rest gold-button" data-tooltip="DND5E.ShortRest"
-                            aria-label="{{ localize "DND5E.ShortRest" }}">
+                    <button type="button" class="short-rest gold-button" data-tooltip="SKJAALD.ShortRest"
+                            aria-label="{{ localize "SKJAALD.ShortRest" }}">
                         <i class="fas fa-utensils"></i>
                     </button>
-                    <button type="button" class="long-rest gold-button" data-tooltip="DND5E.LongRest"
-                            aria-label="{{ localize "DND5E.LongRest" }}">
+                    <button type="button" class="long-rest gold-button" data-tooltip="SKJAALD.LongRest"
+                            aria-label="{{ localize "SKJAALD.LongRest" }}">
                         <i class="fas fa-campground"></i>
                     </button>
                     <button type="button" class="config-button gold-button" data-action="flags"
-                            data-tooltip="DND5E.SpecialTraits" aria-label="{{ localize "DND5E.SpecialTraits" }}">
+                            data-tooltip="SKJAALD.SpecialTraits" aria-label="{{ localize "SKJAALD.SpecialTraits" }}">
                         <i class="fas fa-star"></i>
                     </button>
                 </div>
@@ -86,12 +86,12 @@
                     <input type="text" name="system.details.xp.value" class="value uninput" data-dtype="Number"
                            value="{{ value }}">
                     {{else}}
-                    <span class="value">{{ dnd5e-numberFormat value }}</span>
+                    <span class="value">{{ skjaald-numberFormat value }}</span>
                     {{/if}}
                     <span class="separator">&sol;</span>
-                    <span class="max">{{ dnd5e-numberFormat max }}</span>
+                    <span class="max">{{ skjaald-numberFormat max }}</span>
                 </div>
-                <div class="xp-bar" role="meter" aria-label="{{ localize "DND5E.ExperiencePointsLabel" }}"
+                <div class="xp-bar" role="meter" aria-label="{{ localize "SKJAALD.ExperiencePointsLabel" }}"
                      aria-valuemin="{{ min }}" aria-valuenow="{{ value }}" aria-valuemax="{{ max }}"
                      aria-valuetext="{{ pct }}%" style="--bar-percentage: {{ pct }}%;"></div>
                 {{/with}}
@@ -126,13 +126,13 @@
                     <div class="portrait {{#if portrait.token}}token{{/if}}">
                         {{#if editable}}
                         <label class="slide-toggle roboto-upper">
-                            <input type="checkbox" name="flags.dnd5e.showTokenPortrait" {{ checked portrait.token }}>
+                            <input type="checkbox" name="flags.skjaald.showTokenPortrait" {{ checked portrait.token }}>
                             {{#if portrait.token}}
                             <i class="fas fa-toggle-on"></i>
                             {{ localize "DOCUMENT.Token" }}
                             {{else}}
                             <i class="fas fa-toggle-off"></i>
-                            {{ localize "DND5E.Portrait" }}
+                            {{ localize "SKJAALD.Portrait" }}
                             {{/if}}
                         </label>
                         {{/if}}
@@ -154,14 +154,14 @@
                             </div>
 
                             {{!-- AC --}}
-                            <div class="ac" aria-label="{{ localize "DND5E.ArmorClass" }}">
+                            <div class="ac" aria-label="{{ localize "SKJAALD.ArmorClass" }}">
                                 {{#if editable}}
-                                <a class="config-button" data-action="armor" data-tooltip="DND5E.ArmorConfig"
-                                   aria-label="{{ localize "DND5E.ArmorConfig" }}">
+                                <a class="config-button" data-action="armor" data-tooltip="SKJAALD.ArmorConfig"
+                                   aria-label="{{ localize "SKJAALD.ArmorConfig" }}">
                                     <i class="fas fa-cog"></i>
                                 </a>
                                 {{else}}
-                                <div data-attribution="attributes.ac" data-attribution-caption="DND5E.ArmorClass"
+                                <div data-attribution="attributes.ac" data-attribution-caption="SKJAALD.ArmorClass"
                                      data-tooltip-direction="DOWN">
                                     {{ system.attributes.ac.value }}
                                 </div>
@@ -184,24 +184,24 @@
                                 <div class="value">
                                     {{#if editable}}
                                     <a class="config-button" data-action="initiative"
-                                       data-tooltip="DND5E.InitiativeConfig"
-                                       aria-label="{{ localize "DND5E.InitiativeConfig" }}">
+                                       data-tooltip="SKJAALD.InitiativeConfig"
+                                       aria-label="{{ localize "SKJAALD.InitiativeConfig" }}">
                                         <i class="fas fa-cog"></i>
                                     </a>
                                     {{else}}
                                     <span>
-                                        {{ dnd5e-numberFormat system.attributes.init.total signDisplay="always" }}
+                                        {{ skjaald-numberFormat system.attributes.init.total signDisplay="always" }}
                                     </span>
                                     {{/if}}
                                 </div>
-                                <div class="label roboto-condensed-upper">{{ localize "DND5E.Initiative" }}</div>
+                                <div class="label roboto-condensed-upper">{{ localize "SKJAALD.Initiative" }}</div>
                             </div>
 
                             {{!-- Speed --}}
                             <div class="lozenge" data-attribution="attributes.movement">
                                 <div class="value">
                                     {{#if editable}}
-                                    <a class="config-button" data-action="movement" data-tooltip="DND5E.MovementConfig">
+                                    <a class="config-button" data-action="movement" data-tooltip="SKJAALD.MovementConfig">
                                         <i class="fas fa-cog"></i>
                                     </a>
                                     {{else}}
@@ -214,19 +214,19 @@
                             {{!-- Proficiency --}}
                             <div class="lozenge">
                                 <div class="value">
-                                    {{ dnd5e-numberFormat system.attributes.prof signDisplay="always" }}
+                                    {{ skjaald-numberFormat system.attributes.prof signDisplay="always" }}
                                 </div>
-                                <div class="label roboto-condensed-upper">{{ localize "DND5E.Proficiency" }}</div>
+                                <div class="label roboto-condensed-upper">{{ localize "SKJAALD.Proficiency" }}</div>
                             </div>
                         </div>
 
                         {{!-- Hit Points --}}
                         <div class="meter-group">
                             <div class="label roboto-condensed-upper">
-                                <span>{{ localize "DND5E.HitPoints" }}</span>
+                                <span>{{ localize "SKJAALD.HitPoints" }}</span>
                                 {{#if editable}}
-                                <a class="config-button" data-action="hitPoints" data-tooltip="DND5E.HitPointsConfig"
-                                   aria-label="{{ localize "DND5E.HitPointsConfig" }}">
+                                <a class="config-button" data-action="hitPoints" data-tooltip="SKJAALD.HitPointsConfig"
+                                   aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
                                     <i class="fas fa-cog"></i>
                                 </a>
                                 {{/if}}
@@ -243,7 +243,7 @@
                                         <span class="separator">&sol;</span>
                                         <span class="max">{{ effectiveMax }}</span>
                                         {{#if tempmax}}
-                                        <span class="bonus">{{dnd5e-numberFormat tempmax signDisplay="always"}}</span>
+                                        <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
                                         {{/if}}
                                     </div>
                                     <input type="text" name="system.attributes.hp.value" data-dtype="Number"
@@ -251,7 +251,7 @@
                                 </div>
                                 <div class="tmp">
                                     <input type="text" name="system.attributes.hp.temp" data-dtype="Number"
-                                           placeholder="{{ localize "DND5E.TMP" }}" value="{{ temp }}">
+                                           placeholder="{{ localize "SKJAALD.TMP" }}" value="{{ temp }}">
                                 </div>
                             </div>
                             {{/with}}
@@ -260,10 +260,10 @@
                         {{!-- Hit Dice --}}
                         <div class="meter-group">
                             <div class="label roboto-condensed-upper">
-                                <span>{{ localize "DND5E.HitDice" }}</span>
+                                <span>{{ localize "SKJAALD.HitDice" }}</span>
                                 {{#if editable}}
-                                <a class="config-button" data-action="hitDice" data-tooltip="DND5E.HitDiceConfig"
-                                   aria-label="{{ localize "DND5E.HitDiceConfig" }}">
+                                <a class="config-button" data-action="hitDice" data-tooltip="SKJAALD.HitDiceConfig"
+                                   aria-label="{{ localize "SKJAALD.HitDiceConfig" }}">
                                     <i class="fas fa-cog"></i>
                                 </a>
                                 {{/if}}
@@ -292,10 +292,10 @@
                             </div>
 
                             {{!-- Roll Death Save --}}
-                            <button type="button" data-action="rollDeathSave" data-tooltip="DND5E.DeathSaveRoll"
-                                    aria-label="{{ localize "DND5E.DeathSaveRoll" }}"
+                            <button type="button" data-action="rollDeathSave" data-tooltip="SKJAALD.DeathSaveRoll"
+                                    aria-label="{{ localize "SKJAALD.DeathSaveRoll" }}"
                                     class="{{ rollableClass }} death-save unbutton">
-                                <dnd5e-icon src="systems/dnd5e/icons/svg/statuses/dead.svg"></dnd5e-icon>
+                                <skjaald-icon src="systems/skjaald/icons/svg/statuses/dead.svg"></skjaald-icon>
                             </button>
 
                             {{!-- Failures --}}
@@ -309,9 +309,9 @@
 
                         <button type="button" class="death-tab card-tab horizontal unbutton interface-only"
                                 {{#if death.open}}
-                                    data-tooltip="DND5E.DeathSaveShow" aria-label="{{ localize "DND5E.DeathSaveShow" }}"
+                                    data-tooltip="SKJAALD.DeathSaveShow" aria-label="{{ localize "SKJAALD.DeathSaveShow" }}"
                                 {{else}}
-                                    data-tooltip="DND5E.DeathSaveHide" aria-label="{{ localize "DND5E.DeathSaveHide" }}"
+                                    data-tooltip="SKJAALD.DeathSaveHide" aria-label="{{ localize "SKJAALD.DeathSaveHide" }}"
                                 {{/if}}>
                             <i class="fas fa-skull"></i>
                         </button>
@@ -323,7 +323,7 @@
                 <div class="favorites">
                     <h3 class="icon">
                         <i class="fas fa-star"></i>
-                        <span class="roboto-upper">{{ localize "DND5E.Favorites" }}</span>
+                        <span class="roboto-upper">{{ localize "SKJAALD.Favorites" }}</span>
                     </h3>
                     <ul class="unlist">
                         {{#each favorites}}
@@ -346,8 +346,8 @@
                                 {{!-- Favorite Deletion --}}
                                 {{#if @root.editable}}
                                 <a class="deletion-control" data-action="removeFavorite" data-tooltip-class
-                                   data-tooltip-direction data-tooltip="DND5E.FavoriteRemove"
-                                   aria-label="{{ localize "DND5E.FavoriteRemove" }}">
+                                   data-tooltip-direction data-tooltip="SKJAALD.FavoriteRemove"
+                                   aria-label="{{ localize "SKJAALD.FavoriteRemove" }}">
                                     <i class="fas fa-circle-xmark"></i>
                                 </a>
                                 {{/if}}
@@ -455,7 +455,7 @@
                         {{/each}}
 
                         {{!-- Drop Indicator --}}
-                        <li class="drop roboto-upper">{{ localize "DND5E.FavoriteDrop" }}</li>
+                        <li class="drop roboto-upper">{{ localize "SKJAALD.FavoriteDrop" }}</li>
                     </ul>
                 </div>
             </div>
@@ -464,30 +464,30 @@
             <section class="tab-body">
 
                 {{!-- Character Details --}}
-                {{> "dnd5e.character-details" }}
+                {{> "skjaald.character-details" }}
 
                 {{!-- Inventory --}}
                 <div class="tab inventory" data-group="primary" data-tab="inventory">
-                    {{> "dnd5e.inventory2" sections=inventory }}
+                    {{> "skjaald.inventory2" sections=inventory }}
                 </div>
 
                 {{!-- Features --}}
                 <div class="tab features" data-group="primary" data-tab="features">
-                    {{> "dnd5e.character-features" sections=features }}
+                    {{> "skjaald.character-features" sections=features }}
                 </div>
 
                 {{!-- Spells --}}
                 <div class="tab spells" data-group="primary" data-tab="spells">
-                    {{> "dnd5e.character-spells" }}
+                    {{> "skjaald.character-spells" }}
                 </div>
 
                 {{!-- Effects --}}
                 <div class="tab effects" data-group="primary" data-tab="effects">
-                    {{> "dnd5e.active-effects2" }}
+                    {{> "skjaald.active-effects2" }}
                 </div>
 
                 {{!-- Biography --}}
-                {{~> "dnd5e.character-biography" ~}}
+                {{~> "skjaald.character-biography" ~}}
 
             </section>
 

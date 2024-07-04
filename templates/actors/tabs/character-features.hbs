@@ -2,7 +2,7 @@
 <section class="classes pills-lg {{#if @root.editable}}editing{{/if}}">
     {{#each classes as |cls|}}
     {{#if (eq cls.type "class")}}
-    {{#dnd5e-itemContext cls as |ctx|}}
+    {{#skjaald-itemContext cls as |ctx|}}
     <div class="class pill-lg" data-item-id="{{ cls.id }}" style="--underlay: url('{{ ctx.prefixedImage }}');">
         <div class="icons {{#if cls.subclass}}subclass{{/if}}">
             <img class="gold-icon item-tooltip" src="{{ cls.img }}" alt="{{ cls.name }}" data-action="edit"
@@ -14,14 +14,14 @@
             {{#if @root.editable}}
             <div class="controls">
                 <a class="deletion-control item-control item-action" data-action="delete"
-                   data-tooltip="DND5E.ItemDelete" data-item-id="{{ cls.id }}"
-                   aria-label="{{ localize "DND5E.ItemDelete" }}">
+                   data-tooltip="SKJAALD.ItemDelete" data-item-id="{{ cls.id }}"
+                   aria-label="{{ localize "SKJAALD.ItemDelete" }}">
                     <i class="fas fa-circle-xmark"></i>
                 </a>
                 {{#if cls.subclass}}
                 <a class="deletion-control item-control item-action" data-action="delete"
-                   data-tooltip="DND5E.ItemDelete" data-item-id="{{ cls.subclass.id }}"
-                   aria-label="{{ localize "DND5E.ItemDelete" }}">
+                   data-tooltip="SKJAALD.ItemDelete" data-item-id="{{ cls.subclass.id }}"
+                   aria-label="{{ localize "SKJAALD.ItemDelete" }}">
                     <i class="fas fa-circle-xmark"></i>
                 </a>
                 {{/if}}
@@ -41,7 +41,7 @@
                 {{#each ctx.availableLevels}}
                 <option value="{{ delta }}" {{ disabled this.disabled }}>
                     {{ level }}
-                    {{#if delta}}({{ dnd5e-numberFormat delta signDisplay="always"}}){{/if}}
+                    {{#if delta}}({{ skjaald-numberFormat delta signDisplay="always"}}){{/if}}
                 </option>
                 {{/each}}
                 {{/select}}
@@ -51,11 +51,11 @@
             {{/if}}
         </div>
     </div>
-    {{/dnd5e-itemContext}}
+    {{/skjaald-itemContext}}
     {{/if}}
     {{else}}
     <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="class">
-        {{ localize "DND5E.ClassAdd" }}
+        {{ localize "SKJAALD.ClassAdd" }}
     </div>
     {{/each}}
 </section>
@@ -64,16 +64,16 @@
 <{{elements.inventory}} class="inventory-element" v2>
 
     {{!-- Searching, Filtering, & Sorting --}}
-    <item-list-controls for="features" label="{{ localize "DND5E.FeatureSearch" }}" sort="toggle" group
-                        group-label="{{ localize "DND5E.FilterGroupOrigin" }}" collection="items">
+    <item-list-controls for="features" label="{{ localize "SKJAALD.FeatureSearch" }}" sort="toggle" group
+                        group-label="{{ localize "SKJAALD.FilterGroupOrigin" }}" collection="items">
         <datalist>
-            <option value="action">{{ localize "DND5E.Action" }}</option>
-            <option value="bonus">{{ localize "DND5E.BonusAction" }}</option>
-            <option value="reaction">{{ localize "DND5E.Reaction" }}</option>
-            <option value="sr">{{ localize "DND5E.ShortRest" }}</option>
-            <option value="lr">{{ localize "DND5E.LongRest" }}</option>
-            <option value="concentration">{{ localize "DND5E.Concentration" }}</option>
-            <option value="mgc">{{ localize "DND5E.Item.Property.Magical" }}</option>
+            <option value="action">{{ localize "SKJAALD.Action" }}</option>
+            <option value="bonus">{{ localize "SKJAALD.BonusAction" }}</option>
+            <option value="reaction">{{ localize "SKJAALD.Reaction" }}</option>
+            <option value="sr">{{ localize "SKJAALD.ShortRest" }}</option>
+            <option value="lr">{{ localize "SKJAALD.LongRest" }}</option>
+            <option value="concentration">{{ localize "SKJAALD.Concentration" }}</option>
+            <option value="mgc">{{ localize "SKJAALD.Item.Property.Magical" }}</option>
         </datalist>
     </item-list-controls>
 
@@ -82,20 +82,20 @@
 
         {{!-- Sections / Categories --}}
         {{#each sections}}
-        <div class="items-section card" {{ dnd5e-dataset dataset }}>
+        <div class="items-section card" {{ skjaald-dataset dataset }}>
 
             {{!-- Section Header --}}
             <div class="items-header header">
                 <h3 class="item-name">{{ localize label }}</h3>
-                <div class="item-header item-uses">{{ localize "DND5E.Uses" }}</div>
-                <div class="item-header item-recovery">{{ localize "DND5E.Recovery" }}</div>
+                <div class="item-header item-uses">{{ localize "SKJAALD.Uses" }}</div>
+                <div class="item-header item-recovery">{{ localize "SKJAALD.Recovery" }}</div>
                 <div class="item-header item-controls"></div>
             </div>
 
             {{!-- Section Contents --}}
             <ol class="item-list unlist">
                 {{#each items as |item|}}
-                {{#dnd5e-itemContext item as |ctx|}}
+                {{#skjaald-itemContext item as |ctx|}}
 
                 {{!-- Items --}}
                 <li class="item" data-item-id="{{ item.id }}" data-entry-id="{{ item.id }}"
@@ -116,7 +116,7 @@
                             {{#each item.labels.properties}}
                             {{#if icon}}
                             <span aria-label="{{ label }}">
-                                <dnd5e-icon src="{{ icon }}"></dnd5e-icon>
+                                <skjaald-icon src="{{ icon }}"></skjaald-icon>
                             </span>
                             {{/if}}
                             {{/each}}
@@ -145,21 +145,21 @@
 
                         {{#if @root.editable}}
                         {{!-- Editing --}}
-                        <a class="item-control item-action" data-action="edit" data-tooltip="DND5E.ItemEdit"
-                           aria-label="{{ localize "DND5E.ItemEdit" }}">
+                        <a class="item-control item-action" data-action="edit" data-tooltip="SKJAALD.ItemEdit"
+                           aria-label="{{ localize "SKJAALD.ItemEdit" }}">
                             <i class="fas fa-pen-to-square"></i>
                         </a>
 
                         {{!-- Deleting --}}
-                        <a class="item-control item-action" data-action="delete" data-tooltip="DND5E.ItemDelete"
-                           aria-label="{{ localize "DND5E.ItemDelete" }}">
+                        <a class="item-control item-action" data-action="delete" data-tooltip="SKJAALD.ItemDelete"
+                           aria-label="{{ localize "SKJAALD.ItemDelete" }}">
                             <i class="fas fa-trash"></i>
                         </a>
                         {{/if}}
 
                         {{!-- Context Menu --}}
                         <a class="item-control interface-only" data-context-menu
-                           aria-label="{{ localize "DND5E.AdditionalControls" }}">
+                           aria-label="{{ localize "SKJAALD.AdditionalControls" }}">
                             <i class="fas fa-ellipsis-vertical"></i>
                         </a>
 
@@ -167,7 +167,7 @@
 
                 </li>
 
-                {{/dnd5e-itemContext}}
+                {{/skjaald-itemContext}}
                 {{/each}}
             </ol>
 

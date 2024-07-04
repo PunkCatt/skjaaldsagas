@@ -35,8 +35,8 @@ class AdvancementConfig extends FormApplication {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "advancement", "dialog"],
-      template: "systems/dnd5e/templates/advancement/advancement-config.hbs",
+      classes: ["skjaald", "advancement", "dialog"],
+      template: "systems/skjaald/templates/advancement/advancement-config.hbs",
       width: 400,
       height: "auto",
       submitOnChange: true,
@@ -60,7 +60,7 @@ class AdvancementConfig extends FormApplication {
   /** @inheritDoc */
   get title() {
     const type = this.advancement.constructor.metadata.title;
-    return `${game.i18n.format("DND5E.AdvancementConfigureTitle", { item: this.item.name })}: ${type}`;
+    return `${game.i18n.format("SKJAALD.AdvancementConfigureTitle", { item: this.item.name })}: ${type}`;
   }
 
   /* -------------------------------------------- */
@@ -75,12 +75,12 @@ class AdvancementConfig extends FormApplication {
 
   /** @inheritdoc */
   getData() {
-    const levels = Object.fromEntries(Array.fromRange(CONFIG.DND5E.maxLevel + 1).map(l => [l, l]));
+    const levels = Object.fromEntries(Array.fromRange(CONFIG.SKJAALD.maxLevel + 1).map(l => [l, l]));
     if ( ["class", "subclass"].includes(this.item.type) ) delete levels[0];
-    else levels[0] = game.i18n.localize("DND5E.AdvancementLevelAnyHeader");
+    else levels[0] = game.i18n.localize("SKJAALD.AdvancementLevelAnyHeader");
     const context = {
       appId: this.id,
-      CONFIG: CONFIG.DND5E,
+      CONFIG: CONFIG.SKJAALD,
       ...this.advancement.toObject(false),
       src: this.advancement.toObject(),
       default: {
@@ -211,13 +211,13 @@ class AdvancementConfig extends FormApplication {
 
     // Abort if this uuid is the parent item
     if ( item.uuid === this.item.uuid ) {
-      ui.notifications.error("DND5E.AdvancementItemGrantRecursiveWarning", {localize: true});
+      ui.notifications.error("SKJAALD.AdvancementItemGrantRecursiveWarning", {localize: true});
       return null;
     }
 
     // Abort if this uuid exists already
     if ( existingItems.find(i => i.uuid === item.uuid) ) {
-      ui.notifications.warn("DND5E.AdvancementItemGrantDuplicateWarning", {localize: true});
+      ui.notifications.warn("SKJAALD.AdvancementItemGrantDuplicateWarning", {localize: true});
       return null;
     }
 
@@ -285,7 +285,7 @@ class AdvancementFlow extends FormApplication {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/advancement/advancement-flow.hbs",
+      template: "systems/skjaald/templates/advancement/advancement-flow.hbs",
       popOut: false
     });
   }
@@ -440,7 +440,7 @@ class Proficiency {
    * @type {string}
    */
   get term() {
-    return (game.settings.get("dnd5e", "proficiencyModifier") === "dice") ? this.dice : String(this.flat);
+    return (game.settings.get("skjaald", "proficiencyModifier") === "dice") ? this.dice : String(this.flat);
   }
 
   /* -------------------------------------------- */
@@ -533,7 +533,7 @@ class SystemDataModel extends foundry.abstract.TypeDataModel {
 
   /**
    * @typedef {object} SystemDataModelMetadata
-   * @property {typeof DataModel} [systemFlagsModel]  Model that represents flags data within the dnd5e namespace.
+   * @property {typeof DataModel} [systemFlagsModel]  Model that represents flags data within the skjaald namespace.
    */
 
   /**
@@ -555,7 +555,7 @@ class SystemDataModel extends foundry.abstract.TypeDataModel {
     const schema = {};
     for ( const template of this._schemaTemplates ) {
       if ( !template.defineSchema ) {
-        throw new Error(`Invalid dnd5e template mixin ${template} defined on class ${this.constructor}`);
+        throw new Error(`Invalid skjaald template mixin ${template} defined on class ${this.constructor}`);
       }
       this.mergeSchema(schema, template.defineSchema());
     }
@@ -635,7 +635,7 @@ class SystemDataModel extends foundry.abstract.TypeDataModel {
     const actor = this.parent.actor;
     if ( (actor?.type !== "character") || !this.metadata?.singleton ) return;
     if ( actor.itemTypes[data.type]?.length ) {
-      ui.notifications.error(game.i18n.format("DND5E.ActorWarningSingleton", {
+      ui.notifications.error(game.i18n.format("SKJAALD.ActorWarningSingleton", {
         itemType: game.i18n.localize(CONFIG.Item.typeLabels[data.type]),
         actorType: game.i18n.localize(CONFIG.Actor.typeLabels[actor.type])
       }));
@@ -787,7 +787,7 @@ class ActorDataModel extends SystemDataModel {
    * @type {Actor5e[]}
    */
   get transferDestinations() {
-    const primaryParty = game.settings.get("dnd5e", "primaryParty")?.actor;
+    const primaryParty = game.settings.get("skjaald", "primaryParty")?.actor;
     if ( !primaryParty?.system.members.ids.has(this.parent.id) ) return [];
     const destinations = primaryParty.system.members.map(m => m.actor).filter(a => a.isOwner && a !== this.parent);
     if ( primaryParty.isOwner ) destinations.unshift(primaryParty);
@@ -840,7 +840,7 @@ class ItemDataModel extends SystemDataModel {
    * The handlebars template for rendering item tooltips.
    * @type {string}
    */
-  static ITEM_TOOLTIP_TEMPLATE = "systems/dnd5e/templates/items/parts/item-tooltip.hbs";
+  static ITEM_TOOLTIP_TEMPLATE = "systems/skjaald/templates/items/parts/item-tooltip.hbs";
 
   /* -------------------------------------------- */
   /*  Data Preparation                            */
@@ -849,7 +849,7 @@ class ItemDataModel extends SystemDataModel {
   /** @inheritDoc */
   prepareBaseData() {
     if ( this.parent.isEmbedded ) {
-      const sourceId = this.parent.flags.dnd5e?.sourceId ?? this.parent._stats.compendiumSource
+      const sourceId = this.parent.flags.skjaald?.sourceId ?? this.parent._stats.compendiumSource
         ?? this.parent.flags.core?.sourceId;
       if ( sourceId ) this.parent.actor?.sourcedItems?.set(sourceId, this.parent);
     }
@@ -869,7 +869,7 @@ class ItemDataModel extends SystemDataModel {
       content: await renderTemplate(
         this.constructor.ITEM_TOOLTIP_TEMPLATE, await this.getCardData(enrichmentOptions)
       ),
-      classes: ["dnd5e2", "dnd5e-tooltip", "item-tooltip"]
+      classes: ["skjaald2", "skjaald-tooltip", "item-tooltip"]
     };
   }
 
@@ -895,8 +895,8 @@ class ItemDataModel extends SystemDataModel {
     const subtitle = [this.type?.label ?? game.i18n.localize(CONFIG.Item.typeLabels[this.parent.type])];
     const context = {
       name, type, img, price, weight, uses, school, materials, activation,
-      config: CONFIG.DND5E,
-      controlHints: game.settings.get("dnd5e", "controlHints"),
+      config: CONFIG.SKJAALD,
+      controlHints: game.settings.get("skjaald", "controlHints"),
       labels: foundry.utils.deepClone(this.parent.labels),
       tags: this.parent.labels?.components?.tags,
       subtitle: subtitle.filterJoin(" &bull; "),
@@ -922,7 +922,7 @@ class ItemDataModel extends SystemDataModel {
 
     if ( context.labels.duration ) {
       context.labels.concentrationDuration = properties?.has("concentration")
-        ? game.i18n.format("DND5E.ConcentrationDuration", {
+        ? game.i18n.format("SKJAALD.ConcentrationDuration", {
           duration: context.labels.duration.toLocaleLowerCase(game.i18n.lang)
         })
         : context.labels.duration;
@@ -1016,11 +1016,11 @@ class AdvancementField extends foundry.data.fields.ObjectField {
    * @returns {typeof BaseAdvancement|null}  The BaseAdvancement class, or null.
    */
   getModelForType(type) {
-    let config = CONFIG.DND5E.advancementTypes[type];
+    let config = CONFIG.SKJAALD.advancementTypes[type];
     if ( config?.prototype instanceof Advancement ) {
       foundry.utils.logCompatibilityWarning(
         "Advancement type configuration changed into an object with `documentClass` defining the advancement class.",
-        { since: "DnD5e 3.1", until: "DnD5e 3.3", once: true }
+        { since: "Skjaald 3.1", until: "Skjaald 3.3", once: true }
       );
       return config;
     }
@@ -1179,8 +1179,8 @@ class FormulaField extends foundry.data.fields.StringField {
 class IdentifierField extends foundry.data.fields.StringField {
   /** @override */
   _validateType(value) {
-    if ( !dnd5e.utils.validators.isValidIdentifier(value) ) {
-      throw new Error(game.i18n.localize("DND5E.IdentifierError"));
+    if ( !skjaald.utils.validators.isValidIdentifier(value) ) {
+      throw new Error(game.i18n.localize("SKJAALD.IdentifierError"));
     }
   }
 }
@@ -1442,14 +1442,14 @@ class BaseAdvancement extends SparseDataModel {
       configuration: new AdvancementDataField(this, {required: true}),
       value: new AdvancementDataField(this, {required: true}),
       level: new foundry.data.fields.NumberField({
-        integer: true, initial: this.metadata?.multiLevel ? undefined : 0, min: 0, label: "DND5E.Level"
+        integer: true, initial: this.metadata?.multiLevel ? undefined : 0, min: 0, label: "SKJAALD.Level"
       }),
-      title: new foundry.data.fields.StringField({initial: undefined, label: "DND5E.AdvancementCustomTitle"}),
+      title: new foundry.data.fields.StringField({initial: undefined, label: "SKJAALD.AdvancementCustomTitle"}),
       icon: new foundry.data.fields.FilePathField({
-        initial: undefined, categories: ["IMAGE"], label: "DND5E.AdvancementCustomIcon"
+        initial: undefined, categories: ["IMAGE"], label: "SKJAALD.AdvancementCustomIcon"
       }),
       classRestriction: new foundry.data.fields.StringField({
-        initial: undefined, choices: ["primary", "secondary"], label: "DND5E.AdvancementClassRestriction"
+        initial: undefined, choices: ["primary", "secondary"], label: "SKJAALD.AdvancementClassRestriction"
       })
     };
   }
@@ -1531,7 +1531,7 @@ class Advancement extends BaseAdvancement {
     return {
       order: 100,
       icon: "icons/svg/upgrade.svg",
-      title: game.i18n.localize("DND5E.AdvancementTitle"),
+      title: game.i18n.localize("SKJAALD.AdvancementTitle"),
       hint: "",
       multiLevel: false,
       validItemTypes: new Set(["background", "class", "race", "subclass"]),
@@ -1806,8 +1806,8 @@ class Advancement extends BaseAdvancement {
     if ( !source ) return null;
     return source.clone({
       _id: id ?? foundry.utils.randomID(),
-      "flags.dnd5e.sourceId": uuid,
-      "flags.dnd5e.advancementOrigin": `${this.item.id}.${this.id}`
+      "flags.skjaald.sourceId": uuid,
+      "flags.skjaald.advancementOrigin": `${this.item.id}.${this.id}`
     }, {keepId: true}).toObject();
   }
 }
@@ -1820,7 +1820,7 @@ class AbilityScoreImprovementConfig extends AdvancementConfig {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/advancement/ability-score-improvement-config.hbs"
+      template: "systems/skjaald/templates/advancement/ability-score-improvement-config.hbs"
     });
   }
 
@@ -1828,7 +1828,7 @@ class AbilityScoreImprovementConfig extends AdvancementConfig {
 
   /** @inheritdoc */
   getData() {
-    const abilities = Object.entries(CONFIG.DND5E.abilities).reduce((obj, [key, data]) => {
+    const abilities = Object.entries(CONFIG.SKJAALD.abilities).reduce((obj, [key, data]) => {
       if ( !this.advancement.canImprove(key) ) return obj;
       const fixed = this.advancement.configuration.fixed[key] ?? 0;
       obj[key] = {
@@ -1847,7 +1847,7 @@ class AbilityScoreImprovementConfig extends AdvancementConfig {
       points: {
         key: "points",
         name: "configuration.points",
-        label: game.i18n.localize("DND5E.AdvancementAbilityScoreImprovementPoints"),
+        label: game.i18n.localize("SKJAALD.AdvancementAbilityScoreImprovementPoints"),
         min: 0,
         value: this.advancement.configuration.points,
         canIncrease: true,
@@ -1907,7 +1907,7 @@ class AbilityScoreImprovementFlow extends AdvancementFlow {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       dragDrop: [{ dropSelector: "form" }],
-      template: "systems/dnd5e/templates/advancement/ability-score-improvement-flow.hbs"
+      template: "systems/skjaald/templates/advancement/ability-score-improvement-flow.hbs"
     });
   }
 
@@ -1926,7 +1926,7 @@ class AbilityScoreImprovementFlow extends AdvancementFlow {
   /** @inheritdoc */
   async getData() {
     const points = {
-      assigned: Object.keys(CONFIG.DND5E.abilities).reduce((assigned, key) => {
+      assigned: Object.keys(CONFIG.SKJAALD.abilities).reduce((assigned, key) => {
         if ( !this.advancement.canImprove(key) || this.advancement.configuration.fixed[key] ) return assigned;
         return assigned + (this.assignments[key] ?? 0);
       }, 0),
@@ -1937,7 +1937,7 @@ class AbilityScoreImprovementFlow extends AdvancementFlow {
 
     const formatter = new Intl.NumberFormat(game.i18n.lang, { signDisplay: "always" });
 
-    const abilities = Object.entries(CONFIG.DND5E.abilities).reduce((obj, [key, data]) => {
+    const abilities = Object.entries(CONFIG.SKJAALD.abilities).reduce((obj, [key, data]) => {
       if ( !this.advancement.canImprove(key) ) return obj;
       const ability = this.advancement.actor.system.abilities[key];
       const assignment = this.assignments[key] ?? 0;
@@ -1966,10 +1966,10 @@ class AbilityScoreImprovementFlow extends AdvancementFlow {
       feat: this.feat,
       staticIncrease: !this.advancement.configuration.points,
       pointCap: game.i18n.format(
-        `DND5E.AdvancementAbilityScoreImprovementCapDisplay.${pluralRules.select(points.cap)}`, {points: points.cap}
+        `SKJAALD.AdvancementAbilityScoreImprovementCapDisplay.${pluralRules.select(points.cap)}`, {points: points.cap}
       ),
       pointsRemaining: game.i18n.format(
-        `DND5E.AdvancementAbilityScoreImprovementPointsRemaining.${pluralRules.select(points.available)}`,
+        `SKJAALD.AdvancementAbilityScoreImprovementPointsRemaining.${pluralRules.select(points.available)}`,
         {points: points.available}
       )
     });
@@ -2081,13 +2081,13 @@ class AbilityScoreImprovementFlow extends AdvancementFlow {
     const item = await Item.implementation.fromDropData(data);
 
     if ( (item.type !== "feat") || (item.system.type.value !== "feat") ) {
-      ui.notifications.error("DND5E.AdvancementAbilityScoreImprovementFeatWarning", {localize: true});
+      ui.notifications.error("SKJAALD.AdvancementAbilityScoreImprovementFeatWarning", {localize: true});
       return null;
     }
 
     // If a feat has a level pre-requisite, make sure it is less than or equal to current character level
     if ( (item.system.prerequisites?.level ?? -Infinity) > this.advancement.actor.system.details.level ) {
-      ui.notifications.error(game.i18n.format("DND5E.AdvancementAbilityScoreImprovementFeatLevelWarning", {
+      ui.notifications.error(game.i18n.format("SKJAALD.AdvancementAbilityScoreImprovementFeatLevelWarning", {
         level: item.system.prerequisites.level
       }));
       return null;
@@ -2110,16 +2110,16 @@ class AbilityScoreImprovementConfigurationData extends foundry.abstract.DataMode
     return {
       points: new foundry.data.fields.NumberField({
         integer: true, min: 0, initial: 0,
-        label: "DND5E.AdvancementAbilityScoreImprovementPoints",
-        hint: "DND5E.AdvancementAbilityScoreImprovementPointsHint"
+        label: "SKJAALD.AdvancementAbilityScoreImprovementPoints",
+        hint: "SKJAALD.AdvancementAbilityScoreImprovementPointsHint"
       }),
       fixed: new MappingField(
         new foundry.data.fields.NumberField({nullable: false, integer: true, initial: 0}),
-        {label: "DND5E.AdvancementAbilityScoreImprovementFixed"}
+        {label: "SKJAALD.AdvancementAbilityScoreImprovementFixed"}
       ),
       cap: new foundry.data.fields.NumberField({
-        integer: true, min: 1, initial: 2, label: "DND5E.AdvancementAbilityScoreImprovementCap",
-        hint: "DND5E.AdvancementAbilityScoreImprovementCapHint"
+        integer: true, min: 1, initial: 2, label: "SKJAALD.AdvancementAbilityScoreImprovementCap",
+        hint: "SKJAALD.AdvancementAbilityScoreImprovementCapHint"
       })
     };
   }
@@ -2143,7 +2143,7 @@ class AbilityScoreImprovementValueData extends SparseDataModel {
         nullable: false, integer: true
       }), {required: false, initial: undefined}),
       feat: new MappingField(new foundry.data.fields.StringField(), {
-        required: false, initial: undefined, label: "DND5E.Feature.Feat"
+        required: false, initial: undefined, label: "SKJAALD.Feature.Feat"
       })
     };
   }
@@ -2162,9 +2162,9 @@ class AbilityScoreImprovementAdvancement extends Advancement {
         value: AbilityScoreImprovementValueData
       },
       order: 20,
-      icon: "systems/dnd5e/icons/svg/ability-score-improvement.svg",
-      title: game.i18n.localize("DND5E.AdvancementAbilityScoreImprovementTitle"),
-      hint: game.i18n.localize("DND5E.AdvancementAbilityScoreImprovementHint"),
+      icon: "systems/skjaald/icons/svg/ability-score-improvement.svg",
+      title: game.i18n.localize("SKJAALD.AdvancementAbilityScoreImprovementTitle"),
+      hint: game.i18n.localize("SKJAALD.AdvancementAbilityScoreImprovementHint"),
       apps: {
         config: AbilityScoreImprovementConfig,
         flow: AbilityScoreImprovementFlow
@@ -2192,7 +2192,7 @@ class AbilityScoreImprovementAdvancement extends Advancement {
    * @type {boolean}
    */
   get allowFeat() {
-    return (this.item.type === "class") && game.settings.get("dnd5e", "allowFeats");
+    return (this.item.type === "class") && game.settings.get("skjaald", "allowFeats");
   }
 
   /* -------------------------------------------- */
@@ -2224,7 +2224,7 @@ class AbilityScoreImprovementAdvancement extends Advancement {
    * @returns {boolean}
    */
   canImprove(ability) {
-    return CONFIG.DND5E.abilities[ability]?.improvement !== false;
+    return CONFIG.SKJAALD.abilities[ability]?.improvement !== false;
   }
 
   /* -------------------------------------------- */
@@ -2234,7 +2234,7 @@ class AbilityScoreImprovementAdvancement extends Advancement {
   /** @inheritdoc */
   titleForLevel(level, { configMode=false }={}) {
     if ( this.value.selected !== "feat" ) return this.title;
-    return game.i18n.localize("DND5E.Feature.Feat");
+    return game.i18n.localize("SKJAALD.Feature.Feat");
   }
 
   /* -------------------------------------------- */
@@ -2245,11 +2245,11 @@ class AbilityScoreImprovementAdvancement extends Advancement {
     if ( configMode ) {
       const entries = Object.entries(this.configuration.fixed).map(([key, value]) => {
         if ( !value ) return null;
-        const name = CONFIG.DND5E.abilities[key]?.label ?? key;
+        const name = CONFIG.SKJAALD.abilities[key]?.label ?? key;
         return `<span class="tag">${name} <strong>${formatter.format(value)}</strong></span>`;
       });
       if ( this.configuration.points ) entries.push(`<span class="tag">${
-        game.i18n.localize("DND5E.AdvancementAbilityScoreImprovementPoints")}: <strong>${
+        game.i18n.localize("SKJAALD.AdvancementAbilityScoreImprovementPoints")}: <strong>${
         this.configuration.points}</strong></span>`
       );
       return entries.filterJoin("\n");
@@ -2263,7 +2263,7 @@ class AbilityScoreImprovementAdvancement extends Advancement {
 
     else if ( (this.value.type === "asi") && this.value.assignments ) {
       return Object.entries(this.value.assignments).reduce((html, [key, value]) => {
-        const name = CONFIG.DND5E.abilities[key]?.label ?? key;
+        const name = CONFIG.SKJAALD.abilities[key]?.label ?? key;
         html += `<span class="tag">${name} <strong>${formatter.format(value)}</strong></span>\n`;
         return html;
       }, "");
@@ -2353,7 +2353,7 @@ class HitPointsConfig extends AdvancementConfig {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/advancement/hit-points-config.hbs"
+      template: "systems/skjaald/templates/advancement/hit-points-config.hbs"
     });
   }
 
@@ -2375,7 +2375,7 @@ class HitPointsFlow extends AdvancementFlow {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/advancement/hit-points-flow.hbs"
+      template: "systems/skjaald/templates/advancement/hit-points-flow.hbs"
     });
   }
 
@@ -2444,7 +2444,7 @@ class HitPointsFlow extends AdvancementFlow {
 
     this.form.querySelector(".rollResult")?.classList.add("error");
     const errorType = formData.value ? "Invalid" : "Empty";
-    throw new Advancement.ERROR(game.i18n.localize(`DND5E.AdvancementHitPoints${errorType}Error`));
+    throw new Advancement.ERROR(game.i18n.localize(`SKJAALD.AdvancementHitPoints${errorType}Error`));
   }
 
 }
@@ -2552,7 +2552,7 @@ function replaceFormulaData(formula, data, { item, property }={}) {
   });
   if ( (missingReferences.size > 0) && item.parent && property ) {
     const listFormatter = new Intl.ListFormat(game.i18n.lang, { style: "long", type: "conjunction" });
-    const message = game.i18n.format("DND5E.FormulaMissingReferenceWarn", {
+    const message = game.i18n.format("SKJAALD.FormulaMissingReferenceWarn", {
       property, name: item.name, references: listFormatter.format(missingReferences)
     });
     item.parent._preparationWarnings.push({ message, link: item.uuid, type: "warning" });
@@ -2707,12 +2707,12 @@ function getSceneTargets() {
  */
 function convertWeight(value, from, to) {
   if ( from === to ) return value;
-  const message = unit => `Weight unit ${unit} not defined in CONFIG.DND5E.weightUnits`;
-  if ( !CONFIG.DND5E.weightUnits[from] ) throw new Error(message(from));
-  if ( !CONFIG.DND5E.weightUnits[to] ) throw new Error(message(to));
+  const message = unit => `Weight unit ${unit} not defined in CONFIG.SKJAALD.weightUnits`;
+  if ( !CONFIG.SKJAALD.weightUnits[from] ) throw new Error(message(from));
+  if ( !CONFIG.SKJAALD.weightUnits[to] ) throw new Error(message(to));
   return value
-    * CONFIG.DND5E.weightUnits[from].conversion
-    / CONFIG.DND5E.weightUnits[to].conversion;
+    * CONFIG.SKJAALD.weightUnits[from].conversion
+    / CONFIG.SKJAALD.weightUnits[to].conversion;
 }
 
 /* -------------------------------------------- */
@@ -2739,54 +2739,54 @@ const validators = {
 /**
  * Define a set of template paths to pre-load. Pre-loaded templates are compiled and cached for fast access when
  * rendering. These paths will also be available as Handlebars partials by using the file name
- * (e.g. "dnd5e.actor-traits").
+ * (e.g. "skjaald.actor-traits").
  * @returns {Promise}
  */
 async function preloadHandlebarsTemplates() {
   const partials = [
     // Shared Partials
-    "systems/dnd5e/templates/shared/active-effects.hbs",
-    "systems/dnd5e/templates/shared/inventory.hbs",
-    "systems/dnd5e/templates/shared/inventory2.hbs",
-    "systems/dnd5e/templates/shared/active-effects2.hbs",
-    "systems/dnd5e/templates/apps/parts/trait-list.hbs",
+    "systems/skjaald/templates/shared/active-effects.hbs",
+    "systems/skjaald/templates/shared/inventory.hbs",
+    "systems/skjaald/templates/shared/inventory2.hbs",
+    "systems/skjaald/templates/shared/active-effects2.hbs",
+    "systems/skjaald/templates/apps/parts/trait-list.hbs",
 
     // Actor Sheet Partials
-    "systems/dnd5e/templates/actors/parts/actor-traits.hbs",
-    "systems/dnd5e/templates/actors/parts/actor-inventory.hbs",
-    "systems/dnd5e/templates/actors/parts/actor-features.hbs",
-    "systems/dnd5e/templates/actors/parts/actor-spellbook.hbs",
-    "systems/dnd5e/templates/actors/parts/actor-warnings.hbs",
-    "systems/dnd5e/templates/actors/tabs/character-details.hbs",
-    "systems/dnd5e/templates/actors/tabs/character-features.hbs",
-    "systems/dnd5e/templates/actors/tabs/character-spells.hbs",
-    "systems/dnd5e/templates/actors/tabs/character-biography.hbs",
-    "systems/dnd5e/templates/actors/tabs/group-members.hbs",
+    "systems/skjaald/templates/actors/parts/actor-traits.hbs",
+    "systems/skjaald/templates/actors/parts/actor-inventory.hbs",
+    "systems/skjaald/templates/actors/parts/actor-features.hbs",
+    "systems/skjaald/templates/actors/parts/actor-spellbook.hbs",
+    "systems/skjaald/templates/actors/parts/actor-warnings.hbs",
+    "systems/skjaald/templates/actors/tabs/character-details.hbs",
+    "systems/skjaald/templates/actors/tabs/character-features.hbs",
+    "systems/skjaald/templates/actors/tabs/character-spells.hbs",
+    "systems/skjaald/templates/actors/tabs/character-biography.hbs",
+    "systems/skjaald/templates/actors/tabs/group-members.hbs",
 
     // Item Sheet Partials
-    "systems/dnd5e/templates/items/parts/item-action.hbs",
-    "systems/dnd5e/templates/items/parts/item-activation.hbs",
-    "systems/dnd5e/templates/items/parts/item-advancement.hbs",
-    "systems/dnd5e/templates/items/parts/item-description.hbs",
-    "systems/dnd5e/templates/items/parts/item-mountable.hbs",
-    "systems/dnd5e/templates/items/parts/item-spellcasting.hbs",
-    "systems/dnd5e/templates/items/parts/item-source.hbs",
-    "systems/dnd5e/templates/items/parts/item-summary.hbs",
-    "systems/dnd5e/templates/items/parts/item-tooltip.hbs",
+    "systems/skjaald/templates/items/parts/item-action.hbs",
+    "systems/skjaald/templates/items/parts/item-activation.hbs",
+    "systems/skjaald/templates/items/parts/item-advancement.hbs",
+    "systems/skjaald/templates/items/parts/item-description.hbs",
+    "systems/skjaald/templates/items/parts/item-mountable.hbs",
+    "systems/skjaald/templates/items/parts/item-spellcasting.hbs",
+    "systems/skjaald/templates/items/parts/item-source.hbs",
+    "systems/skjaald/templates/items/parts/item-summary.hbs",
+    "systems/skjaald/templates/items/parts/item-tooltip.hbs",
 
     // Journal Partials
-    "systems/dnd5e/templates/journal/parts/journal-table.hbs",
+    "systems/skjaald/templates/journal/parts/journal-table.hbs",
 
     // Advancement Partials
-    "systems/dnd5e/templates/advancement/parts/advancement-ability-score-control.hbs",
-    "systems/dnd5e/templates/advancement/parts/advancement-controls.hbs",
-    "systems/dnd5e/templates/advancement/parts/advancement-spell-config.hbs"
+    "systems/skjaald/templates/advancement/parts/advancement-ability-score-control.hbs",
+    "systems/skjaald/templates/advancement/parts/advancement-controls.hbs",
+    "systems/skjaald/templates/advancement/parts/advancement-spell-config.hbs"
   ];
 
   const paths = {};
   for ( const path of partials ) {
     paths[path.replace(".hbs", ".html")] = path;
-    paths[`dnd5e.${path.split("/").pop().replace(".hbs", "")}`] = path;
+    paths[`skjaald.${path.split("/").pop().replace(".hbs", "")}`] = path;
   }
 
   return loadTemplates(paths);
@@ -2870,7 +2870,7 @@ function groupedSelectOptions(choices, options) {
  * @returns {string}
  */
 function itemContext(context, options) {
-  if ( arguments.length !== 2 ) throw new Error("#dnd5e-itemContext requires exactly one argument");
+  if ( arguments.length !== 2 ) throw new Error("#skjaald-itemContext requires exactly one argument");
   if ( foundry.utils.getType(context) === "function" ) context = context.call(this);
 
   const ctx = options.data.root.itemContext?.[context.id];
@@ -2899,8 +2899,8 @@ function concealSection(conceal, options) {
   </div>
   <div class="unidentified-notice">
       <div>
-          <strong>${game.i18n.localize("DND5E.Unidentified.Title")}</strong>
-          <p>${game.i18n.localize("DND5E.Unidentified.Notice")}</p>
+          <strong>${game.i18n.localize("SKJAALD.Unidentified.Title")}</strong>
+          <p>${game.i18n.localize("SKJAALD.Unidentified.Notice")}</p>
       </div>
   </div>`;
   return content;
@@ -2914,13 +2914,13 @@ function concealSection(conceal, options) {
 function registerHandlebarsHelpers() {
   Handlebars.registerHelper({
     getProperty: foundry.utils.getProperty,
-    "dnd5e-concealSection": concealSection,
-    "dnd5e-dataset": dataset,
-    "dnd5e-groupedSelectOptions": groupedSelectOptions,
-    "dnd5e-linkForUuid": (uuid, options) => linkForUuid(uuid, options.hash),
-    "dnd5e-itemContext": itemContext,
-    "dnd5e-numberFormat": (context, options) => formatNumber(context, options.hash),
-    "dnd5e-textFormat": formatText
+    "skjaald-concealSection": concealSection,
+    "skjaald-dataset": dataset,
+    "skjaald-groupedSelectOptions": groupedSelectOptions,
+    "skjaald-linkForUuid": (uuid, options) => linkForUuid(uuid, options.hash),
+    "skjaald-itemContext": itemContext,
+    "skjaald-numberFormat": (context, options) => formatNumber(context, options.hash),
+    "skjaald-textFormat": formatText
   });
 }
 
@@ -2937,7 +2937,7 @@ const _preLocalizationRegistrations = {};
 
 /**
  * Mark the provided config key to be pre-localized during the init stage.
- * @param {string} configKeyPath          Key path within `CONFIG.DND5E` to localize.
+ * @param {string} configKeyPath          Key path within `CONFIG.SKJAALD` to localize.
  * @param {object} [options={}]
  * @param {string} [options.key]          If each entry in the config enum is an object,
  *                                        localize and sort using this property.
@@ -2954,7 +2954,7 @@ function preLocalize(configKeyPath, { key, keys=[], sort=false }={}) {
 
 /**
  * Execute previously defined pre-localization tasks on the provided config object.
- * @param {object} config  The `CONFIG.DND5E` object to localize and sort. *Will be mutated.*
+ * @param {object} config  The `CONFIG.SKJAALD` object to localize and sort. *Will be mutated.*
  */
 function performPreLocalization(config) {
   for ( const [keyPath, settings] of Object.entries(_preLocalizationRegistrations) ) {
@@ -3033,7 +3033,7 @@ function getHumanReadableAttributeLabel(attr, { actor }={}) {
   }
 
   if ( (attr === "details.xp.value") && (actor?.type === "npc") ) {
-    return game.i18n.localize("DND5E.ExperiencePointsValue");
+    return game.i18n.localize("SKJAALD.ExperiencePointsValue");
   }
 
   if ( attr.startsWith(".") && actor ) {
@@ -3046,36 +3046,36 @@ function getHumanReadableAttributeLabel(attr, { actor }={}) {
   if ( label ) return label;
 
   // Derived fields.
-  if ( attr === "attributes.init.total" ) label = "DND5E.InitiativeBonus";
-  else if ( attr === "attributes.ac.value" ) label = "DND5E.ArmorClass";
-  else if ( attr === "attributes.spelldc" ) label = "DND5E.SpellDC";
+  if ( attr === "attributes.init.total" ) label = "SKJAALD.InitiativeBonus";
+  else if ( attr === "attributes.ac.value" ) label = "SKJAALD.ArmorClass";
+  else if ( attr === "attributes.spelldc" ) label = "SKJAALD.SpellDC";
 
   // Abilities.
   else if ( attr.startsWith("abilities.") ) {
     const [, key] = attr.split(".");
-    label = game.i18n.format("DND5E.AbilityScoreL", { ability: CONFIG.DND5E.abilities[key].label });
+    label = game.i18n.format("SKJAALD.AbilityScoreL", { ability: CONFIG.SKJAALD.abilities[key].label });
   }
 
   // Skills.
   else if ( attr.startsWith("skills.") ) {
     const [, key] = attr.split(".");
-    label = game.i18n.format("DND5E.SkillPassiveScore", { skill: CONFIG.DND5E.skills[key].label });
+    label = game.i18n.format("SKJAALD.SkillPassiveScore", { skill: CONFIG.SKJAALD.skills[key].label });
   }
 
   // Spell slots.
   else if ( attr.startsWith("spells.") ) {
     const [, key] = attr.split(".");
-    if ( !/spell\d+/.test(key) ) label = `DND5E.SpellSlots${key.capitalize()}`;
+    if ( !/spell\d+/.test(key) ) label = `SKJAALD.SpellSlots${key.capitalize()}`;
     else {
       const plurals = new Intl.PluralRules(game.i18n.lang, {type: "ordinal"});
       const level = Number(key.slice(5));
-      label = game.i18n.format(`DND5E.SpellSlotsN.${plurals.select(level)}`, { n: level });
+      label = game.i18n.format(`SKJAALD.SpellSlotsN.${plurals.select(level)}`, { n: level });
     }
   }
 
   // Attempt to find the attribute in a data model.
   if ( !label ) {
-    const { CharacterData, NPCData, VehicleData, GroupData } = dnd5e.dataModels.actor;
+    const { CharacterData, NPCData, VehicleData, GroupData } = skjaald.dataModels.actor;
     for ( const model of [CharacterData, NPCData, VehicleData, GroupData] ) {
       const field = model.schema.getField(attr);
       if ( field ) {
@@ -3204,9 +3204,9 @@ class HitPointsAdvancement extends Advancement {
   static get metadata() {
     return foundry.utils.mergeObject(super.metadata, {
       order: 10,
-      icon: "systems/dnd5e/icons/svg/hit-points.svg",
-      title: game.i18n.localize("DND5E.AdvancementHitPointsTitle"),
-      hint: game.i18n.localize("DND5E.AdvancementHitPointsHint"),
+      icon: "systems/skjaald/icons/svg/hit-points.svg",
+      title: game.i18n.localize("SKJAALD.AdvancementHitPointsTitle"),
+      hint: game.i18n.localize("SKJAALD.AdvancementHitPointsHint"),
       multiLevel: true,
       apps: {
         config: HitPointsConfig,
@@ -3221,7 +3221,7 @@ class HitPointsAdvancement extends Advancement {
 
   /** @inheritdoc */
   get levels() {
-    return Array.fromRange(CONFIG.DND5E.maxLevel + 1).slice(1);
+    return Array.fromRange(CONFIG.SKJAALD.maxLevel + 1).slice(1);
   }
 
   /* -------------------------------------------- */
@@ -3334,7 +3334,7 @@ class HitPointsAdvancement extends Advancement {
    * @returns {number}      Hit points adjusted with ability modifier and per-level bonuses.
    */
   #getApplicableValue(value) {
-    const abilityId = CONFIG.DND5E.defaultAbilities.hitPoints || "con";
+    const abilityId = CONFIG.SKJAALD.defaultAbilities.hitPoints || "con";
     value = Math.max(value + (this.actor.system.abilities[abilityId]?.mod ?? 0), 1);
     value += simplifyBonus(this.actor.system.attributes.hp.bonuses?.level, this.actor.getRollData());
     return value;
@@ -3382,10 +3382,10 @@ class ItemChoiceConfig extends AdvancementConfig {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "advancement", "item-choice", "three-column"],
+      classes: ["skjaald", "advancement", "item-choice", "three-column"],
       dragDrop: [{ dropSelector: ".drop-target" }],
       dropKeyPath: "pool",
-      template: "systems/dnd5e/templates/advancement/item-choice-config.hbs",
+      template: "systems/skjaald/templates/advancement/item-choice-config.hbs",
       width: 780
     });
   }
@@ -3397,7 +3397,7 @@ class ItemChoiceConfig extends AdvancementConfig {
     const indexes = this.advancement.configuration.pool.map(i => fromUuidSync(i.uuid));
     const context = {
       ...super.getData(options),
-      abilities: Object.entries(CONFIG.DND5E.abilities).reduce((obj, [k, c]) => {
+      abilities: Object.entries(CONFIG.SKJAALD.abilities).reduce((obj, [k, c]) => {
         obj[k] = { label: c.label, selected: this.advancement.configuration.spell?.ability.has(k) ? "selected" : "" };
         return obj;
       }, {}),
@@ -3413,11 +3413,11 @@ class ItemChoiceConfig extends AdvancementConfig {
       return obj;
     }, {});
     if ( this.advancement.configuration.type === "feat" ) {
-      const selectedType = CONFIG.DND5E.featureTypes[this.advancement.configuration.restriction.type];
+      const selectedType = CONFIG.SKJAALD.featureTypes[this.advancement.configuration.restriction.type];
       context.typeRestriction = {
-        typeLabel: game.i18n.localize("DND5E.ItemFeatureType"),
-        typeOptions: CONFIG.DND5E.featureTypes,
-        subtypeLabel: game.i18n.format("DND5E.ItemFeatureSubtype", {category: selectedType?.label}),
+        typeLabel: game.i18n.localize("SKJAALD.ItemFeatureType"),
+        typeOptions: CONFIG.SKJAALD.featureTypes,
+        subtypeLabel: game.i18n.format("SKJAALD.ItemFeatureSubtype", {category: selectedType?.label}),
         subtypeOptions: selectedType?.subtypes
       };
     }
@@ -3725,11 +3725,11 @@ function _innerLabel(data, config) {
 
 /**
  * Get the key path to the specified trait on an actor.
- * @param {string} trait  Trait as defined in `CONFIG.DND5E.traits`.
+ * @param {string} trait  Trait as defined in `CONFIG.SKJAALD.traits`.
  * @returns {string}      Key path to this trait's object within an actor's system data.
  */
 function actorKeyPath(trait) {
-  const traitConfig = CONFIG.DND5E.traits[trait];
+  const traitConfig = CONFIG.SKJAALD.traits[trait];
   if ( traitConfig.actorKeyPath ) return traitConfig.actorKeyPath;
   return `system.traits.${trait}`;
 }
@@ -3739,7 +3739,7 @@ function actorKeyPath(trait) {
 /**
  * Get the current trait values for the provided actor.
  * @param {Actor5e} actor  Actor from which to retrieve the values.
- * @param {string} trait   Trait as defined in `CONFIG.DND5E.traits`.
+ * @param {string} trait   Trait as defined in `CONFIG.SKJAALD.traits`.
  * @returns {Object<number>}
  */
 async function actorValues(actor, trait) {
@@ -3770,14 +3770,14 @@ async function actorValues(actor, trait) {
 /**
  * Calculate the change key path for a provided trait key.
  * @param {string} key      Key for a trait to set.
- * @param {string} [trait]  Trait as defined in `CONFIG.DND5E.traits`, only needed if key isn't prefixed.
+ * @param {string} [trait]  Trait as defined in `CONFIG.SKJAALD.traits`, only needed if key isn't prefixed.
  * @returns {string|void}
  */
 function changeKeyPath(key, trait) {
   const split = key.split(":");
   if ( !trait ) trait = split.shift();
 
-  const traitConfig = CONFIG.DND5E.traits[trait];
+  const traitConfig = CONFIG.SKJAALD.traits[trait];
   if ( !traitConfig ) return;
 
   let keyPath = actorKeyPath(trait);
@@ -3797,18 +3797,18 @@ function changeKeyPath(key, trait) {
 
 /**
  * Build up a trait structure containing all of the children gathered from config & base items.
- * @param {string} trait       Trait as defined in `CONFIG.DND5E.traits`.
+ * @param {string} trait       Trait as defined in `CONFIG.SKJAALD.traits`.
  * @returns {Promise<object>}  Object with trait categories and children.
  */
 async function categories(trait) {
-  const traitConfig = CONFIG.DND5E.traits[trait];
-  const config = foundry.utils.deepClone(CONFIG.DND5E[traitConfig.configKey ?? trait]);
+  const traitConfig = CONFIG.SKJAALD.traits[trait];
+  const config = foundry.utils.deepClone(CONFIG.SKJAALD[traitConfig.configKey ?? trait]);
 
   for ( const key of Object.keys(config) ) {
     if ( foundry.utils.getType(config[key]) !== "Object" ) config[key] = { label: config[key] };
     if ( traitConfig.children?.[key] ) {
       const children = config[key].children ??= {};
-      for ( const [childKey, value] of Object.entries(CONFIG.DND5E[traitConfig.children[key]]) ) {
+      for ( const [childKey, value] of Object.entries(CONFIG.SKJAALD[traitConfig.children[key]]) ) {
         if ( foundry.utils.getType(value) !== "Object" ) children[childKey] = { label: value };
         else children[childKey] = { ...value };
       }
@@ -3816,11 +3816,11 @@ async function categories(trait) {
   }
 
   if ( traitConfig.subtypes ) {
-    const map = CONFIG.DND5E[`${trait}ProficienciesMap`];
+    const map = CONFIG.SKJAALD[`${trait}ProficienciesMap`];
 
     // Merge all ID lists together
     const ids = traitConfig.subtypes.ids.reduce((obj, key) => {
-      foundry.utils.mergeObject(obj, CONFIG.DND5E[key] ?? {});
+      foundry.utils.mergeObject(obj, CONFIG.SKJAALD[key] ?? {});
       return obj;
     }, {});
 
@@ -3856,7 +3856,7 @@ async function categories(trait) {
 
 /**
  * Get a list of choices for a specific trait.
- * @param {string} trait                      Trait as defined in `CONFIG.DND5E.traits`.
+ * @param {string} trait                      Trait as defined in `CONFIG.SKJAALD.traits`.
  * @param {object} [options={}]
  * @param {Set<string>} [options.chosen=[]]   Optional list of keys to be marked as chosen.
  * @param {boolean} [options.prefixed=false]  Should keys be prefixed with trait type?
@@ -3864,7 +3864,7 @@ async function categories(trait) {
  * @returns {Promise<SelectChoices>}          Object mapping proficiency ids to choice objects.
  */
 async function choices(trait, { chosen=new Set(), prefixed=false, any=false }={}) {
-  const traitConfig = CONFIG.DND5E.traits[trait];
+  const traitConfig = CONFIG.SKJAALD.traits[trait];
   if ( !traitConfig ) return new SelectChoices();
   if ( foundry.utils.getType(chosen) === "Array" ) chosen = new Set(chosen);
   const categoryData = await categories(trait);
@@ -3932,7 +3932,7 @@ async function mixedChoices(keys) {
 /**
  * Fetch an item for the provided ID. If the provided ID contains a compendium pack name
  * it will be fetched from that pack, otherwise it will be fetched from the compendium defined
- * in `DND5E.sourcePacks.ITEMS`.
+ * in `SKJAALD.sourcePacks.ITEMS`.
  * @param {string} identifier            Simple ID or compendium name and ID separated by a dot.
  * @param {object} [options]
  * @param {boolean} [options.indexOnly]  If set to true, only the index data will be fetched (will never return
@@ -3974,7 +3974,7 @@ function getBaseItem(identifier, { indexOnly=false, fullItem=false }={}) {
           foundry.utils.setProperty(entry, "system.type.value", val);
           foundry.utils.logCompatibilityWarning(
             `The '${field}' property has been deprecated in favor of a standardized \`system.type.value\` property.`,
-            { since: "DnD5e 3.0", until: "DnD5e 3.4", once: true }
+            { since: "Skjaald 3.0", until: "Skjaald 3.4", once: true }
           );
         }
       }
@@ -3997,7 +3997,7 @@ function getBaseItem(identifier, { indexOnly=false, fullItem=false }={}) {
  */
 function getBaseItemUUID(identifier) {
   if ( identifier.startsWith("Compendium.") ) return identifier;
-  let pack = CONFIG.DND5E.sourcePacks.ITEMS;
+  let pack = CONFIG.SKJAALD.sourcePacks.ITEMS;
   let [scope, collection, id] = identifier.split(".");
   if ( scope && collection ) pack = `${scope}.${collection}`;
   if ( !id ) id = identifier;
@@ -4013,7 +4013,7 @@ function getBaseItemUUID(identifier) {
  */
 function traitIndexFields() {
   const fields = ["system.type.value"];
-  for ( const traitConfig of Object.values(CONFIG.DND5E.traits) ) {
+  for ( const traitConfig of Object.values(CONFIG.SKJAALD.traits) ) {
     if ( !traitConfig.subtypes ) continue;
     fields.push(`system.${traitConfig.subtypes.keyPath}`);
   }
@@ -4026,15 +4026,15 @@ function traitIndexFields() {
 
 /**
  * Get the localized label for a specific trait type.
- * @param {string} trait    Trait as defined in `CONFIG.DND5E.traits`.
+ * @param {string} trait    Trait as defined in `CONFIG.SKJAALD.traits`.
  * @param {number} [count]  Count used to determine pluralization. If no count is provided, will default to
  *                          the 'other' pluralization.
  * @returns {string}        Localized label.
  */
 function traitLabel(trait, count) {
-  const traitConfig = CONFIG.DND5E.traits[trait];
+  const traitConfig = CONFIG.SKJAALD.traits[trait];
   const pluralRule = (count !== undefined) ? new Intl.PluralRules(game.i18n.lang).select(count) : "other";
-  if ( !traitConfig ) return game.i18n.localize(`DND5E.TraitGenericPlural.${pluralRule}`);
+  if ( !traitConfig ) return game.i18n.localize(`SKJAALD.TraitGenericPlural.${pluralRule}`);
   return game.i18n.localize(`${traitConfig.labels.localization}.${pluralRule}`);
 }
 
@@ -4046,7 +4046,7 @@ function traitLabel(trait, count) {
  * @param {string} key              Key for which to generate the label.
  * @param {object} [config={}]
  * @param {number} [config.count]   Number to display, only if a wildcard is used as final part of key.
- * @param {string} [config.trait]   Trait as defined in `CONFIG.DND5E.traits` if not using a prefixed key.
+ * @param {string} [config.trait]   Trait as defined in `CONFIG.SKJAALD.traits` if not using a prefixed key.
  * @param {boolean} [config.final]  Is this the final in a list?
  * @returns {string}                Retrieved label.
  *
@@ -4088,7 +4088,7 @@ function keyLabel(key, config={}) {
   if ( foundry.utils.getType(config) === "string" ) {
     foundry.utils.logCompatibilityWarning(
       "Trait.keyLabel(trait, key) is now Trait.keyLabel(key, { trait }).",
-      { since: "DnD5e 2.4", until: "DnD5e 3.1" }
+      { since: "Skjaald 2.4", until: "Skjaald 3.1" }
     );
     const tmp = config;
     config = { trait: key };
@@ -4100,9 +4100,9 @@ function keyLabel(key, config={}) {
   const pluralRules = new Intl.PluralRules(game.i18n.lang);
 
   if ( !trait ) trait = parts.shift();
-  const traitConfig = CONFIG.DND5E.traits[trait];
+  const traitConfig = CONFIG.SKJAALD.traits[trait];
   if ( !traitConfig ) return key;
-  const traitData = CONFIG.DND5E[traitConfig.configKey ?? trait] ?? {};
+  const traitData = CONFIG.SKJAALD[traitConfig.configKey ?? trait] ?? {};
   let categoryLabel = game.i18n.localize(`${traitConfig.labels.localization}.${
     pluralRules.select(count ?? 1)}`);
 
@@ -4121,7 +4121,7 @@ function keyLabel(key, config={}) {
       } while ( parts.length );
       type = _innerLabel(category, traitConfig);
     } else type = categoryLabel.toLowerCase();
-    const localization = `DND5E.TraitConfigChoose${final ? "Other" : `Any${count ? "Counted" : "Uncounted"}`}`;
+    const localization = `SKJAALD.TraitConfigChoose${final ? "Other" : `Any${count ? "Counted" : "Uncounted"}`}`;
     return game.i18n.format(localization, { count: count ?? 1, type });
   }
 
@@ -4132,13 +4132,13 @@ function keyLabel(key, config={}) {
 
     // Child (e.g. "Land Vehicle")
     for ( const childrenKey of Object.values(traitConfig.children ?? {}) ) {
-      const childLabel = CONFIG.DND5E[childrenKey]?.[lastKey];
+      const childLabel = CONFIG.SKJAALD[childrenKey]?.[lastKey];
       if ( childLabel ) return childLabel;
     }
 
     // Base item (e.g. "Shortsword")
     for ( const idsKey of traitConfig.subtypes?.ids ?? [] ) {
-      const baseItemId = CONFIG.DND5E[idsKey]?.[lastKey];
+      const baseItemId = CONFIG.SKJAALD[idsKey]?.[lastKey];
       if ( !baseItemId ) continue;
       const index = getBaseItem(baseItemId, { indexOnly: true });
       if ( index ) return index.name;
@@ -4215,7 +4215,7 @@ function choiceLabel(choice, { only=false, final=false }={}) {
 
   // Select from a list of options (e.g. "2 from Thieves' Tools or any skill proficiency")
   const choices = choice.pool.map(key => keyLabel(key));
-  return game.i18n.format("DND5E.TraitConfigChooseList", {
+  return game.i18n.format("SKJAALD.TraitConfigChooseList", {
     count: choice.count,
     list: listFormatter.format(choices)
   });
@@ -4252,7 +4252,7 @@ function localizedList({ grants=new Set(), choices=[] }) {
 
   const listFormatter = new Intl.ListFormat(game.i18n.lang, { style: "long", type: "conjunction" });
   if ( !sections.length || grants.size ) return listFormatter.format(sections);
-  return game.i18n.format("DND5E.TraitConfigChooseWrapper", {
+  return game.i18n.format("SKJAALD.TraitConfigChooseWrapper", {
     choices: listFormatter.format(sections)
   });
 }
@@ -4295,8 +4295,8 @@ var SystemFlagsMixin = Base => class extends Base {
   /** @inheritDoc */
   prepareData() {
     super.prepareData();
-    if ( ("dnd5e" in this.flags) && this._systemFlagsDataModel ) {
-      this.flags.dnd5e = new this._systemFlagsDataModel(this._source.flags.dnd5e, { parent: this });
+    if ( ("skjaald" in this.flags) && this._systemFlagsDataModel ) {
+      this.flags.skjaald = new this._systemFlagsDataModel(this._source.flags.skjaald, { parent: this });
     }
   }
 
@@ -4304,12 +4304,12 @@ var SystemFlagsMixin = Base => class extends Base {
 
   /** @inheritDoc */
   async setFlag(scope, key, value) {
-    if ( (scope === "dnd5e") && this._systemFlagsDataModel ) {
+    if ( (scope === "skjaald") && this._systemFlagsDataModel ) {
       let diff;
       const changes = foundry.utils.expandObject({ [key]: value });
-      if ( this.flags.dnd5e ) diff = this.flags.dnd5e.updateSource(changes, { dryRun: true });
+      if ( this.flags.skjaald ) diff = this.flags.skjaald.updateSource(changes, { dryRun: true });
       else diff = new this._systemFlagsDataModel(changes, { parent: this }).toObject();
-      return this.update({ flags: { dnd5e: diff } });
+      return this.update({ flags: { skjaald: diff } });
     }
     return super.setFlag(scope, key, value);
   }
@@ -4538,7 +4538,7 @@ async function d20Roll({
   // Attach original message ID to the message
   messageData = foundry.utils.expandObject(messageData);
   const messageId = event?.target.closest("[data-message-id]")?.dataset.messageId;
-  if ( messageId ) foundry.utils.setProperty(messageData, "flags.dnd5e.originatingMessage", messageId);
+  if ( messageId ) foundry.utils.setProperty(messageData, "flags.skjaald.originatingMessage", messageId);
 
   // Create a Chat Message
   if ( roll && chatMessage ) await roll.toMessage(messageData);
@@ -4616,8 +4616,8 @@ async function damageRoll({
   const {isCritical, isFF} = _determineCriticalMode({critical, fastForward, event});
   const rolls = [];
   flavor ??= title;
-  multiplyNumeric ??= game.settings.get("dnd5e", "criticalDamageModifiers");
-  powerfulCritical ??= game.settings.get("dnd5e", "criticalDamageMaxDice");
+  multiplyNumeric ??= game.settings.get("skjaald", "criticalDamageModifiers");
+  powerfulCritical ??= game.settings.get("skjaald", "criticalDamageMaxDice");
   critical = isFF ? isCritical : false;
   for ( const [index, { parts, type, properties }] of rollConfigs.entries() ) {
     const formula = parts.join(" + ");
@@ -4651,7 +4651,7 @@ async function damageRoll({
   // Attach original message ID to the message
   messageData = foundry.utils.expandObject(messageData);
   const messageId = event?.target.closest("[data-message-id]")?.dataset.messageId;
-  if ( messageId ) foundry.utils.setProperty(messageData, "flags.dnd5e.originatingMessage", messageId);
+  if ( messageId ) foundry.utils.setProperty(messageData, "flags.skjaald.originatingMessage", messageId);
 
   // Create a Chat Message
   if ( rolls?.length && chatMessage ) await CONFIG.Dice.DamageRoll.toMessage(rolls, messageData, { rollMode });
@@ -4720,8 +4720,8 @@ class ShortRestDialog extends Dialog {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/apps/short-rest.hbs",
-      classes: ["dnd5e", "dialog"],
+      template: "systems/skjaald/templates/apps/short-rest.hbs",
+      classes: ["skjaald", "dialog"],
       height: "auto"
     });
   }
@@ -4750,7 +4750,7 @@ class ShortRestDialog extends Dialog {
     }
 
     // Determine rest type
-    const variant = game.settings.get("dnd5e", "restVariant");
+    const variant = game.settings.get("skjaald", "restVariant");
     context.promptNewDay = variant !== "epic";     // It's never a new day when only resting 1 minute
     context.newDay = false;                        // It may be a new day, but not by default
     return context;
@@ -4793,11 +4793,11 @@ class ShortRestDialog extends Dialog {
   static async shortRestDialog({ actor }={}) {
     return new Promise((resolve, reject) => {
       const dlg = new this(actor, {
-        title: `${game.i18n.localize("DND5E.ShortRest")}: ${actor.name}`,
+        title: `${game.i18n.localize("SKJAALD.ShortRest")}: ${actor.name}`,
         buttons: {
           rest: {
             icon: '<i class="fas fa-bed"></i>',
-            label: game.i18n.localize("DND5E.Rest"),
+            label: game.i18n.localize("SKJAALD.Rest"),
             callback: html => {
               const formData = new FormDataExtended(html.find("form")[0]);
               resolve(formData.object);
@@ -4834,8 +4834,8 @@ class LongRestDialog extends Dialog {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/apps/long-rest.hbs",
-      classes: ["dnd5e", "dialog"]
+      template: "systems/skjaald/templates/apps/long-rest.hbs",
+      classes: ["skjaald", "dialog"]
     });
   }
 
@@ -4844,7 +4844,7 @@ class LongRestDialog extends Dialog {
   /** @inheritDoc */
   getData() {
     const context = super.getData();
-    const variant = game.settings.get("dnd5e", "restVariant");
+    const variant = game.settings.get("skjaald", "restVariant");
     context.isGroup = this.actor.type === "group";
     context.promptNewDay = variant !== "gritty";     // It's always a new day when resting 1 week
     context.newDay = variant === "normal";           // It's probably a new day when resting normally (8 hours)
@@ -4863,11 +4863,11 @@ class LongRestDialog extends Dialog {
   static async longRestDialog({ actor } = {}) {
     return new Promise((resolve, reject) => {
       const dlg = new this(actor, {
-        title: `${game.i18n.localize("DND5E.LongRest")}: ${actor.name}`,
+        title: `${game.i18n.localize("SKJAALD.LongRest")}: ${actor.name}`,
         buttons: {
           rest: {
             icon: '<i class="fas fa-bed"></i>',
-            label: game.i18n.localize("DND5E.Rest"),
+            label: game.i18n.localize("SKJAALD.Rest"),
             callback: html => {
               const formData = new FormDataExtended(html.find("form")[0]);
               resolve(formData.object);
@@ -4919,8 +4919,8 @@ class PropertyAttribution extends Application {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: "property-attribution",
-      classes: ["dnd5e", "property-attribution"],
-      template: "systems/dnd5e/templates/apps/property-attribution.hbs",
+      classes: ["skjaald", "property-attribution"],
+      template: "systems/skjaald/templates/apps/property-attribution.hbs",
       width: 320,
       height: "auto"
     });
@@ -4970,11 +4970,11 @@ class PropertyAttribution extends Application {
   getPropertyLabel(property) {
     const parts = property.split(".");
     if ( parts[0] === "abilities" && parts[1] ) {
-      return CONFIG.DND5E.abilities[parts[1]]?.label ?? property;
-    } else if ( (property === "attributes.ac.dex") && CONFIG.DND5E.abilities.dex ) {
-      return CONFIG.DND5E.abilities.dex.label;
+      return CONFIG.SKJAALD.abilities[parts[1]]?.label ?? property;
+    } else if ( (property === "attributes.ac.dex") && CONFIG.SKJAALD.abilities.dex ) {
+      return CONFIG.SKJAALD.abilities.dex.label;
     } else if ( (parts[0] === "prof") || (property === "attributes.prof") ) {
-      return game.i18n.localize("DND5E.Proficiency");
+      return game.i18n.localize("SKJAALD.Proficiency");
     }
     return property;
   }
@@ -5337,40 +5337,40 @@ class SummonsData extends foundry.abstract.DataModel {
     return {
       bonuses: new SchemaField$k({
         ac: new FormulaField({
-          label: "DND5E.Summoning.Bonuses.ArmorClass.Label", hint: "DND5E.Summoning.Bonuses.ArmorClass.hint"
+          label: "SKJAALD.Summoning.Bonuses.ArmorClass.Label", hint: "SKJAALD.Summoning.Bonuses.ArmorClass.hint"
         }),
         hd: new FormulaField({
-          label: "DND5E.Summoning.Bonuses.HitDice.Label", hint: "DND5E.Summoning.Bonuses.HitDice.hint"
+          label: "SKJAALD.Summoning.Bonuses.HitDice.Label", hint: "SKJAALD.Summoning.Bonuses.HitDice.hint"
         }),
         hp: new FormulaField({
-          label: "DND5E.Summoning.Bonuses.HitPoints.Label", hint: "DND5E.Summoning.Bonuses.HitPoints.hint"
+          label: "SKJAALD.Summoning.Bonuses.HitPoints.Label", hint: "SKJAALD.Summoning.Bonuses.HitPoints.hint"
         }),
         attackDamage: new FormulaField({
-          label: "DND5E.Summoning.Bonuses.Attack.Label", hint: "DND5E.Summoning.Bonuses.Attack.Hint"
+          label: "SKJAALD.Summoning.Bonuses.Attack.Label", hint: "SKJAALD.Summoning.Bonuses.Attack.Hint"
         }),
         saveDamage: new FormulaField({
-          label: "DND5E.Summoning.Bonuses.Saves.Label", hint: "DND5E.Summoning.Bonuses.Saves.Hint"
+          label: "SKJAALD.Summoning.Bonuses.Saves.Label", hint: "SKJAALD.Summoning.Bonuses.Saves.Hint"
         }),
         healing: new FormulaField({
-          label: "DND5E.Summoning.Bonuses.Healing.Label", hint: "DND5E.Summoning.Bonuses.Healing.Hint"
+          label: "SKJAALD.Summoning.Bonuses.Healing.Label", hint: "SKJAALD.Summoning.Bonuses.Healing.Hint"
         })
       }),
       classIdentifier: new IdentifierField(),
       creatureSizes: new SetField$9(new StringField$n(), {
-        label: "DND5E.Summoning.CreatureSizes.Label", hint: "DND5E.Summoning.CreatureSizes.Hint"
+        label: "SKJAALD.Summoning.CreatureSizes.Label", hint: "SKJAALD.Summoning.CreatureSizes.Hint"
       }),
       creatureTypes: new SetField$9(new StringField$n(), {
-        label: "DND5E.Summoning.CreatureTypes.Label", hint: "DND5E.Summoning.CreatureTypes.Hint"
+        label: "SKJAALD.Summoning.CreatureTypes.Label", hint: "SKJAALD.Summoning.CreatureTypes.Hint"
       }),
       match: new SchemaField$k({
         attacks: new BooleanField$e({
-          label: "DND5E.Summoning.Match.Attacks.Label", hint: "DND5E.Summoning.Match.Attacks.Hint"
+          label: "SKJAALD.Summoning.Match.Attacks.Label", hint: "SKJAALD.Summoning.Match.Attacks.Hint"
         }),
         proficiency: new BooleanField$e({
-          label: "DND5E.Summoning.Match.Proficiency.Label", hint: "DND5E.Summoning.Match.Proficiency.Hint"
+          label: "SKJAALD.Summoning.Match.Proficiency.Label", hint: "SKJAALD.Summoning.Match.Proficiency.Hint"
         }),
         saves: new BooleanField$e({
-          label: "DND5E.Summoning.Match.Saves.Label", hint: "DND5E.Summoning.Match.Saves.Hint"
+          label: "SKJAALD.Summoning.Match.Saves.Label", hint: "SKJAALD.Summoning.Match.Saves.Hint"
         })
       }),
       profiles: new ArrayField$8(new SchemaField$k({
@@ -5384,7 +5384,7 @@ class SummonsData extends foundry.abstract.DataModel {
         uuid: new StringField$n()
       })),
       prompt: new BooleanField$e({
-        initial: true, label: "DND5E.Summoning.Prompt.Label", hint: "DND5E.Summoning.Prompt.Hint"
+        initial: true, label: "SKJAALD.Summoning.Prompt.Label", hint: "SKJAALD.Summoning.Prompt.Hint"
       })
     };
   }
@@ -5398,7 +5398,7 @@ class SummonsData extends foundry.abstract.DataModel {
    * @type {boolean}
    */
   static get canSummon() {
-    return game.user.can("TOKEN_CREATE") && (game.user.isGM || game.settings.get("dnd5e", "allowSummoning"));
+    return game.user.can("TOKEN_CREATE") && (game.user.isGM || game.settings.get("skjaald", "allowSummoning"));
   }
 
   get canSummon() {
@@ -5440,7 +5440,7 @@ class SummonsData extends foundry.abstract.DataModel {
   get summonedCreatures() {
     if ( !this.item.actor ) return [];
     return SummonsData.summonedCreatures(this.item.actor)
-      .filter(i => i?.getFlag("dnd5e", "summon.origin") === this.item.uuid);
+      .filter(i => i?.getFlag("skjaald", "summon.origin") === this.item.uuid);
   }
 
   /* -------------------------------------------- */
@@ -5465,26 +5465,26 @@ class SummonsData extends foundry.abstract.DataModel {
 
     const profile = this.profiles.find(p => p._id === profileId);
     if ( !profile ) {
-      throw new Error(game.i18n.format("DND5E.Summoning.Warning.NoProfile", { profileId, item: this.item.name }));
+      throw new Error(game.i18n.format("SKJAALD.Summoning.Warning.NoProfile", { profileId, item: this.item.name }));
     }
 
     /**
      * A hook event that fires before summoning is performed.
-     * @function dnd5e.preSummon
+     * @function skjaald.preSummon
      * @memberof hookEvents
      * @param {Item5e} item               The item that is performing the summoning.
      * @param {SummonsProfile} profile    Profile used for summoning.
      * @param {SummoningOptions} options  Additional summoning options.
      * @returns {boolean}                 Explicitly return `false` to prevent summoning.
      */
-    if ( Hooks.call("dnd5e.preSummon", this.item, profile, options) === false ) return;
+    if ( Hooks.call("skjaald.preSummon", this.item, profile, options) === false ) return;
 
     // Fetch the actor that will be summoned
     const actor = await this.fetchActor(profile.uuid);
 
     // Verify ownership of actor
     if ( !actor.isOwner ) {
-      throw new Error(game.i18n.format("DND5E.Summoning.Warning.NoOwnership", { actor: actor.name }));
+      throw new Error(game.i18n.format("SKJAALD.Summoning.Warning.NoOwnership", { actor: actor.name }));
     }
 
     const tokensData = [];
@@ -5505,7 +5505,7 @@ class SummonsData extends foundry.abstract.DataModel {
         /**
          * A hook event that fires before a specific token is summoned. After placement has been determined but before
          * the final token data is constructed.
-         * @function dnd5e.preSummonToken
+         * @function skjaald.preSummonToken
          * @memberof hookEvents
          * @param {Item5e} item               The item that is performing the summoning.
          * @param {SummonsProfile} profile    Profile used for summoning.
@@ -5513,21 +5513,21 @@ class SummonsData extends foundry.abstract.DataModel {
          * @param {SummoningOptions} options  Additional summoning options.
          * @returns {boolean}                 Explicitly return `false` to prevent this token from being summoned.
          */
-        if ( Hooks.call("dnd5e.preSummonToken", this.item, profile, tokenUpdateData, options) === false ) continue;
+        if ( Hooks.call("skjaald.preSummonToken", this.item, profile, tokenUpdateData, options) === false ) continue;
 
         // Create a token document and apply updates
         const tokenData = await this.getTokenData(tokenUpdateData);
 
         /**
          * A hook event that fires after token creation data is prepared, but before summoning occurs.
-         * @function dnd5e.summonToken
+         * @function skjaald.summonToken
          * @memberof hookEvents
          * @param {Item5e} item               The item that is performing the summoning.
          * @param {SummonsProfile} profile    Profile used for summoning.
          * @param {object} tokenData          Data for creating a token.
          * @param {SummoningOptions} options  Additional summoning options.
          */
-        Hooks.callAll("dnd5e.summonToken", this.item, profile, tokenData, options);
+        Hooks.callAll("skjaald.summonToken", this.item, profile, tokenData, options);
 
         tokensData.push(tokenData);
       }
@@ -5539,14 +5539,14 @@ class SummonsData extends foundry.abstract.DataModel {
 
     /**
      * A hook event that fires when summoning is complete.
-     * @function dnd5e.postSummon
+     * @function skjaald.postSummon
      * @memberof hookEvents
      * @param {Item5e} item               The item that is performing the summoning.
      * @param {SummonsProfile} profile    Profile used for summoning.
      * @param {Token5e[]} tokens          Tokens that have been created.
      * @param {SummoningOptions} options  Additional summoning options.
      */
-    Hooks.callAll("dnd5e.postSummon", this.item, profile, createdTokens, options);
+    Hooks.callAll("skjaald.postSummon", this.item, profile, createdTokens, options);
   }
 
   /* -------------------------------------------- */
@@ -5558,36 +5558,36 @@ class SummonsData extends foundry.abstract.DataModel {
    */
   async fetchActor(uuid) {
     const actor = await fromUuid(uuid);
-    if ( !actor ) throw new Error(game.i18n.format("DND5E.Summoning.Warning.NoActor", { uuid }));
+    if ( !actor ) throw new Error(game.i18n.format("SKJAALD.Summoning.Warning.NoActor", { uuid }));
 
     const actorLink = actor.prototypeToken.actorLink;
-    if ( !actor.pack && (!actorLink || actor.getFlag("dnd5e", "summon.origin") === this.item.uuid )) return actor;
+    if ( !actor.pack && (!actorLink || actor.getFlag("skjaald", "summon.origin") === this.item.uuid )) return actor;
 
     // Search world actors to see if any usable summoned actor instances are present from prior summonings.
     // Linked actors must match the summoning origin (item) to be considered.
     const localActor = game.actors.find(a =>
       // Has been cloned for summoning use
-      a.getFlag("dnd5e", "summonedCopy")
+      a.getFlag("skjaald", "summonedCopy")
       // Sourced from the desired actor UUID
       && (a.getFlag("core", "sourceId") === uuid)
       // Unlinked or created from this item specifically
-      && ((a.getFlag("dnd5e", "summon.origin") === this.item.uuid) || !a.prototypeToken.actorLink)
+      && ((a.getFlag("skjaald", "summon.origin") === this.item.uuid) || !a.prototypeToken.actorLink)
     );
     if ( localActor ) return localActor;
 
     // Check permissions to create actors before importing
-    if ( !game.user.can("ACTOR_CREATE") ) throw new Error(game.i18n.localize("DND5E.Summoning.Warning.CreateActor"));
+    if ( !game.user.can("ACTOR_CREATE") ) throw new Error(game.i18n.localize("SKJAALD.Summoning.Warning.CreateActor"));
 
     // No suitable world actor was found, create a new actor for this summoning instance.
     if ( actor.pack ) {
       // Template actor resides only in compendium, import the actor into the world and set the flag.
       return game.actors.importFromCompendium(game.packs.get(actor.pack), actor.id, {
-        "flags.dnd5e.summonedCopy": true
+        "flags.skjaald.summonedCopy": true
       });
     } else {
       // Template actor (linked) found in world, create a copy for this user's item.
       return actor.clone({
-        "flags.dnd5e.summonedCopy": true,
+        "flags.skjaald.summonedCopy": true,
         "flags.core.sourceId": actor.uuid,
         "_stats.compendiumSource": actor.uuid
       }, {save: true});
@@ -5611,7 +5611,7 @@ class SummonsData extends foundry.abstract.DataModel {
     const prof = rollData.attributes?.prof ?? 0;
 
     // Add flags
-    actorUpdates["flags.dnd5e.summon"] = {
+    actorUpdates["flags.skjaald.summon"] = {
       level: this.relevantLevel,
       mod: rollData.mod,
       origin: this.item.uuid,
@@ -5621,7 +5621,7 @@ class SummonsData extends foundry.abstract.DataModel {
     // Match proficiency
     if ( this.match.proficiency ) {
       const proficiencyEffect = new ActiveEffect({
-        _id: staticID("dnd5eMatchProficiency"),
+        _id: staticID("skjaaldMatchProficiency"),
         changes: [{
           key: "system.attributes.prof",
           mode: CONST.ACTIVE_EFFECT_MODES.OVERRIDE,
@@ -5629,7 +5629,7 @@ class SummonsData extends foundry.abstract.DataModel {
         }],
         disabled: false,
         icon: "icons/skills/targeting/crosshair-bars-yellow.webp",
-        name: game.i18n.localize("DND5E.Summoning.Match.Proficiency.Label")
+        name: game.i18n.localize("SKJAALD.Summoning.Match.Proficiency.Label")
       });
       actorUpdates.effects.push(proficiencyEffect.toObject());
     }
@@ -5643,7 +5643,7 @@ class SummonsData extends foundry.abstract.DataModel {
           actorUpdates["system.attributes.ac.flat"] = (actor.system.attributes.ac.flat ?? 0) + acBonus.total;
         } else {
           actorUpdates.effects.push((new ActiveEffect({
-            _id: staticID("dnd5eACBonus"),
+            _id: staticID("skjaaldACBonus"),
             changes: [{
               key: "system.attributes.ac.bonus",
               mode: CONST.ACTIVE_EFFECT_MODES.ADD,
@@ -5651,7 +5651,7 @@ class SummonsData extends foundry.abstract.DataModel {
             }],
             disabled: false,
             icon: "icons/magic/defensive/shield-barrier-blue.webp",
-            name: game.i18n.localize("DND5E.Summoning.Bonuses.ArmorClass.Label")
+            name: game.i18n.localize("SKJAALD.Summoning.Bonuses.ArmorClass.Label")
           })).toObject());
         }
       }
@@ -5663,7 +5663,7 @@ class SummonsData extends foundry.abstract.DataModel {
       await hdBonus.evaluate();
       if ( hdBonus.total ) {
         actorUpdates.effects.push((new ActiveEffect({
-          _id: staticID("dnd5eHDBonus"),
+          _id: staticID("skjaaldHDBonus"),
           changes: [{
             key: "system.attributes.hd.max",
             mode: CONST.ACTIVE_EFFECT_MODES.ADD,
@@ -5671,7 +5671,7 @@ class SummonsData extends foundry.abstract.DataModel {
           }],
           disabled: false,
           icon: "icons/sundries/gaming/dice-runed-brown.webp",
-          name: game.i18n.localize("DND5E.Summoning.Bonuses.HitDice.Label")
+          name: game.i18n.localize("SKJAALD.Summoning.Bonuses.HitDice.Label")
         })).toObject());
       }
     }
@@ -5688,7 +5688,7 @@ class SummonsData extends foundry.abstract.DataModel {
         // Helper function for modifying max HP ('bonuses.overall' or 'max')
         const maxHpEffect = hpField => {
           return (new ActiveEffect({
-            _id: staticID("dnd5eHPBonus"),
+            _id: staticID("skjaaldHPBonus"),
             changes: [{
               key: `system.attributes.hp.${hpField}`,
               mode: CONST.ACTIVE_EFFECT_MODES.ADD,
@@ -5696,7 +5696,7 @@ class SummonsData extends foundry.abstract.DataModel {
             }],
             disabled: false,
             icon: "icons/magic/life/heart-glowing-red.webp",
-            name: game.i18n.localize("DND5E.Summoning.Bonuses.HitPoints.Label")
+            name: game.i18n.localize("SKJAALD.Summoning.Bonuses.HitPoints.Label")
           })).toObject();
         };
 
@@ -5718,7 +5718,7 @@ class SummonsData extends foundry.abstract.DataModel {
     // Change creature size
     if ( this.creatureSizes.size ) {
       const size = this.creatureSizes.has(options.creatureSize) ? options.creatureSize : this.creatureSizes.first();
-      const config = CONFIG.DND5E.actorSizes[size];
+      const config = CONFIG.SKJAALD.actorSizes[size];
       if ( config ) {
         actorUpdates["system.traits.size"] = size;
         tokenUpdates.width = config.token ?? 1;
@@ -5786,14 +5786,14 @@ class SummonsData extends foundry.abstract.DataModel {
 
       if ( changes.length ) {
         const effect = (new ActiveEffect({
-          _id: staticID("dnd5eItemChanges"),
+          _id: staticID("skjaaldItemChanges"),
           changes,
           disabled: false,
           icon: "icons/skills/melee/strike-slashes-orange.webp",
-          name: game.i18n.localize("DND5E.Summoning.ItemChanges.Label"),
+          name: game.i18n.localize("SKJAALD.Summoning.ItemChanges.Label"),
           origin: this.item.uuid,
           flags: {
-            dnd5e: { type: "enchantment" }
+            skjaald: { type: "enchantment" }
           }
         })).toObject();
         actorUpdates.items.push({ _id: item.id, effects: [effect] });
@@ -5816,7 +5816,7 @@ class SummonsData extends foundry.abstract.DataModel {
     // Ensure the token matches the final size
     if ( this.creatureSizes.size ) {
       const size = this.creatureSizes.has(options.creatureSize) ? options.creatureSize : this.creatureSizes.first();
-      const config = CONFIG.DND5E.actorSizes[size];
+      const config = CONFIG.SKJAALD.actorSizes[size];
       if ( config ) token = token.clone({ width: config.token ?? 1, height: config.token ?? 1 });
     }
 
@@ -5847,7 +5847,7 @@ class SummonsData extends foundry.abstract.DataModel {
     if ( actor.prototypeToken.randomImg && !game.user.can("FILES_BROWSE") ) {
       tokenUpdates.texture ??= {};
       tokenUpdates.texture.src ??= actor.img;
-      ui.notifications.warn("DND5E.Summoning.Warning.Wildcard", { localize: true });
+      ui.notifications.warn("SKJAALD.Summoning.Warning.Wildcard", { localize: true });
     }
 
     delete placement.prototypeToken;
@@ -6012,7 +6012,7 @@ class EnchantmentData extends foundry.abstract.DataModel {
    * @type {ActiveEffect5e[]}
    */
   get enchantments() {
-    return this.item.effects.filter(ae => ae.getFlag("dnd5e", "type") === "enchantment");
+    return this.item.effects.filter(ae => ae.getFlag("skjaald", "type") === "enchantment");
   }
 
   /* -------------------------------------------- */
@@ -6044,8 +6044,8 @@ class EnchantmentData extends foundry.abstract.DataModel {
    */
   static isEnchantmentSource(data) {
     return !this.isEnchantment(data)
-      && CONFIG.DND5E.featureTypes[data.type?.value]?.subtypes?.[data.type?.subtype]
-      && (data.type?.subtype in CONFIG.DND5E.featureTypes.enchantment.subtypes);
+      && CONFIG.SKJAALD.featureTypes[data.type?.value]?.subtypes?.[data.type?.subtype]
+      && (data.type?.subtype in CONFIG.SKJAALD.featureTypes.enchantment.subtypes);
   }
 
   /**
@@ -6084,8 +6084,8 @@ class EnchantmentData extends foundry.abstract.DataModel {
         : "details.level";
     const level = foundry.utils.getProperty(item.getRollData(), keyPath) ?? 0;
     return item.effects.filter(e => {
-      if ( (e.getFlag("dnd5e", "type") !== "enchantment") || e.isAppliedEnchantment ) return false;
-      const { min, max } = e.getFlag("dnd5e", "enchantment.level") ?? {};
+      if ( (e.getFlag("skjaald", "type") !== "enchantment") || e.isAppliedEnchantment ) return false;
+      const { min, max } = e.getFlag("skjaald", "enchantment.level") ?? {};
       return ((min ?? -Infinity) <= level) && (level <= (max ?? Infinity));
     });
   }
@@ -6101,11 +6101,11 @@ class EnchantmentData extends foundry.abstract.DataModel {
     const errors = [];
 
     if ( !this.restrictions.allowMagical && item.system.properties?.has("mgc") ) {
-      errors.push(new EnchantmentError(game.i18n.localize("DND5E.Enchantment.Warning.NoMagicalItems")));
+      errors.push(new EnchantmentError(game.i18n.localize("SKJAALD.Enchantment.Warning.NoMagicalItems")));
     }
 
     if ( this.restrictions.type && (item.type !== this.restrictions.type) ) {
-      errors.push(new EnchantmentError(game.i18n.format("DND5E.Enchantment.Warning.WrongType", {
+      errors.push(new EnchantmentError(game.i18n.format("SKJAALD.Enchantment.Warning.WrongType", {
         incorrectType: game.i18n.localize(CONFIG.Item.typeLabels[item.type]),
         allowedType: game.i18n.localize(CONFIG.Item.typeLabels[this.restrictions.type])
       })));
@@ -6184,8 +6184,8 @@ class ActiveEffect5e extends ActiveEffect {
    * @type {Record<string, string>}
    */
   static ID = {
-    ENCUMBERED: staticID("dnd5eencumbered"),
-    EXHAUSTION: staticID("dnd5eexhaustion")
+    ENCUMBERED: staticID("skjaaldencumbered"),
+    EXHAUSTION: staticID("skjaaldexhaustion")
   };
 
   /* -------------------------------------------- */
@@ -6213,7 +6213,7 @@ class ActiveEffect5e extends ActiveEffect {
    * @type {boolean}
    */
   get isAppliedEnchantment() {
-    return (this.getFlag("dnd5e", "type") === "enchantment")
+    return (this.getFlag("skjaald", "type") === "enchantment")
       && !!this.origin && (this.origin !== this.parent.uuid);
   }
 
@@ -6232,7 +6232,7 @@ class ActiveEffect5e extends ActiveEffect {
    * @returns {Promise<Actor5e|Item5e|null>}
    */
   async getSource() {
-    if ( (this.target instanceof dnd5e.documents.Actor5e) && (this.parent instanceof dnd5e.documents.Item5e) ) {
+    if ( (this.target instanceof skjaald.documents.Actor5e) && (this.parent instanceof skjaald.documents.Item5e) ) {
       return this.parent;
     }
     return fromUuid(this.origin);
@@ -6288,7 +6288,7 @@ class ActiveEffect5e extends ActiveEffect {
 
   /** @inheritdoc */
   apply(actor, change) {
-    if ( change.key.startsWith("flags.dnd5e.") ) change = this._prepareFlagChange(actor, change);
+    if ( change.key.startsWith("flags.skjaald.") ) change = this._prepareFlagChange(actor, change);
 
     // Determine type using DataField
     let field = change.key.startsWith("system.")
@@ -6452,7 +6452,7 @@ class ActiveEffect5e extends ActiveEffect {
    */
   _prepareFlagChange(actor, change) {
     const { key, value } = change;
-    const data = CONFIG.DND5E.characterFlags[key.replace("flags.dnd5e.", "")];
+    const data = CONFIG.SKJAALD.characterFlags[key.replace("flags.skjaald.", "")];
     if ( !data ) return change;
 
     // Set flag to initial value if it isn't present
@@ -6480,8 +6480,8 @@ class ActiveEffect5e extends ActiveEffect {
    */
   determineSuppression() {
     this.isSuppressed = false;
-    if ( this.getFlag("dnd5e", "type") === "enchantment" ) return;
-    if ( this.parent instanceof dnd5e.documents.Item5e ) this.isSuppressed = this.parent.areEffectsSuppressed;
+    if ( this.getFlag("skjaald", "type") === "enchantment" ) return;
+    if ( this.parent instanceof skjaald.documents.Item5e ) this.isSuppressed = this.parent.areEffectsSuppressed;
   }
 
   /* -------------------------------------------- */
@@ -6520,16 +6520,16 @@ class ActiveEffect5e extends ActiveEffect {
    * @protected
    */
   _prepareExhaustionLevel() {
-    const config = CONFIG.DND5E.conditionTypes.exhaustion;
-    let level = this.getFlag("dnd5e", "exhaustionLevel");
+    const config = CONFIG.SKJAALD.conditionTypes.exhaustion;
+    let level = this.getFlag("skjaald", "exhaustionLevel");
     if ( !Number.isFinite(level) ) level = 1;
     // TODO: Remove when v11 support is dropped.
     if ( game.release.version < 12 ) this.icon = this.constructor._getExhaustionImage(level);
     else this.img = this.constructor._getExhaustionImage(level);
-    this.name = `${game.i18n.localize("DND5E.Exhaustion")} ${level}`;
+    this.name = `${game.i18n.localize("SKJAALD.Exhaustion")} ${level}`;
     if ( level >= config.levels ) {
       this.statuses.add("dead");
-      CONFIG.DND5E.statusEffects.dead.statuses?.forEach(s => this.statuses.add(s));
+      CONFIG.SKJAALD.statusEffects.dead.statuses?.forEach(s => this.statuses.add(s));
     }
   }
 
@@ -6563,7 +6563,7 @@ class ActiveEffect5e extends ActiveEffect {
     if ( !riders.size ) return;
 
     const createRider = async id => {
-      const existing = this.parent.effects.get(staticID(`dnd5e${id}`));
+      const existing = this.parent.effects.get(staticID(`skjaald${id}`));
       if ( existing ) return;
       const effect = await ActiveEffect.implementation.fromStatusEffect(id);
       return ActiveEffect.implementation.create(effect, { parent: this.parent, keepId: true });
@@ -6581,11 +6581,11 @@ class ActiveEffect5e extends ActiveEffect {
     const origin = await fromUuid(this.origin);
 
     // Create Effects
-    const riderEffects = (this.getFlag("dnd5e", "enchantment.riders.effect") ?? []).map(id => {
+    const riderEffects = (this.getFlag("skjaald", "enchantment.riders.effect") ?? []).map(id => {
       const effectData = origin.effects.get(id)?.toObject();
       if ( effectData ) {
         delete effectData._id;
-        delete effectData.flags?.dnd5e?.rider;
+        delete effectData.flags?.skjaald?.rider;
         effectData.origin = this.origin;
       }
       return effectData;
@@ -6595,11 +6595,11 @@ class ActiveEffect5e extends ActiveEffect {
     // Create Items
     let createdItems = [];
     if ( this.parent.isEmbedded ) {
-      const riderItems = await Promise.all((this.getFlag("dnd5e", "enchantment.riders.item") ?? []).map(async uuid => {
+      const riderItems = await Promise.all((this.getFlag("skjaald", "enchantment.riders.item") ?? []).map(async uuid => {
         const itemData = (await fromUuid(uuid))?.toObject();
         if ( itemData ) {
           delete itemData._id;
-          foundry.utils.setProperty(itemData, "flags.dnd5e.enchantment", { origin: this.uuid });
+          foundry.utils.setProperty(itemData, "flags.skjaald.enchantment", { origin: this.uuid });
         }
         return itemData;
       }));
@@ -6619,8 +6619,8 @@ class ActiveEffect5e extends ActiveEffect {
     if ( options.keepOrigin === false ) this.updateSource({ origin: this.parent.uuid });
 
     // Enchantments cannot be added directly to actors
-    if ( (this.getFlag("dnd5e", "type") === "enchantment") && (this.parent instanceof Actor) ) {
-      ui.notifications.error("DND5E.Enchantment.Warning.NotOnActor", { localize: true });
+    if ( (this.getFlag("skjaald", "type") === "enchantment") && (this.parent instanceof Actor) ) {
+      ui.notifications.error("SKJAALD.Enchantment.Warning.NotOnActor", { localize: true });
       return false;
     }
 
@@ -6655,9 +6655,9 @@ class ActiveEffect5e extends ActiveEffect {
   /** @inheritDoc */
   _onUpdate(data, options, userId) {
     super._onUpdate(data, options, userId);
-    const originalLevel = foundry.utils.getProperty(options, "dnd5e.originalExhaustion");
-    const newLevel = foundry.utils.getProperty(data, "flags.dnd5e.exhaustionLevel");
-    const originalEncumbrance = foundry.utils.getProperty(options, "dnd5e.originalEncumbrance");
+    const originalLevel = foundry.utils.getProperty(options, "skjaald.originalExhaustion");
+    const newLevel = foundry.utils.getProperty(data, "flags.skjaald.exhaustionLevel");
+    const originalEncumbrance = foundry.utils.getProperty(options, "skjaald.originalEncumbrance");
     const newEncumbrance = data.statuses?.[0];
     const name = this.name;
 
@@ -6676,7 +6676,7 @@ class ActiveEffect5e extends ActiveEffect {
       if ( newEncumbrance === originalEncumbrance ) return;
       const increase = !originalEncumbrance || ((originalEncumbrance === "encumbered") && newEncumbrance)
         || (newEncumbrance === "exceedingCarryingCapacity");
-      if ( !increase ) this.name = CONFIG.DND5E.encumbrance.effects[originalEncumbrance].name;
+      if ( !increase ) this.name = CONFIG.SKJAALD.encumbrance.effects[originalEncumbrance].name;
       this._displayScrollingStatus(increase);
       this.name = name;
     }
@@ -6688,7 +6688,7 @@ class ActiveEffect5e extends ActiveEffect {
   async _preDelete(options, user) {
     const dependents = this.getDependents();
     if ( dependents.length && !game.users.activeGM ) {
-      ui.notifications.warn("DND5E.ConcentrationBreakWarning", { localize: true });
+      ui.notifications.warn("SKJAALD.ConcentrationBreakWarning", { localize: true });
       return false;
     }
     return super._preDelete(options, user);
@@ -6723,18 +6723,18 @@ class ActiveEffect5e extends ActiveEffect {
     const statusEffect = CONFIG.statusEffects.find(e => e.id === CONFIG.specialStatusEffects.CONCENTRATING);
     const effectData = foundry.utils.mergeObject({
       ...statusEffect,
-      name: `${game.i18n.localize("EFFECT.DND5E.StatusConcentrating")}: ${item.name}`,
-      description: game.i18n.format("DND5E.ConcentratingOn", {
+      name: `${game.i18n.localize("EFFECT.SKJAALD.StatusConcentrating")}: ${item.name}`,
+      description: game.i18n.format("SKJAALD.ConcentratingOn", {
         name: item.name,
         type: game.i18n.localize(`TYPES.Item.${item.type}`)
       }),
       duration: ActiveEffect5e.getEffectDurationFromItem(item),
-      "flags.dnd5e.itemData": item.actor.items.has(item.id) ? item.id : item.toObject(),
+      "flags.skjaald.itemData": item.actor.items.has(item.id) ? item.id : item.toObject(),
       origin: item.uuid,
       statuses: [statusEffect.id].concat(statusEffect.statuses ?? [])
     }, data, {inplace: false});
     delete effectData.id;
-    if ( item.type === "spell" ) effectData["flags.dnd5e.spellLevel"] = item.system.level;
+    if ( item.type === "spell" ) effectData["flags.skjaald.spellLevel"] = item.system.level;
 
     return effectData;
   }
@@ -6777,7 +6777,7 @@ class ActiveEffect5e extends ActiveEffect {
    * @returns {string}
    */
   static _getExhaustionImage(level) {
-    const split = CONFIG.DND5E.conditionTypes.exhaustion.icon.split(".");
+    const split = CONFIG.SKJAALD.conditionTypes.exhaustion.icon.split(".");
     const ext = split.pop();
     const path = split.join(".");
     return `${path}-${level}.${ext}`;
@@ -6837,7 +6837,7 @@ class ActiveEffect5e extends ActiveEffect {
     event.stopPropagation();
     if ( event.button === 0 ) level++;
     else level--;
-    const max = CONFIG.DND5E.conditionTypes.exhaustion.levels;
+    const max = CONFIG.SKJAALD.conditionTypes.exhaustion.levels;
     actor.update({ "system.attributes.exhaustion": Math.clamp(level, 0, max) });
   }
 
@@ -6858,16 +6858,16 @@ class ActiveEffect5e extends ActiveEffect {
       return;
     }
     const choices = effects.reduce((acc, effect) => {
-      const data = effect.getFlag("dnd5e", "itemData");
-      acc[effect.id] = data?.name ?? actor.items.get(data)?.name ?? game.i18n.localize("DND5E.ConcentratingItemless");
+      const data = effect.getFlag("skjaald", "itemData");
+      acc[effect.id] = data?.name ?? actor.items.get(data)?.name ?? game.i18n.localize("SKJAALD.ConcentratingItemless");
       return acc;
     }, {});
     const options = HandlebarsHelpers.selectOptions(choices, { hash: { sort: true } });
     const content = `
-    <form class="dnd5e">
-      <p>${game.i18n.localize("DND5E.ConcentratingEndChoice")}</p>
+    <form class="skjaald">
+      <p>${game.i18n.localize("SKJAALD.ConcentratingEndChoice")}</p>
       <div class="form-group">
-        <label>${game.i18n.localize("DND5E.Source")}</label>
+        <label>${game.i18n.localize("SKJAALD.Source")}</label>
         <div class="form-fields">
           <select name="source">${options}</select>
         </div>
@@ -6880,8 +6880,8 @@ class ActiveEffect5e extends ActiveEffect {
         if ( source ) actor.endConcentration(source);
       },
       rejectClose: false,
-      title: game.i18n.localize("DND5E.Concentration"),
-      label: game.i18n.localize("DND5E.Confirm")
+      title: game.i18n.localize("SKJAALD.Concentration"),
+      label: game.i18n.localize("SKJAALD.Confirm")
     });
   }
 
@@ -6893,9 +6893,9 @@ class ActiveEffect5e extends ActiveEffect {
    * @returns {Promise<ActiveEffect5e>}
    */
   addDependent(...dependent) {
-    const dependents = this.getFlag("dnd5e", "dependents") ?? [];
+    const dependents = this.getFlag("skjaald", "dependents") ?? [];
     dependents.push(...dependent.map(d => ({ uuid: d.uuid })));
-    return this.setFlag("dnd5e", "dependents", dependents);
+    return this.setFlag("skjaald", "dependents", dependents);
   }
 
   /* -------------------------------------------- */
@@ -6905,7 +6905,7 @@ class ActiveEffect5e extends ActiveEffect {
    * @returns {Array<ActiveEffect5e|Item5e>}
    */
   getDependents() {
-    return (this.getFlag("dnd5e", "dependents") || []).reduce((arr, { uuid }) => {
+    return (this.getFlag("skjaald", "dependents") || []).reduce((arr, { uuid }) => {
       const effect = fromUuidSync(uuid);
       if ( effect ) arr.push(effect);
       return arr;
@@ -6941,15 +6941,15 @@ class ActiveEffect5e extends ActiveEffect {
    */
   async richTooltip(enrichmentOptions={}) {
     const properties = [];
-    if ( this.isSuppressed ) properties.push("DND5E.EffectType.Unavailable");
-    else if ( this.disabled ) properties.push("DND5E.EffectType.Inactive");
-    else if ( this.isTemporary ) properties.push("DND5E.EffectType.Temporary");
-    else properties.push("DND5E.EffectType.Passive");
-    if ( this.getFlag("dnd5e", "type") === "enchantment" ) properties.push("DND5E.Enchantment.Label");
+    if ( this.isSuppressed ) properties.push("SKJAALD.EffectType.Unavailable");
+    else if ( this.disabled ) properties.push("SKJAALD.EffectType.Inactive");
+    else if ( this.isTemporary ) properties.push("SKJAALD.EffectType.Temporary");
+    else properties.push("SKJAALD.EffectType.Passive");
+    if ( this.getFlag("skjaald", "type") === "enchantment" ) properties.push("SKJAALD.Enchantment.Label");
 
     return {
       content: await renderTemplate(
-        "systems/dnd5e/templates/effects/parts/effect-tooltip.hbs", {
+        "systems/skjaald/templates/effects/parts/effect-tooltip.hbs", {
           effect: this,
           description: await TextEditor.enrichHTML(this.description ?? "", {
             async: true, relativeTo: this, ...enrichmentOptions
@@ -6958,7 +6958,7 @@ class ActiveEffect5e extends ActiveEffect {
           properties: properties.map(p => game.i18n.localize(p))
         }
       ),
-      classes: ["dnd5e2", "dnd5e-tooltip", "effect-tooltip"]
+      classes: ["skjaald2", "skjaald-tooltip", "effect-tooltip"]
     };
   }
 }
@@ -7024,8 +7024,8 @@ class AdvancementManager extends Application {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "advancement", "flow"],
-      template: "systems/dnd5e/templates/advancement/advancement-manager.hbs",
+      classes: ["skjaald", "advancement", "flow"],
+      template: "systems/skjaald/templates/advancement/advancement-manager.hbs",
       width: 460,
       height: "auto"
     });
@@ -7037,11 +7037,11 @@ class AdvancementManager extends Application {
   get title() {
     const visibleSteps = this.steps.filter(s => !s.automatic);
     const visibleIndex = visibleSteps.indexOf(this.step);
-    const step = visibleIndex < 0 ? "" : game.i18n.format("DND5E.AdvancementManagerSteps", {
+    const step = visibleIndex < 0 ? "" : game.i18n.format("SKJAALD.AdvancementManagerSteps", {
       current: visibleIndex + 1,
       total: visibleSteps.length
     });
-    return `${game.i18n.localize("DND5E.AdvancementManagerTitle")} ${step}`;
+    return `${game.i18n.localize("SKJAALD.AdvancementManagerTitle")} ${step}`;
   }
 
   /* -------------------------------------------- */
@@ -7379,7 +7379,7 @@ class AdvancementManager extends Application {
       actor: this.clone,
       flowId: this.step.flow.id,
       header: item.name,
-      subheader: level ? game.i18n.format("DND5E.AdvancementLevelHeader", { level }) : "",
+      subheader: level ? game.i18n.format("SKJAALD.AdvancementLevelHeader", { level }) : "",
       steps: {
         current: visibleIndex + 1,
         total: visibleSteps.length,
@@ -7405,11 +7405,11 @@ class AdvancementManager extends Application {
 
     /**
      * A hook event that fires when an AdvancementManager is about to be processed.
-     * @function dnd5e.preAdvancementManagerRender
+     * @function skjaald.preAdvancementManagerRender
      * @memberof hookEvents
      * @param {AdvancementManager} advancementManager The advancement manager about to be rendered
      */
-    const allowed = Hooks.call("dnd5e.preAdvancementManagerRender", this);
+    const allowed = Hooks.call("skjaald.preAdvancementManagerRender", this);
 
     // Abort if not allowed
     if ( allowed === false ) return this;
@@ -7470,17 +7470,17 @@ class AdvancementManager extends Application {
   async close(options={}) {
     if ( !options.skipConfirmation ) {
       return new Dialog({
-        title: `${game.i18n.localize("DND5E.AdvancementManagerCloseTitle")}: ${this.actor.name}`,
-        content: game.i18n.localize("DND5E.AdvancementManagerCloseMessage"),
+        title: `${game.i18n.localize("SKJAALD.AdvancementManagerCloseTitle")}: ${this.actor.name}`,
+        content: game.i18n.localize("SKJAALD.AdvancementManagerCloseMessage"),
         buttons: {
           close: {
             icon: '<i class="fas fa-times"></i>',
-            label: game.i18n.localize("DND5E.AdvancementManagerCloseButtonStop"),
+            label: game.i18n.localize("SKJAALD.AdvancementManagerCloseButtonStop"),
             callback: () => super.close(options)
           },
           continue: {
             icon: '<i class="fas fa-chevron-right"></i>',
-            label: game.i18n.localize("DND5E.AdvancementManagerCloseButtonContinue")
+            label: game.i18n.localize("SKJAALD.AdvancementManagerCloseButtonContinue")
           }
         },
         default: "close"
@@ -7590,8 +7590,8 @@ class AdvancementManager extends Application {
    */
   async _restart(event) {
     const restart = await Dialog.confirm({
-      title: game.i18n.localize("DND5E.AdvancementManagerRestartConfirmTitle"),
-      content: game.i18n.localize("DND5E.AdvancementManagerRestartConfirm")
+      title: game.i18n.localize("SKJAALD.AdvancementManagerRestartConfirmTitle"),
+      content: game.i18n.localize("SKJAALD.AdvancementManagerRestartConfirm")
     });
     if ( !restart ) return;
     // While there is still a renderable step.
@@ -7628,7 +7628,7 @@ class AdvancementManager extends Application {
     /**
      * A hook event that fires at the final stage of a character's advancement process, before actor and item updates
      * are applied.
-     * @function dnd5e.preAdvancementManagerComplete
+     * @function skjaald.preAdvancementManagerComplete
      * @memberof hookEvents
      * @param {AdvancementManager} advancementManager  The advancement manager.
      * @param {object} actorUpdates                    Updates to the actor.
@@ -7636,7 +7636,7 @@ class AdvancementManager extends Application {
      * @param {object[]} toUpdate                      Items that will be updated on the actor.
      * @param {string[]} toDelete                      IDs of items that will be deleted on the actor.
      */
-    if ( Hooks.call("dnd5e.preAdvancementManagerComplete", this, updates, toCreate, toUpdate, toDelete) === false ) {
+    if ( Hooks.call("skjaald.preAdvancementManagerComplete", this, updates, toCreate, toUpdate, toDelete) === false ) {
       console.log("AdvancementManager completion was prevented by the 'preAdvancementManagerComplete' hook.");
       return this.close({ skipConfirmation: true });
     }
@@ -7651,11 +7651,11 @@ class AdvancementManager extends Application {
 
     /**
      * A hook event that fires when an AdvancementManager is done modifying an actor.
-     * @function dnd5e.advancementManagerComplete
+     * @function skjaald.advancementManagerComplete
      * @memberof hookEvents
      * @param {AdvancementManager} advancementManager The advancement manager that just completed
      */
-    Hooks.callAll("dnd5e.advancementManagerComplete", this);
+    Hooks.callAll("skjaald.advancementManagerComplete", this);
 
     // Close prompt
     return this.close({ skipConfirmation: true });
@@ -7671,7 +7671,7 @@ class AdvancementConfirmationDialog extends Dialog {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/advancement/advancement-confirmation-dialog.hbs",
+      template: "systems/skjaald/templates/advancement/advancement-confirmation-dialog.hbs",
       jQuery: false
     });
   }
@@ -7686,8 +7686,8 @@ class AdvancementConfirmationDialog extends Dialog {
   static forDelete(item) {
     return this.createDialog(
       item,
-      game.i18n.localize("DND5E.AdvancementDeleteConfirmationTitle"),
-      game.i18n.localize("DND5E.AdvancementDeleteConfirmationMessage"),
+      game.i18n.localize("SKJAALD.AdvancementDeleteConfirmationTitle"),
+      game.i18n.localize("SKJAALD.AdvancementDeleteConfirmationMessage"),
       {
         icon: '<i class="fas fa-trash"></i>',
         label: game.i18n.localize("Delete")
@@ -7705,11 +7705,11 @@ class AdvancementConfirmationDialog extends Dialog {
   static forLevelDown(item) {
     return this.createDialog(
       item,
-      game.i18n.localize("DND5E.AdvancementLevelDownConfirmationTitle"),
-      game.i18n.localize("DND5E.AdvancementLevelDownConfirmationMessage"),
+      game.i18n.localize("SKJAALD.AdvancementLevelDownConfirmationTitle"),
+      game.i18n.localize("SKJAALD.AdvancementLevelDownConfirmationMessage"),
       {
         icon: '<i class="fas fa-sort-numeric-down-alt"></i>',
-        label: game.i18n.localize("DND5E.LevelActionDecrease")
+        label: game.i18n.localize("SKJAALD.LevelActionDecrease")
       }
     );
   }
@@ -7804,8 +7804,8 @@ class TraitConfig extends AdvancementConfig {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "advancement", "traits", "two-column"],
-      template: "systems/dnd5e/templates/advancement/trait-config.hbs",
+      classes: ["skjaald", "advancement", "traits", "two-column"],
+      template: "systems/skjaald/templates/advancement/trait-config.hbs",
       width: 640
     });
   }
@@ -7832,24 +7832,24 @@ class TraitConfig extends AdvancementConfig {
     context.count = context.choices[this.selected]?.data.count;
     context.selectedIndex = this.selected;
 
-    context.validTraitTypes = Object.entries(CONFIG.DND5E.traits).reduce((obj, [key, config]) => {
+    context.validTraitTypes = Object.entries(CONFIG.SKJAALD.traits).reduce((obj, [key, config]) => {
       if ( (this.config.mode === "default") || config.expertise ) obj[key] = config.labels.title;
       return obj;
     }, {});
 
     const rep = this.advancement.representedTraits();
-    const traitConfig = rep.size === 1 ? CONFIG.DND5E.traits[rep.first()] : null;
+    const traitConfig = rep.size === 1 ? CONFIG.SKJAALD.traits[rep.first()] : null;
     if ( traitConfig ) {
       context.default.title = traitConfig.labels.title;
       context.default.icon = traitConfig.icon;
     } else {
-      context.default.title = game.i18n.localize("DND5E.TraitGenericPlural.other");
+      context.default.title = game.i18n.localize("SKJAALD.TraitGenericPlural.other");
       context.default.icon = this.advancement.constructor.metadata.icon;
     }
     context.default.hint = localizedList({ grants: this.config.grants, choices: this.config.choices });
 
     context.choiceOptions = await choices(this.trait, { chosen, prefixed: true, any: this.selected !== -1 });
-    context.selectedTraitHeader = `${CONFIG.DND5E.traits[this.trait].labels.localization}.other`;
+    context.selectedTraitHeader = `${CONFIG.SKJAALD.traits[this.trait].labels.localization}.other`;
     context.selectedTrait = this.trait;
 
     return context;
@@ -7924,7 +7924,7 @@ class TraitConfig extends AdvancementConfig {
     if ( (event.target.name === "configuration.mode")
       && (event.target.value !== "default")
       && (this.config.mode === "default") ) {
-      const validTraitTypes = filteredKeys(CONFIG.DND5E.traits, c => c.expertise);
+      const validTraitTypes = filteredKeys(CONFIG.SKJAALD.traits, c => c.expertise);
       if ( !validTraitTypes.includes(this.trait) ) this.trait = validTraitTypes[0];
     }
 
@@ -7971,7 +7971,7 @@ class TraitConfig extends AdvancementConfig {
 
     // If one of the expertise modes is selected, filter out any traits that are not of a valid type
     if ( (configuration.mode ?? this.config.mode) !== "default" ) {
-      const validTraitTypes = filteredKeys(CONFIG.DND5E.traits, c => c.expertise);
+      const validTraitTypes = filteredKeys(CONFIG.SKJAALD.traits, c => c.expertise);
       configuration.grants = configuration.grants.filter(k => validTraitTypes.some(t => k.startsWith(t)));
       configuration.choices.forEach(c => c.pool = c.pool?.filter(k => validTraitTypes.some(t => k.startsWith(t))));
     }
@@ -7996,7 +7996,7 @@ class TraitFlow extends AdvancementFlow {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/advancement/trait-flow.hbs"
+      template: "systems/skjaald/templates/advancement/trait-flow.hbs"
     });
   }
 
@@ -8007,7 +8007,7 @@ class TraitFlow extends AdvancementFlow {
    * @type {TraitConfiguration}
    */
   get traitConfig() {
-    return CONFIG.DND5E.traits[this.advancement.configuration.type];
+    return CONFIG.SKJAALD.traits[this.advancement.configuration.type];
   }
 
   /* -------------------------------------------- */
@@ -8136,23 +8136,23 @@ class TraitFlow extends AdvancementFlow {
 class TraitConfigurationData extends foundry.abstract.DataModel {
   static defineSchema() {
     return {
-      hint: new foundry.data.fields.StringField({label: "DND5E.AdvancementHint"}),
-      mode: new foundry.data.fields.StringField({initial: "default", label: "DND5E.AdvancementTraitMode"}),
+      hint: new foundry.data.fields.StringField({label: "SKJAALD.AdvancementHint"}),
+      mode: new foundry.data.fields.StringField({initial: "default", label: "SKJAALD.AdvancementTraitMode"}),
       allowReplacements: new foundry.data.fields.BooleanField({
-        required: true, label: "DND5E.AdvancementTraitAllowReplacements",
-        hint: "DND5E.AdvancementTraitAllowReplacementsHint"
+        required: true, label: "SKJAALD.AdvancementTraitAllowReplacements",
+        hint: "SKJAALD.AdvancementTraitAllowReplacementsHint"
       }),
       grants: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
-        required: true, label: "DND5E.AdvancementTraitGrants"
+        required: true, label: "SKJAALD.AdvancementTraitGrants"
       }),
       choices: new foundry.data.fields.ArrayField(new foundry.data.fields.SchemaField({
         count: new foundry.data.fields.NumberField({
-          required: true, positive: true, integer: true, initial: 1, label: "DND5E.AdvancementTraitCount"
+          required: true, positive: true, integer: true, initial: 1, label: "SKJAALD.AdvancementTraitCount"
         }),
         pool: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
           required: false, label: "DOCUMENT.Items"
         })
-      }), {label: "DND5E.AdvancementTraitChoices"})
+      }), {label: "SKJAALD.AdvancementTraitChoices"})
     };
   }
 }
@@ -8184,9 +8184,9 @@ class TraitAdvancement extends Advancement {
         value: TraitValueData
       },
       order: 30,
-      icon: "systems/dnd5e/icons/svg/trait.svg",
-      title: game.i18n.localize("DND5E.AdvancementTraitTitle"),
-      hint: game.i18n.localize("DND5E.AdvancementTraitHint"),
+      icon: "systems/skjaald/icons/svg/trait.svg",
+      title: game.i18n.localize("SKJAALD.AdvancementTraitTitle"),
+      hint: game.i18n.localize("SKJAALD.AdvancementTraitHint"),
       apps: {
         config: TraitConfig,
         flow: TraitFlow
@@ -8215,7 +8215,7 @@ class TraitAdvancement extends Advancement {
    */
   prepareData() {
     const rep = this.representedTraits();
-    const traitConfig = rep.size === 1 ? CONFIG.DND5E.traits[rep.first()] : null;
+    const traitConfig = rep.size === 1 ? CONFIG.SKJAALD.traits[rep.first()] : null;
     this.title = this.title || traitConfig?.labels.title || this.constructor.metadata.title;
     this.icon = this.icon || traitConfig?.icon || this.constructor.metadata.icon;
   }
@@ -8233,8 +8233,8 @@ class TraitAdvancement extends Advancement {
 
   /** @inheritdoc */
   sortingValueForLevel(levels) {
-    const traitOrder = Object.keys(CONFIG.DND5E.traits).findIndex(k => k === this.representedTraits().first());
-    const modeOrder = Object.keys(CONFIG.DND5E.traitModes).findIndex(k => k === this.configuration.mode);
+    const traitOrder = Object.keys(CONFIG.SKJAALD.traits).findIndex(k => k === this.representedTraits().first());
+    const modeOrder = Object.keys(CONFIG.SKJAALD.traitModes).findIndex(k => k === this.configuration.mode);
     const order = traitOrder + (modeOrder * 100);
     return `${this.constructor.metadata.order.paddedString(4)} ${order.paddedString(4)} ${this.titleForLevel(levels)}`;
   }
@@ -8332,8 +8332,8 @@ class TraitAdvancement extends Advancement {
 
     // If "default" mode is selected, return all traits
     // If any other mode is selected, only return traits that support expertise
-    const traitTypes = this.configuration.mode === "default" ? Object.keys(CONFIG.DND5E.traits)
-      : filteredKeys(CONFIG.DND5E.traits, t => t.expertise);
+    const traitTypes = this.configuration.mode === "default" ? Object.keys(CONFIG.SKJAALD.traits)
+      : filteredKeys(CONFIG.SKJAALD.traits, t => t.expertise);
 
     for ( const trait$1 of traitTypes ) {
       const actorValues$1 = await actorValues(this.actor, trait$1);
@@ -8398,7 +8398,7 @@ class TraitAdvancement extends Advancement {
       const rep = this.representedTraits();
       return {
         choices: choices.filter(this.representedTraits().map(t => `${t}:*`), { inplace: false }),
-        label: game.i18n.format("DND5E.AdvancementTraitChoicesRemaining", {
+        label: game.i18n.format("SKJAALD.AdvancementTraitChoicesRemaining", {
           count: unfilteredLength,
           type: traitLabel(rep.size === 1 ? rep.first() : null, unfilteredLength)
         })
@@ -8420,7 +8420,7 @@ class TraitAdvancement extends Advancement {
     const rep = this.representedTraits(available.map(a => a.choices.asSet()));
     return {
       choices,
-      label: game.i18n.format("DND5E.AdvancementTraitChoicesRemaining", {
+      label: game.i18n.format("SKJAALD.AdvancementTraitChoicesRemaining", {
         count: available.length,
         type: traitLabel(rep.size === 1 ? rep.first() : null, available.length)
       })
@@ -8500,14 +8500,14 @@ const { SchemaField: SchemaField$i, StringField: StringField$l } = foundry.data.
 class SourceField extends SchemaField$i {
   constructor(fields={}, options={}) {
     fields = {
-      book: new StringField$l({label: "DND5E.SourceBook"}),
-      page: new StringField$l({label: "DND5E.SourcePage"}),
-      custom: new StringField$l({label: "DND5E.SourceCustom"}),
-      license: new StringField$l({label: "DND5E.SourceLicense"}),
+      book: new StringField$l({label: "SKJAALD.SourceBook"}),
+      page: new StringField$l({label: "SKJAALD.SourcePage"}),
+      custom: new StringField$l({label: "SKJAALD.SourceCustom"}),
+      license: new StringField$l({label: "SKJAALD.SourceLicense"}),
       ...fields
     };
     Object.entries(fields).forEach(([k, v]) => !v ? delete fields[k] : null);
-    super(fields, { label: "DND5E.Source", ...options });
+    super(fields, { label: "SKJAALD.Source", ...options });
   }
 
   /* -------------------------------------------- */
@@ -8520,8 +8520,8 @@ class SourceField extends SchemaField$i {
       get() {
         if ( this.custom ) return this.custom;
         const page = Number.isNumeric(this.page)
-          ? game.i18n.format("DND5E.SourcePageDisplay", { page: this.page }) : this.page;
-        return game.i18n.format("DND5E.SourceDisplay", { book: this.book ?? "", page: page ?? "" }).trim();
+          ? game.i18n.format("SKJAALD.SourcePageDisplay", { page: this.page }) : this.page;
+        return game.i18n.format("SKJAALD.SourceDisplay", { book: this.book ?? "", page: page ?? "" }).trim();
       },
       enumerable: false
     });
@@ -8529,7 +8529,7 @@ class SourceField extends SchemaField$i {
       value: () => {
         foundry.utils.logCompatibilityWarning(
           "Source has been converted to an object, the label can now be accessed using the `source#label` property.",
-          { since: "DnD5e 2.4", until: "DnD5e 3.1" }
+          { since: "Skjaald 2.4", until: "Skjaald 3.1" }
         );
         return obj.label;
       },
@@ -8562,8 +8562,8 @@ class ItemDescriptionTemplate extends SystemDataModel {
   static defineSchema() {
     return {
       description: new SchemaField$h({
-        value: new HTMLField$4({required: true, nullable: true, label: "DND5E.Description"}),
-        chat: new HTMLField$4({required: true, nullable: true, label: "DND5E.DescriptionChat"})
+        value: new HTMLField$4({required: true, nullable: true, label: "SKJAALD.Description"}),
+        chat: new HTMLField$4({required: true, nullable: true, label: "SKJAALD.DescriptionChat"})
       }),
       source: new SourceField()
     };
@@ -8600,7 +8600,7 @@ class ItemDescriptionTemplate extends SystemDataModel {
    * @returns {Set<string>}
    */
   get validProperties() {
-    return new Set(CONFIG.DND5E.validProperties[this.parent.type] ?? []);
+    return new Set(CONFIG.SKJAALD.validProperties[this.parent.type] ?? []);
   }
 }
 
@@ -8660,8 +8660,8 @@ class EquipmentEntryData extends foundry.abstract.DataModel {
    * @enum {string}
    */
   static GROUPING_TYPES = {
-    OR: "DND5E.StartingEquipment.Operator.OR",
-    AND: "DND5E.StartingEquipment.Operator.AND"
+    OR: "SKJAALD.StartingEquipment.Operator.OR",
+    AND: "SKJAALD.StartingEquipment.Operator.AND"
   };
 
   /**
@@ -8670,13 +8670,13 @@ class EquipmentEntryData extends foundry.abstract.DataModel {
    */
   static OPTION_TYPES = {
     // Category types
-    armor: "DND5E.StartingEquipment.Choice.Armor",
-    tool: "DND5E.StartingEquipment.Choice.Tool",
-    weapon: "DND5E.StartingEquipment.Choice.Weapon",
-    focus: "DND5E.StartingEquipment.Choice.Focus",
+    armor: "SKJAALD.StartingEquipment.Choice.Armor",
+    tool: "SKJAALD.StartingEquipment.Choice.Tool",
+    weapon: "SKJAALD.StartingEquipment.Choice.Weapon",
+    focus: "SKJAALD.StartingEquipment.Choice.Focus",
 
     // Generic item type
-    linked: "DND5E.StartingEquipment.SpecificItem"
+    linked: "SKJAALD.StartingEquipment.SpecificItem"
   };
 
   /**
@@ -8690,16 +8690,16 @@ class EquipmentEntryData extends foundry.abstract.DataModel {
   /* -------------------------------------------- */
 
   /**
-   * Where in `CONFIG.DND5E` to find the type category labels.
+   * Where in `CONFIG.SKJAALD` to find the type category labels.
    * @enum {{ label: string, config: string }}
    */
   static CATEGORIES = {
     armor: {
-      label: "DND5E.Armor",
+      label: "SKJAALD.Armor",
       config: "armorTypes"
     },
     focus: {
-      label: "DND5E.Focus.Label",
+      label: "SKJAALD.Focus.Label",
       config: "focusTypes"
     },
     tool: {
@@ -8723,7 +8723,7 @@ class EquipmentEntryData extends foundry.abstract.DataModel {
       type: new StringField$k({required: true, initial: "OR", choices: this.TYPES}),
       count: new NumberField$f({initial: undefined}),
       key: new StringField$k({initial: undefined}),
-      requiresProficiency: new BooleanField$c({label: "DND5E.StartingEquipment.Proficient.Label"})
+      requiresProficiency: new BooleanField$c({label: "SKJAALD.StartingEquipment.Proficient.Label"})
     };
   }
 
@@ -8770,9 +8770,9 @@ class EquipmentEntryData extends foundry.abstract.DataModel {
 
     if ( !label ) return;
     if ( this.count > 1 ) label = `${formatNumber(this.count)} ${label}`;
-    else if ( this.type !== "linked" ) label = game.i18n.format("DND5E.TraitConfigChooseAnyUncounted", { type: label });
+    else if ( this.type !== "linked" ) label = game.i18n.format("SKJAALD.TraitConfigChooseAnyUncounted", { type: label });
     if ( (this.type === "linked") && this.requiresProficiency ) {
-      label += ` (${game.i18n.localize("DND5E.StartingEquipment.IfProficient").toLowerCase()})`;
+      label += ` (${game.i18n.localize("SKJAALD.StartingEquipment.IfProficient").toLowerCase()})`;
     }
     return label;
   }
@@ -8798,7 +8798,7 @@ class EquipmentEntryData extends foundry.abstract.DataModel {
     let label = configEntry?.label ?? configEntry;
     if ( !label ) return this.blankLabel.toLowerCase();
 
-    if ( this.type === "weapon" ) label = game.i18n.format("DND5E.WeaponCategory", { category: label });
+    if ( this.type === "weapon" ) label = game.i18n.format("SKJAALD.WeaponCategory", { category: label });
     return label.toLowerCase();
   }
 
@@ -8809,8 +8809,8 @@ class EquipmentEntryData extends foundry.abstract.DataModel {
    * @returns {Record<string, string>}
    */
   get keyOptions() {
-    const config = foundry.utils.deepClone(CONFIG.DND5E[this.constructor.CATEGORIES[this.type]?.config]);
-    if ( this.type === "weapon" ) foundry.utils.mergeObject(config, CONFIG.DND5E.weaponTypes);
+    const config = foundry.utils.deepClone(CONFIG.SKJAALD[this.constructor.CATEGORIES[this.type]?.config]);
+    if ( this.type === "weapon" ) foundry.utils.mergeObject(config, CONFIG.SKJAALD.weaponTypes);
     return Object.entries(config).reduce((obj, [k, v]) => {
       obj[k] = foundry.utils.getType(v) === "Object" ? v.label : v;
       return obj;
@@ -8833,11 +8833,11 @@ const { ArrayField: ArrayField$6, NumberField: NumberField$e, SchemaField: Schem
  *
  * @property {string} identifier        Identifier slug for this class.
  * @property {number} levels            Current number of levels in this class.
- * @property {string} hitDice           Denomination of hit dice available as defined in `DND5E.hitDieTypes`.
+ * @property {string} hitDice           Denomination of hit dice available as defined in `SKJAALD.hitDieTypes`.
  * @property {number} hitDiceUsed       Number of hit dice consumed.
  * @property {object[]} advancement     Advancement objects for this class.
  * @property {object} spellcasting      Details on class's spellcasting ability.
- * @property {string} spellcasting.progression  Spell progression granted by class as from `DND5E.spellProgression`.
+ * @property {string} spellcasting.progression  Spell progression granted by class as from `SKJAALD.spellProgression`.
  * @property {string} spellcasting.ability      Ability score to use for spellcasting.
  * @property {string} wealth            Formula used to determine starting wealth.
  */
@@ -8845,25 +8845,25 @@ class ClassData extends ItemDataModel.mixin(ItemDescriptionTemplate, StartingEqu
   /** @inheritdoc */
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
-      identifier: new IdentifierField({required: true, label: "DND5E.Identifier"}),
+      identifier: new IdentifierField({required: true, label: "SKJAALD.Identifier"}),
       levels: new NumberField$e({
-        required: true, nullable: false, integer: true, min: 0, initial: 1, label: "DND5E.ClassLevels"
+        required: true, nullable: false, integer: true, min: 0, initial: 1, label: "SKJAALD.ClassLevels"
       }),
       hitDice: new StringField$j({
-        required: true, initial: "d6", blank: false, label: "DND5E.HitDice",
+        required: true, initial: "d6", blank: false, label: "SKJAALD.HitDice",
         validate: v => /d\d+/.test(v), validationError: "must be a dice value in the format d#"
       }),
       hitDiceUsed: new NumberField$e({
-        required: true, nullable: false, integer: true, initial: 0, min: 0, label: "DND5E.HitDiceUsed"
+        required: true, nullable: false, integer: true, initial: 0, min: 0, label: "SKJAALD.HitDiceUsed"
       }),
-      advancement: new ArrayField$6(new AdvancementField(), {label: "DND5E.AdvancementTitle"}),
+      advancement: new ArrayField$6(new AdvancementField(), {label: "SKJAALD.AdvancementTitle"}),
       spellcasting: new SchemaField$g({
         progression: new StringField$j({
-          required: true, initial: "none", blank: false, label: "DND5E.SpellProgression"
+          required: true, initial: "none", blank: false, label: "SKJAALD.SpellProgression"
         }),
-        ability: new StringField$j({required: true, label: "DND5E.SpellAbility"})
-      }, {label: "DND5E.Spellcasting"}),
-      wealth: new FormulaField({label: "DND5E.StartingEquipment.Wealth.Label"})
+        ability: new StringField$j({required: true, label: "SKJAALD.SpellAbility"})
+      }, {label: "SKJAALD.Spellcasting"}),
+      wealth: new FormulaField({label: "SKJAALD.StartingEquipment.Wealth.Label"})
     });
   }
 
@@ -8966,7 +8966,7 @@ class ClassData extends ItemDataModel.mixin(ItemDescriptionTemplate, StartingEqu
       needsMigration = true;
     }
 
-    if ( needsMigration ) foundry.utils.setProperty(source, "flags.dnd5e.persistSourceMigration", true);
+    if ( needsMigration ) foundry.utils.setProperty(source, "flags.skjaald.persistSourceMigration", true);
   }
 }
 
@@ -8975,7 +8975,7 @@ const { BooleanField: BooleanField$b, StringField: StringField$i } = foundry.dat
 /**
  * Data model template with information on items that can be attuned and equipped.
  *
- * @property {string} attunement  Attunement information as defined in `DND5E.attunementTypes`.
+ * @property {string} attunement  Attunement information as defined in `SKJAALD.attunementTypes`.
  * @property {boolean} attuned    Is this item attuned on its owning actor?
  * @property {boolean} equipped   Is this item equipped on its owning actor?
  * @mixin
@@ -8984,9 +8984,9 @@ class EquippableItemTemplate extends SystemDataModel {
   /** @inheritdoc */
   static defineSchema() {
     return {
-      attunement: new StringField$i({required: true, label: "DND5E.Attunement"}),
-      attuned: new BooleanField$b({label: "DND5E.Attuned"}),
-      equipped: new BooleanField$b({required: true, label: "DND5E.Equipped"})
+      attunement: new StringField$i({required: true, label: "SKJAALD.Attunement"}),
+      attuned: new BooleanField$b({label: "SKJAALD.Attuned"}),
+      equipped: new BooleanField$b({required: true, label: "SKJAALD.Equipped"})
     };
   }
 
@@ -9047,9 +9047,9 @@ class EquippableItemTemplate extends SystemDataModel {
    */
   get equippableItemCardProperties() {
     return [
-      this.attunement === "required" ? CONFIG.DND5E.attunementTypes.required : null,
-      game.i18n.localize(this.equipped ? "DND5E.Equipped" : "DND5E.Unequipped"),
-      ("proficient" in this) ? CONFIG.DND5E.proficiencyLevels[this.prof?.multiplier || 0] : null
+      this.attunement === "required" ? CONFIG.SKJAALD.attunementTypes.required : null,
+      game.i18n.localize(this.equipped ? "SKJAALD.Equipped" : "SKJAALD.Unequipped"),
+      ("proficient" in this) ? CONFIG.SKJAALD.proficiencyLevels[this.prof?.multiplier || 0] : null
     ];
   }
 
@@ -9080,10 +9080,10 @@ class IdentifiableTemplate extends SystemDataModel {
   /** @inheritdoc */
   static defineSchema() {
     return {
-      identified: new BooleanField$a({required: true, initial: true, label: "DND5E.Identified"}),
+      identified: new BooleanField$a({required: true, initial: true, label: "SKJAALD.Identified"}),
       unidentified: new SchemaField$f({
-        name: new StringField$h({label: "DND5E.NameUnidentified"}),
-        description: new HTMLField$3({label: "DND5E.DescriptionUnidentified"})
+        name: new StringField$h({label: "SKJAALD.NameUnidentified"}),
+        description: new HTMLField$3({label: "SKJAALD.DescriptionUnidentified"})
       })
     };
   }
@@ -9146,11 +9146,11 @@ class IdentifiableTemplate extends SystemDataModel {
     if ( !fetchName && !fetchDesc ) return;
 
     let baseItemIdentifier;
-    if ( this.parent.type === "weapon" ) baseItemIdentifier = CONFIG.DND5E.weaponIds[this.type.baseItem];
-    else if ( this.parent.type === "tool" ) baseItemIdentifier = CONFIG.DND5E.toolIds[this.type.baseItem];
+    if ( this.parent.type === "weapon" ) baseItemIdentifier = CONFIG.SKJAALD.weaponIds[this.type.baseItem];
+    else if ( this.parent.type === "tool" ) baseItemIdentifier = CONFIG.SKJAALD.toolIds[this.type.baseItem];
     else if ( this.parent.type === "equipment" ) {
-      if ( this.type.value === "shield" ) baseItemIdentifier = CONFIG.DND5E.shieldIds[this.type.baseItem];
-      else baseItemIdentifier = CONFIG.DND5E.armorIds[this.type.baseItem];
+      if ( this.type.value === "shield" ) baseItemIdentifier = CONFIG.SKJAALD.shieldIds[this.type.baseItem];
+      else baseItemIdentifier = CONFIG.SKJAALD.armorIds[this.type.baseItem];
     }
     const baseItem = await getBaseItem(baseItemIdentifier ?? "", { fullItem: fetchDesc });
 
@@ -9158,7 +9158,7 @@ class IdentifiableTemplate extends SystemDataModel {
     if ( baseItem ) {
       if ( fetchName ) {
         foundry.utils.setProperty(changed, "system.unidentified.name", game.i18n.format(
-          "DND5E.Unidentified.DefaultName", { name: baseItem.name }
+          "SKJAALD.Unidentified.DefaultName", { name: baseItem.name }
         ));
       }
       if ( fetchDesc ) {
@@ -9169,7 +9169,7 @@ class IdentifiableTemplate extends SystemDataModel {
 
     // Otherwise, set the name to match the item type
     if ( fetchName ) foundry.utils.setProperty(changed, "system.unidentified.name", game.i18n.format(
-      "DND5E.Unidentified.DefaultName", { name: game.i18n.localize(CONFIG.Item.typeLabels[this.parent.type]) }
+      "SKJAALD.Unidentified.DefaultName", { name: game.i18n.localize(CONFIG.Item.typeLabels[this.parent.type]) }
     ));
   }
 }
@@ -9185,7 +9185,7 @@ class IdentifiableTemplate extends SystemDataModel {
  * @property {object} price
  * @property {number} price.value         Item's cost in the specified denomination.
  * @property {string} price.denomination  Currency denomination used to determine price.
- * @property {string} rarity              Item rarity as defined in `DND5E.itemRarity`.
+ * @property {string} rarity              Item rarity as defined in `SKJAALD.itemRarity`.
  * @mixin
  */
 class PhysicalItemTemplate extends SystemDataModel {
@@ -9193,29 +9193,29 @@ class PhysicalItemTemplate extends SystemDataModel {
   static defineSchema() {
     return {
       container: new foundry.data.fields.ForeignDocumentField(foundry.documents.BaseItem, {
-        idOnly: true, label: "DND5E.Container"
+        idOnly: true, label: "SKJAALD.Container"
       }),
       quantity: new foundry.data.fields.NumberField({
-        required: true, nullable: false, integer: true, initial: 1, min: 0, label: "DND5E.Quantity"
+        required: true, nullable: false, integer: true, initial: 1, min: 0, label: "SKJAALD.Quantity"
       }),
       weight: new foundry.data.fields.SchemaField({
         value: new foundry.data.fields.NumberField({
-          required: true, nullable: false, initial: 0, min: 0, label: "DND5E.Weight"
+          required: true, nullable: false, initial: 0, min: 0, label: "SKJAALD.Weight"
         }),
         units: new foundry.data.fields.StringField({
-          required: true, label: "DND5E.WeightUnit.Label",
-          initial: () => game.settings.get("dnd5e", "metricWeightUnits") ? "kg" : "lb"
+          required: true, label: "SKJAALD.WeightUnit.Label",
+          initial: () => game.settings.get("skjaald", "metricWeightUnits") ? "kg" : "lb"
         })
-      }, {label: "DND5E.Weight"}),
+      }, {label: "SKJAALD.Weight"}),
       price: new foundry.data.fields.SchemaField({
         value: new foundry.data.fields.NumberField({
-          required: true, nullable: false, initial: 0, min: 0, label: "DND5E.Price"
+          required: true, nullable: false, initial: 0, min: 0, label: "SKJAALD.Price"
         }),
         denomination: new foundry.data.fields.StringField({
-          required: true, blank: false, initial: "gp", label: "DND5E.Currency"
+          required: true, blank: false, initial: "gp", label: "SKJAALD.Currency"
         })
-      }, {label: "DND5E.Price"}),
-      rarity: new foundry.data.fields.StringField({required: true, blank: true, label: "DND5E.Rarity"})
+      }, {label: "SKJAALD.Price"}),
+      rarity: new foundry.data.fields.StringField({required: true, blank: true, label: "SKJAALD.Rarity"})
     };
   }
 
@@ -9237,8 +9237,8 @@ class PhysicalItemTemplate extends SystemDataModel {
    */
   get priceLabel() {
     const { value, denomination } = this.price;
-    const hasPrice = value && (denomination in CONFIG.DND5E.currencies);
-    return hasPrice ? `${value} ${CONFIG.DND5E.currencies[denomination].label}` : null;
+    const hasPrice = value && (denomination in CONFIG.SKJAALD.currencies);
+    return hasPrice ? `${value} ${CONFIG.SKJAALD.currencies[denomination].label}` : null;
   }
 
   /* -------------------------------------------- */
@@ -9284,9 +9284,9 @@ class PhysicalItemTemplate extends SystemDataModel {
    * @param {object} source  The candidate source data from which the model will be constructed.
    */
   static #migrateRarity(source) {
-    if ( !("rarity" in source) || CONFIG.DND5E.itemRarity[source.rarity] ) return;
-    source.rarity = Object.keys(CONFIG.DND5E.itemRarity).find(key =>
-      CONFIG.DND5E.itemRarity[key].toLowerCase() === source.rarity.toLowerCase()
+    if ( !("rarity" in source) || CONFIG.SKJAALD.itemRarity[source.rarity] ) return;
+    source.rarity = Object.keys(CONFIG.SKJAALD.itemRarity).find(key =>
+      CONFIG.SKJAALD.itemRarity[key].toLowerCase() === source.rarity.toLowerCase()
     ) ?? "";
   }
 
@@ -9300,7 +9300,7 @@ class PhysicalItemTemplate extends SystemDataModel {
     if ( !("weight" in source) || (foundry.utils.getType(source.weight) === "Object") ) return;
     source.weight = {
       value: Number.isNumeric(source.weight) ? Number(source.weight) : 0,
-      units: game.settings.get("dnd5e", "metricWeightUnits") ? "kg" : "lb"
+      units: game.settings.get("skjaald", "metricWeightUnits") ? "kg" : "lb"
     };
   }
 
@@ -9401,7 +9401,7 @@ class CurrencyTemplate extends SystemDataModel {
     return {
       currency: new MappingField(new foundry.data.fields.NumberField({
         required: true, nullable: false, integer: true, min: 0, initial: 0
-      }), {initialKeys: CONFIG.DND5E.currencies, initialKeysOnly: true, label: "DND5E.Currency"})
+      }), {initialKeys: CONFIG.SKJAALD.currencies, initialKeysOnly: true, label: "SKJAALD.Currency"})
     };
   }
 
@@ -9414,11 +9414,11 @@ class CurrencyTemplate extends SystemDataModel {
    * @returns {number}
    */
   get currencyWeight() {
-    if ( !game.settings.get("dnd5e", "currencyWeight") ) return 0;
+    if ( !game.settings.get("skjaald", "currencyWeight") ) return 0;
     const count = Object.values(this.currency).reduce((count, value) => count + value, 0);
-    const currencyPerWeight = game.settings.get("dnd5e", "metricWeightUnits")
-      ? CONFIG.DND5E.encumbrance.currencyPerWeight.metric
-      : CONFIG.DND5E.encumbrance.currencyPerWeight.imperial;
+    const currencyPerWeight = game.settings.get("skjaald", "metricWeightUnits")
+      ? CONFIG.SKJAALD.encumbrance.currencyPerWeight.metric
+      : CONFIG.SKJAALD.encumbrance.currencyPerWeight.imperial;
     return count / currencyPerWeight;
   }
 }
@@ -9432,7 +9432,7 @@ class CurrencyTemplate extends SystemDataModel {
  * @mixes CurrencyTemplate
  *
  * @property {object} capacity              Information on container's carrying capacity.
- * @property {string} capacity.type         Method for tracking max capacity as defined in `DND5E.itemCapacityTypes`.
+ * @property {string} capacity.type         Method for tracking max capacity as defined in `SKJAALD.itemCapacityTypes`.
  * @property {number} capacity.value        Total amount of the type this container can carry.
  */
 class ContainerData extends ItemDataModel.mixin(
@@ -9443,16 +9443,16 @@ class ContainerData extends ItemDataModel.mixin(
     return this.mergeSchema(super.defineSchema(), {
       quantity: new foundry.data.fields.NumberField({min: 1, max: 1}),
       properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
-        label: "DND5E.ItemContainerProperties"
+        label: "SKJAALD.ItemContainerProperties"
       }),
       capacity: new foundry.data.fields.SchemaField({
         type: new foundry.data.fields.StringField({
-          required: true, initial: "weight", blank: false, label: "DND5E.ItemContainerCapacityType"
+          required: true, initial: "weight", blank: false, label: "SKJAALD.ItemContainerCapacityType"
         }),
         value: new foundry.data.fields.NumberField({
-          required: true, min: 0, label: "DND5E.ItemContainerCapacityMax"
+          required: true, min: 0, label: "SKJAALD.ItemContainerCapacityMax"
         })
-      }, {label: "DND5E.ItemContainerCapacity"})
+      }, {label: "SKJAALD.ItemContainerCapacity"})
     });
   }
 
@@ -9483,7 +9483,7 @@ class ContainerData extends ItemDataModel.mixin(
    */
   static _migrateWeightlessData(source) {
     if ( foundry.utils.getProperty(source, "system.capacity.weightless") === true ) {
-      foundry.utils.setProperty(source, "flags.dnd5e.migratedProperties", ["weightlessContents"]);
+      foundry.utils.setProperty(source, "flags.skjaald.migratedProperties", ["weightlessContents"]);
     }
   }
 
@@ -9656,10 +9656,10 @@ class ContainerData extends ItemDataModel.mixin(
     const context = { max: value ?? Infinity };
     if ( type === "weight" ) {
       context.value = await this.contentsWeight;
-      context.units = game.i18n.localize("DND5E.AbbreviationLbs");
+      context.units = game.i18n.localize("SKJAALD.AbbreviationLbs");
     } else {
       context.value = await this.contentsCount;
-      context.units = game.i18n.localize("DND5E.ItemContainerCapacityItems");
+      context.units = game.i18n.localize("SKJAALD.ItemContainerCapacityItems");
     }
     context.pct = Math.clamp(context.max ? (context.value / context.max) * 100 : 0, 0, 100);
     return context;
@@ -9689,7 +9689,7 @@ const { ArrayField: ArrayField$5, BooleanField: BooleanField$9, NumberField: Num
  * Data model template for item actions.
  *
  * @property {string} ability               Ability score to use when determining modifier.
- * @property {string} actionType            Action type as defined in `DND5E.itemActionTypes`.
+ * @property {string} actionType            Action type as defined in `SKJAALD.itemActionTypes`.
  * @property {object} attack                Information how attacks are handled.
  * @property {string} attack.bonus          Numeric or dice bonus to attack rolls.
  * @property {boolean} attack.flat          Is the attack bonus the only bonus to attack rolls?
@@ -9713,30 +9713,30 @@ class ActionTemplate extends ItemDataModel {
   /** @inheritdoc */
   static defineSchema() {
     return {
-      ability: new StringField$g({required: true, nullable: true, initial: null, label: "DND5E.AbilityModifier"}),
-      actionType: new StringField$g({required: true, nullable: true, initial: null, label: "DND5E.ItemActionType"}),
+      ability: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.AbilityModifier"}),
+      actionType: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.ItemActionType"}),
       attack: new SchemaField$e({
-        bonus: new FormulaField({required: true, label: "DND5E.ItemAttackBonus"}),
-        flat: new BooleanField$9({label: "DND5E.ItemAttackFlat"})
+        bonus: new FormulaField({required: true, label: "SKJAALD.ItemAttackBonus"}),
+        flat: new BooleanField$9({label: "SKJAALD.ItemAttackFlat"})
       }),
-      chatFlavor: new StringField$g({required: true, label: "DND5E.ChatFlavor"}),
+      chatFlavor: new StringField$g({required: true, label: "SKJAALD.ChatFlavor"}),
       critical: new SchemaField$e({
         threshold: new NumberField$d({
-          required: true, integer: true, initial: null, positive: true, label: "DND5E.ItemCritThreshold"
+          required: true, integer: true, initial: null, positive: true, label: "SKJAALD.ItemCritThreshold"
         }),
-        damage: new FormulaField({required: true, label: "DND5E.ItemCritExtraDamage"})
+        damage: new FormulaField({required: true, label: "SKJAALD.ItemCritExtraDamage"})
       }),
       damage: new SchemaField$e({
         parts: new ArrayField$5(new ArrayField$5(new StringField$g({nullable: true})), {required: true}),
-        versatile: new FormulaField({required: true, label: "DND5E.VersatileDamage"})
-      }, {label: "DND5E.Damage"}),
+        versatile: new FormulaField({required: true, label: "SKJAALD.VersatileDamage"})
+      }, {label: "SKJAALD.Damage"}),
       enchantment: new EnchantmentField(),
-      formula: new FormulaField({required: true, label: "DND5E.OtherFormula"}),
+      formula: new FormulaField({required: true, label: "SKJAALD.OtherFormula"}),
       save: new SchemaField$e({
-        ability: new StringField$g({required: true, blank: true, label: "DND5E.Ability"}),
-        dc: new NumberField$d({required: true, min: 0, integer: true, label: "DND5E.AbbreviationDC"}),
-        scaling: new StringField$g({required: true, blank: false, initial: "spell", label: "DND5E.ScalingFormula"})
-      }, {label: "DND5E.SavingThrow"}),
+        ability: new StringField$g({required: true, blank: true, label: "SKJAALD.Ability"}),
+        dc: new NumberField$d({required: true, min: 0, integer: true, label: "SKJAALD.AbbreviationDC"}),
+        scaling: new StringField$g({required: true, blank: false, initial: "spell", label: "SKJAALD.ScalingFormula"})
+      }, {label: "SKJAALD.SavingThrow"}),
       summons: new SummonsField()
     };
   }
@@ -9971,29 +9971,29 @@ const { BooleanField: BooleanField$8, NumberField: NumberField$c, SchemaField: S
  * Data model template for items that can be used as some sort of action.
  *
  * @property {object} activation            Effect's activation conditions.
- * @property {string} activation.type       Activation type as defined in `DND5E.abilityActivationTypes`.
+ * @property {string} activation.type       Activation type as defined in `SKJAALD.abilityActivationTypes`.
  * @property {number} activation.cost       How much of the activation type is needed to use this item's effect.
  * @property {string} activation.condition  Special conditions required to activate the item.
  * @property {object} duration              Effect's duration.
  * @property {number} duration.value        How long the effect lasts.
- * @property {string} duration.units        Time duration period as defined in `DND5E.timePeriods`.
+ * @property {string} duration.units        Time duration period as defined in `SKJAALD.timePeriods`.
  * @property {number} cover                 Amount of cover does this item affords to its crew on a vehicle.
  * @property {object} target                Effect's valid targets.
  * @property {string} target.value          Length or radius of target depending on targeting mode selected.
  * @property {number} target.width          Width of line when line type is selected.
- * @property {string} target.units          Units used for value and width as defined in `DND5E.distanceUnits`.
- * @property {string} target.type           Targeting mode as defined in `DND5E.targetTypes`.
+ * @property {string} target.units          Units used for value and width as defined in `SKJAALD.distanceUnits`.
+ * @property {string} target.type           Targeting mode as defined in `SKJAALD.targetTypes`.
  * @property {boolean} target.prompt        Should the player be prompted to place the template?
  * @property {object} range                 Effect's range.
  * @property {number} range.value           Regular targeting distance for item's effect.
  * @property {number} range.long            Maximum targeting distance for features that have a separate long range.
- * @property {string} range.units           Units used for value and long as defined in `DND5E.distanceUnits`.
+ * @property {string} range.units           Units used for value and long as defined in `SKJAALD.distanceUnits`.
  * @property {object} uses                  Effect's limited uses.
  * @property {number} uses.value            Current available uses.
  * @property {string} uses.max              Maximum possible uses or a formula to derive that number.
- * @property {string} uses.per              Recharge time for limited uses as defined in `DND5E.limitedUsePeriods`.
+ * @property {string} uses.per              Recharge time for limited uses as defined in `SKJAALD.limitedUsePeriods`.
  * @property {object} consume               Effect's resource consumption.
- * @property {string} consume.type          Type of resource to consume as defined in `DND5E.abilityConsumptionTypes`.
+ * @property {string} consume.type          Type of resource to consume as defined in `SKJAALD.abilityConsumptionTypes`.
  * @property {string} consume.target        Item ID or resource key path of resource to consume.
  * @property {number} consume.amount        Quantity of the resource to consume per use.
  * @mixin
@@ -10003,39 +10003,39 @@ class ActivatedEffectTemplate extends SystemDataModel {
   static defineSchema() {
     return {
       activation: new SchemaField$d({
-        type: new StringField$f({required: true, blank: true, label: "DND5E.ItemActivationType"}),
-        cost: new NumberField$c({required: true, label: "DND5E.ItemActivationCost"}),
-        condition: new StringField$f({required: true, label: "DND5E.ItemActivationCondition"})
-      }, {label: "DND5E.ItemActivation"}),
+        type: new StringField$f({required: true, blank: true, label: "SKJAALD.ItemActivationType"}),
+        cost: new NumberField$c({required: true, label: "SKJAALD.ItemActivationCost"}),
+        condition: new StringField$f({required: true, label: "SKJAALD.ItemActivationCondition"})
+      }, {label: "SKJAALD.ItemActivation"}),
       duration: new SchemaField$d({
-        value: new FormulaField({required: true, deterministic: true, label: "DND5E.Duration"}),
-        units: new StringField$f({required: true, blank: true, label: "DND5E.DurationType"})
-      }, {label: "DND5E.Duration"}),
+        value: new FormulaField({required: true, deterministic: true, label: "SKJAALD.Duration"}),
+        units: new StringField$f({required: true, blank: true, label: "SKJAALD.DurationType"})
+      }, {label: "SKJAALD.Duration"}),
       cover: new NumberField$c({
-        required: true, nullable: true, min: 0, max: 1, label: "DND5E.Cover"
+        required: true, nullable: true, min: 0, max: 1, label: "SKJAALD.Cover"
       }),
-      crewed: new BooleanField$8({label: "DND5E.Crewed"}),
+      crewed: new BooleanField$8({label: "SKJAALD.Crewed"}),
       target: new SchemaField$d({
-        value: new FormulaField({required: true, deterministic: true, label: "DND5E.TargetValue"}),
-        width: new NumberField$c({required: true, min: 0, label: "DND5E.TargetWidth"}),
-        units: new StringField$f({required: true, blank: true, label: "DND5E.TargetUnits"}),
-        type: new StringField$f({required: true, blank: true, label: "DND5E.TargetType"}),
-        prompt: new BooleanField$8({initial: true, label: "DND5E.TemplatePrompt"})
-      }, {label: "DND5E.Target"}),
+        value: new FormulaField({required: true, deterministic: true, label: "SKJAALD.TargetValue"}),
+        width: new NumberField$c({required: true, min: 0, label: "SKJAALD.TargetWidth"}),
+        units: new StringField$f({required: true, blank: true, label: "SKJAALD.TargetUnits"}),
+        type: new StringField$f({required: true, blank: true, label: "SKJAALD.TargetType"}),
+        prompt: new BooleanField$8({initial: true, label: "SKJAALD.TemplatePrompt"})
+      }, {label: "SKJAALD.Target"}),
       range: new SchemaField$d({
-        value: new NumberField$c({required: true, min: 0, label: "DND5E.RangeNormal"}),
-        long: new NumberField$c({required: true, min: 0, label: "DND5E.RangeLong"}),
-        units: new StringField$f({required: true, blank: true, label: "DND5E.RangeUnits"})
-      }, {label: "DND5E.Range"}),
-      uses: new this.ItemUsesField({}, {label: "DND5E.LimitedUses"}),
+        value: new NumberField$c({required: true, min: 0, label: "SKJAALD.RangeNormal"}),
+        long: new NumberField$c({required: true, min: 0, label: "SKJAALD.RangeLong"}),
+        units: new StringField$f({required: true, blank: true, label: "SKJAALD.RangeUnits"})
+      }, {label: "SKJAALD.Range"}),
+      uses: new this.ItemUsesField({}, {label: "SKJAALD.LimitedUses"}),
       consume: new SchemaField$d({
-        type: new StringField$f({required: true, blank: true, label: "DND5E.ConsumeType"}),
+        type: new StringField$f({required: true, blank: true, label: "SKJAALD.ConsumeType"}),
         target: new StringField$f({
-          required: true, nullable: true, initial: null, label: "DND5E.ConsumeTarget"
+          required: true, nullable: true, initial: null, label: "SKJAALD.ConsumeTarget"
         }),
-        amount: new NumberField$c({required: true, integer: true, label: "DND5E.ConsumeAmount"}),
-        scale: new BooleanField$8({label: "DND5E.ConsumeScaling"})
-      }, {label: "DND5E.ConsumeTitle"})
+        amount: new NumberField$c({required: true, integer: true, label: "SKJAALD.ConsumeAmount"}),
+        scale: new BooleanField$8({label: "SKJAALD.ConsumeScaling"})
+      }, {label: "SKJAALD.ConsumeTitle"})
     };
   }
 
@@ -10049,14 +10049,14 @@ class ActivatedEffectTemplate extends SystemDataModel {
     constructor(extraSchema, options) {
       super(SystemDataModel.mergeSchema({
         value: new NumberField$c({
-          required: true, min: 0, integer: true, label: "DND5E.LimitedUsesAvailable"
+          required: true, min: 0, integer: true, label: "SKJAALD.LimitedUsesAvailable"
         }),
-        max: new FormulaField({required: true, deterministic: true, label: "DND5E.LimitedUsesMax"}),
+        max: new FormulaField({required: true, deterministic: true, label: "SKJAALD.LimitedUsesMax"}),
         per: new StringField$f({
-          required: true, nullable: true, blank: false, initial: null, label: "DND5E.LimitedUsesPer"
+          required: true, nullable: true, blank: false, initial: null, label: "SKJAALD.LimitedUsesPer"
         }),
-        recovery: new FormulaField({required: true, label: "DND5E.RecoveryFormula"}),
-        prompt: new BooleanField$8({initial: true, label: "DND5E.LimitedUsesPrompt"})
+        recovery: new FormulaField({required: true, label: "SKJAALD.RecoveryFormula"}),
+        prompt: new BooleanField$8({initial: true, label: "SKJAALD.LimitedUsesPrompt"})
       }, extraSchema), options);
     }
   };
@@ -10087,40 +10087,40 @@ class ActivatedEffectTemplate extends SystemDataModel {
 
     // Prepare duration, targets, and max uses formulas
     const rollData = this.getRollData({ deterministic: true });
-    this._prepareFinalFormula("duration.value", { label: "DND5E.Duration", rollData });
-    this._prepareFinalFormula("target.value", { label: "DND5E.TargetValue", rollData });
-    this._prepareFinalFormula("uses.max", { label: "DND5E.UsesMax", rollData });
+    this._prepareFinalFormula("duration.value", { label: "SKJAALD.Duration", rollData });
+    this._prepareFinalFormula("target.value", { label: "SKJAALD.TargetValue", rollData });
+    this._prepareFinalFormula("uses.max", { label: "SKJAALD.UsesMax", rollData });
 
     // Prepare labels
     this.parent.labels ??= {};
-    this.parent.labels.duration = [this.duration.value, CONFIG.DND5E.timePeriods[this.duration.units]].filterJoin(" ");
+    this.parent.labels.duration = [this.duration.value, CONFIG.SKJAALD.timePeriods[this.duration.units]].filterJoin(" ");
     this.parent.labels.activation = this.activation.type ? [
-      (this.activation.type in CONFIG.DND5E.staticAbilityActivationTypes) ? null : this.activation.cost,
-      CONFIG.DND5E.abilityActivationTypes[this.activation.type]
+      (this.activation.type in CONFIG.SKJAALD.staticAbilityActivationTypes) ? null : this.activation.cost,
+      CONFIG.SKJAALD.abilityActivationTypes[this.activation.type]
     ].filterJoin(" ") : "";
 
     if ( this.hasTarget ) {
       const target = [this.target.value];
       if ( this.hasAreaTarget ) {
-        if ( this.target.units in CONFIG.DND5E.movementUnits ) {
-          target.push(game.i18n.localize(`DND5E.Dist${this.target.units.capitalize()}Abbr`));
+        if ( this.target.units in CONFIG.SKJAALD.movementUnits ) {
+          target.push(game.i18n.localize(`SKJAALD.Dist${this.target.units.capitalize()}Abbr`));
         }
-        else target.push(CONFIG.DND5E.distanceUnits[this.target.units]);
+        else target.push(CONFIG.SKJAALD.distanceUnits[this.target.units]);
       }
-      target.push(CONFIG.DND5E.targetTypes[this.target.type]);
+      target.push(CONFIG.SKJAALD.targetTypes[this.target.type]);
       this.parent.labels.target = target.filterJoin(" ");
     }
 
     if ( this.isActive && this.range.units ) {
       const range = [this.range.value, this.range.long ? `/ ${this.range.long}` : null];
-      if ( this.range.units in CONFIG.DND5E.movementUnits ) {
-        range.push(game.i18n.localize(`DND5E.Dist${this.range.units.capitalize()}Abbr`));
+      if ( this.range.units in CONFIG.SKJAALD.movementUnits ) {
+        range.push(game.i18n.localize(`SKJAALD.Dist${this.range.units.capitalize()}Abbr`));
       }
-      else range.push(CONFIG.DND5E.distanceUnits[this.range.units]);
+      else range.push(CONFIG.SKJAALD.distanceUnits[this.range.units]);
       this.parent.labels.range = range.filterJoin(" ");
-    } else this.parent.labels.range = game.i18n.localize("DND5E.None");
+    } else this.parent.labels.range = game.i18n.localize("SKJAALD.None");
 
-    if ( this.recharge ) this.parent.labels.recharge = `${game.i18n.localize("DND5E.Recharge")} [${
+    if ( this.recharge ) this.parent.labels.recharge = `${game.i18n.localize("SKJAALD.Recharge")} [${
       `${this.recharge.value}${parseInt(this.recharge.value) < 6 ? "+" : ""}`
     }]`;
 
@@ -10151,7 +10151,7 @@ class ActivatedEffectTemplate extends SystemDataModel {
       );
     } catch(err) {
       if ( this.parent.isEmbedded ) {
-        const message = game.i18n.format("DND5E.FormulaMalformedError", { property, name: this.parent.name });
+        const message = game.i18n.format("SKJAALD.FormulaMalformedError", { property, name: this.parent.name });
         this.parent.actor._preparationWarnings.push({ message, link: this.parent.uuid, type: "error" });
         console.error(message, err);
       }
@@ -10280,7 +10280,7 @@ class ActivatedEffectTemplate extends SystemDataModel {
    * @type {boolean}
    */
   get hasAreaTarget() {
-    return this.isActive && (this.target.type in CONFIG.DND5E.areaTargetTypes);
+    return this.isActive && (this.target.type in CONFIG.SKJAALD.areaTargetTypes);
   }
 
   /* -------------------------------------------- */
@@ -10290,7 +10290,7 @@ class ActivatedEffectTemplate extends SystemDataModel {
    * @type {boolean}
    */
   get hasIndividualTarget() {
-    return this.isActive && (this.target.type in CONFIG.DND5E.individualTargetTypes);
+    return this.isActive && (this.target.type in CONFIG.SKJAALD.individualTargetTypes);
   }
 
   /* -------------------------------------------- */
@@ -10300,7 +10300,7 @@ class ActivatedEffectTemplate extends SystemDataModel {
    * @type {boolean}
    */
   get hasLimitedUses() {
-    return this.isActive && (this.uses.per in CONFIG.DND5E.limitedUsePeriods) && (this.uses.max > 0);
+    return this.isActive && (this.uses.per in CONFIG.SKJAALD.limitedUsePeriods) && (this.uses.max > 0);
   }
 
   /* -------------------------------------------- */
@@ -10332,7 +10332,7 @@ class ActivatedEffectTemplate extends SystemDataModel {
    * @type {boolean}
    */
   get hasScalarDuration() {
-    return this.duration.units in CONFIG.DND5E.scalarTimePeriods;
+    return this.duration.units in CONFIG.SKJAALD.scalarTimePeriods;
   }
 
   /* -------------------------------------------- */
@@ -10342,7 +10342,7 @@ class ActivatedEffectTemplate extends SystemDataModel {
    * @type {boolean}
    */
   get hasScalarRange() {
-    return this.range.units in CONFIG.DND5E.movementUnits;
+    return this.range.units in CONFIG.SKJAALD.movementUnits;
   }
 
   /* -------------------------------------------- */
@@ -10429,21 +10429,21 @@ class MountableTemplate extends SystemDataModel {
     return {
       armor: new foundry.data.fields.SchemaField({
         value: new foundry.data.fields.NumberField({
-          required: true, integer: true, min: 0, label: "DND5E.ArmorClass"
+          required: true, integer: true, min: 0, label: "SKJAALD.ArmorClass"
         })
-      }, {label: "DND5E.ArmorClass"}),
+      }, {label: "SKJAALD.ArmorClass"}),
       hp: new foundry.data.fields.SchemaField({
         value: new foundry.data.fields.NumberField({
-          required: true, integer: true, min: 0, label: "DND5E.HitPointsCurrent"
+          required: true, integer: true, min: 0, label: "SKJAALD.HitPointsCurrent"
         }),
         max: new foundry.data.fields.NumberField({
-          required: true, integer: true, min: 0, label: "DND5E.HitPointsMax"
+          required: true, integer: true, min: 0, label: "SKJAALD.HitPointsMax"
         }),
         dt: new foundry.data.fields.NumberField({
-          required: true, integer: true, min: 0, label: "DND5E.DamageThreshold"
+          required: true, integer: true, min: 0, label: "SKJAALD.DamageThreshold"
         }),
-        conditions: new foundry.data.fields.StringField({required: true, label: "DND5E.HealthConditions"})
-      }, {label: "DND5E.HitPoints"})
+        conditions: new foundry.data.fields.StringField({required: true, label: "SKJAALD.HealthConditions"})
+      }, {label: "SKJAALD.HitPoints"})
     };
   }
 }
@@ -10461,13 +10461,13 @@ class ItemTypeField extends foundry.data.fields.SchemaField {
   constructor(options={}, schemaOptions={}) {
     const fields = {
       value: new foundry.data.fields.StringField({
-        required: true, blank: true, initial: options.value ?? "", label: "DND5E.Type"
+        required: true, blank: true, initial: options.value ?? "", label: "SKJAALD.Type"
       }),
       subtype: new foundry.data.fields.StringField({
-        required: true, blank: true, initial: options.subtype ?? "", label: "DND5E.Subtype"
+        required: true, blank: true, initial: options.subtype ?? "", label: "SKJAALD.Subtype"
       }),
       baseItem: new foundry.data.fields.StringField({
-        required: true, blank: true, initial: options.baseItem ?? "", label: "DND5E.BaseItem"
+        required: true, blank: true, initial: options.baseItem ?? "", label: "SKJAALD.BaseItem"
       })
     };
     if ( options.subtype === false ) delete fields.subtype;
@@ -10507,24 +10507,24 @@ class EquipmentData extends ItemDataModel.mixin(
   /** @inheritdoc */
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
-      type: new ItemTypeField({value: "light", subtype: false}, {label: "DND5E.ItemEquipmentType"}),
+      type: new ItemTypeField({value: "light", subtype: false}, {label: "SKJAALD.ItemEquipmentType"}),
       armor: new SchemaField$c({
-        value: new NumberField$b({required: true, integer: true, min: 0, label: "DND5E.ArmorClass"}),
-        magicalBonus: new NumberField$b({min: 0, integer: true, label: "DND5E.MagicalBonus"}),
-        dex: new NumberField$b({required: true, integer: true, label: "DND5E.ItemEquipmentDexMod"})
+        value: new NumberField$b({required: true, integer: true, min: 0, label: "SKJAALD.ArmorClass"}),
+        magicalBonus: new NumberField$b({min: 0, integer: true, label: "SKJAALD.MagicalBonus"}),
+        dex: new NumberField$b({required: true, integer: true, label: "SKJAALD.ItemEquipmentDexMod"})
       }),
       properties: new SetField$8(new StringField$e(), {
-        label: "DND5E.ItemEquipmentProperties"
+        label: "SKJAALD.ItemEquipmentProperties"
       }),
       speed: new SchemaField$c({
-        value: new NumberField$b({required: true, min: 0, label: "DND5E.Speed"}),
-        conditions: new StringField$e({required: true, label: "DND5E.SpeedConditions"})
-      }, {label: "DND5E.Speed"}),
+        value: new NumberField$b({required: true, min: 0, label: "SKJAALD.Speed"}),
+        conditions: new StringField$e({required: true, label: "SKJAALD.SpeedConditions"})
+      }, {label: "SKJAALD.Speed"}),
       strength: new NumberField$b({
-        required: true, integer: true, min: 0, label: "DND5E.ItemRequiredStr"
+        required: true, integer: true, min: 0, label: "SKJAALD.ItemRequiredStr"
       }),
       proficient: new NumberField$b({
-        required: true, min: 0, max: 1, integer: true, initial: null, label: "DND5E.ProficiencyLevel"
+        required: true, min: 0, max: 1, integer: true, initial: null, label: "SKJAALD.ProficiencyLevel"
       })
     });
   }
@@ -10598,7 +10598,7 @@ class EquipmentData extends ItemDataModel.mixin(
    */
   static _migrateStealth(source) {
     if ( foundry.utils.getProperty(source, "system.stealth") === true ) {
-      foundry.utils.setProperty(source, "flags.dnd5e.migratedProperties", ["stealthDisadvantage"]);
+      foundry.utils.setProperty(source, "flags.skjaald.migratedProperties", ["stealthDisadvantage"]);
     }
   }
 
@@ -10620,7 +10620,7 @@ class EquipmentData extends ItemDataModel.mixin(
   prepareDerivedData() {
     super.prepareDerivedData();
     this.armor.value = (this._source.armor.value ?? 0) + (this.magicAvailable ? (this.armor.magicalBonus ?? 0) : 0);
-    this.type.label = CONFIG.DND5E.equipmentTypes[this.type.value]
+    this.type.label = CONFIG.SKJAALD.equipmentTypes[this.type.value]
       ?? game.i18n.localize(CONFIG.Item.typeLabels.equipment);
   }
 
@@ -10654,7 +10654,7 @@ class EquipmentData extends ItemDataModel.mixin(
     return [
       this.type.label,
       (this.isArmor || this.isMountable) ? (this.parent.labels?.armor ?? null) : null,
-      this.properties.has("stealthDisadvantage") ? game.i18n.localize("DND5E.Item.Property.StealthDisadvantage") : null
+      this.properties.has("stealthDisadvantage") ? game.i18n.localize("SKJAALD.Item.Property.StealthDisadvantage") : null
     ];
   }
 
@@ -10667,7 +10667,7 @@ class EquipmentData extends ItemDataModel.mixin(
   get cardProperties() {
     return [
       (this.isArmor || this.isMountable) ? (this.parent.labels?.armor ?? null) : null,
-      this.properties.has("stealthDisadvantage") ? game.i18n.localize("DND5E.Item.Property.StealthDisadvantage") : null
+      this.properties.has("stealthDisadvantage") ? game.i18n.localize("SKJAALD.Item.Property.StealthDisadvantage") : null
     ];
   }
 
@@ -10678,7 +10678,7 @@ class EquipmentData extends ItemDataModel.mixin(
    * @type {boolean}
    */
   get isArmor() {
-    return this.type.value in CONFIG.DND5E.armorTypes;
+    return this.type.value in CONFIG.SKJAALD.armorTypes;
   }
 
   /* -------------------------------------------- */
@@ -10703,7 +10703,7 @@ class EquipmentData extends ItemDataModel.mixin(
     const actor = this.parent.actor;
     if ( !actor ) return 0;
     if ( actor.type === "npc" ) return 1; // NPCs are always considered proficient with any armor in their stat block.
-    const config = CONFIG.DND5E.armorProficienciesMap;
+    const config = CONFIG.SKJAALD.armorProficienciesMap;
     const itemProf = config[this.type.value];
     const actorProfs = actor.system.traits?.armorProf?.value ?? new Set();
     const isProficient = (itemProf === true) || actorProfs.has(itemProf) || actorProfs.has(this.type.baseItem);
@@ -10726,10 +10726,10 @@ class EquipmentData extends ItemDataModel.mixin(
  * @property {number} materials.cost             GP cost for the required components.
  * @property {number} materials.supply           Quantity of this component available.
  * @property {object} preparation                Details on how this spell is prepared.
- * @property {string} preparation.mode           Spell preparation mode as defined in `DND5E.spellPreparationModes`.
+ * @property {string} preparation.mode           Spell preparation mode as defined in `SKJAALD.spellPreparationModes`.
  * @property {boolean} preparation.prepared      Is the spell currently prepared?
  * @property {object} scaling                    Details on how casting at higher levels affects this spell.
- * @property {string} scaling.mode               Spell scaling mode as defined in `DND5E.spellScalingModes`.
+ * @property {string} scaling.mode               Spell scaling mode as defined in `SKJAALD.spellScalingModes`.
  * @property {string} scaling.formula            Dice formula used for scaling.
  */
 class SpellData extends ItemDataModel.mixin(
@@ -10739,32 +10739,32 @@ class SpellData extends ItemDataModel.mixin(
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
       level: new foundry.data.fields.NumberField({
-        required: true, integer: true, initial: 1, min: 0, label: "DND5E.SpellLevel"
+        required: true, integer: true, initial: 1, min: 0, label: "SKJAALD.SpellLevel"
       }),
-      school: new foundry.data.fields.StringField({required: true, label: "DND5E.SpellSchool"}),
+      school: new foundry.data.fields.StringField({required: true, label: "SKJAALD.SpellSchool"}),
       properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
-        label: "DND5E.SpellComponents"
+        label: "SKJAALD.SpellComponents"
       }),
       materials: new foundry.data.fields.SchemaField({
-        value: new foundry.data.fields.StringField({required: true, label: "DND5E.SpellMaterialsDescription"}),
-        consumed: new foundry.data.fields.BooleanField({required: true, label: "DND5E.SpellMaterialsConsumed"}),
+        value: new foundry.data.fields.StringField({required: true, label: "SKJAALD.SpellMaterialsDescription"}),
+        consumed: new foundry.data.fields.BooleanField({required: true, label: "SKJAALD.SpellMaterialsConsumed"}),
         cost: new foundry.data.fields.NumberField({
-          required: true, initial: 0, min: 0, label: "DND5E.SpellMaterialsCost"
+          required: true, initial: 0, min: 0, label: "SKJAALD.SpellMaterialsCost"
         }),
         supply: new foundry.data.fields.NumberField({
-          required: true, initial: 0, min: 0, label: "DND5E.SpellMaterialsSupply"
+          required: true, initial: 0, min: 0, label: "SKJAALD.SpellMaterialsSupply"
         })
-      }, {label: "DND5E.SpellMaterials"}),
+      }, {label: "SKJAALD.SpellMaterials"}),
       preparation: new foundry.data.fields.SchemaField({
         mode: new foundry.data.fields.StringField({
-          required: true, initial: "prepared", label: "DND5E.SpellPreparationMode"
+          required: true, initial: "prepared", label: "SKJAALD.SpellPreparationMode"
         }),
-        prepared: new foundry.data.fields.BooleanField({required: true, label: "DND5E.SpellPrepared"})
-      }, {label: "DND5E.SpellPreparation"}),
+        prepared: new foundry.data.fields.BooleanField({required: true, label: "SKJAALD.SpellPrepared"})
+      }, {label: "SKJAALD.SpellPreparation"}),
       scaling: new foundry.data.fields.SchemaField({
-        mode: new foundry.data.fields.StringField({required: true, initial: "none", label: "DND5E.ScalingMode"}),
-        formula: new FormulaField({required: true, nullable: true, initial: null, label: "DND5E.ScalingFormula"})
-      }, {label: "DND5E.LevelScaling"})
+        mode: new foundry.data.fields.StringField({required: true, initial: "none", label: "SKJAALD.ScalingMode"}),
+        formula: new FormulaField({required: true, nullable: true, initial: null, label: "SKJAALD.ScalingFormula"})
+      }, {label: "SKJAALD.LevelScaling"})
     });
   }
 
@@ -10787,7 +10787,7 @@ class SpellData extends ItemDataModel.mixin(
   static _migrateComponentData(source) {
     const components = filteredKeys(source.system?.components ?? {});
     if ( components.length ) {
-      foundry.utils.setProperty(source, "flags.dnd5e.migratedProperties", components);
+      foundry.utils.setProperty(source, "flags.skjaald.migratedProperties", components);
     }
   }
 
@@ -10825,7 +10825,7 @@ class SpellData extends ItemDataModel.mixin(
   async getCardData(enrichmentOptions={}) {
     const context = await super.getCardData(enrichmentOptions);
     context.isSpell = true;
-    context.subtitle = [this.parent.labels.level, CONFIG.DND5E.spellSchools[this.school]?.label].filterJoin(" &bull; ");
+    context.subtitle = [this.parent.labels.level, CONFIG.SKJAALD.spellSchools[this.school]?.label].filterJoin(" &bull; ");
     if ( this.parent.labels.components.vsm ) context.tags = [this.parent.labels.components.vsm, ...context.tags];
     return context;
   }
@@ -10869,7 +10869,7 @@ class SpellData extends ItemDataModel.mixin(
 
   /** @inheritdoc */
   get _typeCriticalThreshold() {
-    return this.parent?.actor?.flags.dnd5e?.spellCriticalThreshold ?? Infinity;
+    return this.parent?.actor?.flags.skjaald?.spellCriticalThreshold ?? Infinity;
   }
 
   /* -------------------------------------------- */
@@ -11128,7 +11128,7 @@ function _separateAnnotatedTerms(terms) {
 class AbilityUseDialog extends Dialog {
   constructor(item, dialogData={}, options={}) {
     super(dialogData, options);
-    this.options.classes = ["dnd5e", "dialog"];
+    this.options.classes = ["skjaald", "dialog"];
 
     /**
      * Store a reference to the Item document being used
@@ -11194,7 +11194,7 @@ class AbilityUseDialog extends Dialog {
       },
       scaling: options.disableScaling ? null : item.usageScaling,
       note: this._getAbilityUseNote(item, config),
-      title: game.i18n.format("DND5E.AbilityUseHint", {
+      title: game.i18n.format("SKJAALD.AbilityUseHint", {
         type: game.i18n.localize(CONFIG.Item.typeLabels[item.type]),
         name: item.name
       })
@@ -11202,14 +11202,14 @@ class AbilityUseDialog extends Dialog {
     this._getAbilityUseWarnings(data, options);
 
     // Render the ability usage template
-    const html = await renderTemplate("systems/dnd5e/templates/apps/ability-use.hbs", data);
+    const html = await renderTemplate("systems/skjaald/templates/apps/ability-use.hbs", data);
 
     // Create the Dialog and return data as a Promise
     const isSpell = item.type === "spell";
-    const label = game.i18n.localize(`DND5E.AbilityUse${isSpell ? "Cast" : "Use"}`);
+    const label = game.i18n.localize(`SKJAALD.AbilityUse${isSpell ? "Cast" : "Use"}`);
     return new Promise(resolve => {
       const dlg = new this(item, {
-        title: `${item.name}: ${game.i18n.localize("DND5E.AbilityUseConfig")}`,
+        title: `${item.name}: ${game.i18n.localize("SKJAALD.AbilityUseConfig")}`,
         content: html,
         buttons: {
           use: {
@@ -11243,10 +11243,10 @@ class AbilityUseDialog extends Dialog {
   static _createConcentrationOptions(item) {
     const { effects } = item.actor.concentration;
     return effects.reduce((acc, effect) => {
-      const data = effect.getFlag("dnd5e", "itemData");
+      const data = effect.getFlag("skjaald", "itemData");
       acc.push({
         name: effect.id,
-        label: data?.name ?? item.actor.items.get(data)?.name ?? game.i18n.localize("DND5E.ConcentratingItemless")
+        label: data?.name ?? item.actor.items.get(data)?.name ?? game.i18n.localize("SKJAALD.ConcentratingItemless")
       });
       return acc;
     }, []);
@@ -11266,9 +11266,9 @@ class AbilityUseDialog extends Dialog {
 
     // Determine the levels which are feasible
     let lmax = 0;
-    const options = Array.fromRange(Object.keys(CONFIG.DND5E.spellLevels).length).reduce((arr, i) => {
+    const options = Array.fromRange(Object.keys(CONFIG.SKJAALD.spellLevels).length).reduce((arr, i) => {
       if ( i < level ) return arr;
-      const label = CONFIG.DND5E.spellLevels[i];
+      const label = CONFIG.SKJAALD.spellLevels[i];
       const l = actor.system.spells[`spell${i}`] || {max: 0, override: null};
       let max = parseInt(l.override || l.max || 0);
       let slots = Math.clamp(parseInt(l.value || 0), 0, max);
@@ -11276,7 +11276,7 @@ class AbilityUseDialog extends Dialog {
       arr.push({
         key: `spell${i}`,
         level: i,
-        label: i > 0 ? game.i18n.format("DND5E.SpellLevelSlot", {level: label, n: slots}) : label,
+        label: i > 0 ? game.i18n.format("SKJAALD.SpellLevelSlot", {level: label, n: slots}) : label,
         canCast: max > 0,
         hasSlots: slots > 0
       });
@@ -11284,14 +11284,14 @@ class AbilityUseDialog extends Dialog {
     }, []).filter(sl => sl.level <= lmax);
 
     // If this character has other kinds of slots, present them as well.
-    for ( const k of Object.keys(CONFIG.DND5E.spellcastingTypes) ) {
+    for ( const k of Object.keys(CONFIG.SKJAALD.spellcastingTypes) ) {
       const spellData = actor.system.spells[k];
       if ( !spellData ) continue;
       if ( spellData.level >= level ) {
         options.push({
           key: k,
           level: spellData.level,
-          label: `${game.i18n.format(`DND5E.SpellLevel${k.capitalize()}`, {level: spellData.level, n: spellData.value})}`,
+          label: `${game.i18n.format(`SKJAALD.SpellLevel${k.capitalize()}`, {level: spellData.level, n: spellData.value})}`,
           canCast: true,
           hasSlots: spellData.value > 0
         });
@@ -11351,11 +11351,11 @@ class AbilityUseDialog extends Dialog {
       options.profiles = null;
     }
     if ( summons.creatureSizes.size > 1 ) options.creatureSizes = summons.creatureSizes.reduce((obj, k) => {
-      obj[k] = CONFIG.DND5E.actorSizes[k]?.label;
+      obj[k] = CONFIG.SKJAALD.actorSizes[k]?.label;
       return obj;
     }, {});
     if ( summons.creatureTypes.size > 1 ) options.creatureTypes = summons.creatureTypes.reduce((obj, k) => {
-      obj[k] = CONFIG.DND5E.creatureTypes[k]?.label;
+      obj[k] = CONFIG.SKJAALD.creatureTypes[k]?.label;
       return obj;
     }, {});
     return options;
@@ -11372,7 +11372,7 @@ class AbilityUseDialog extends Dialog {
   static _createResourceOptions(item) {
     const consume = item.system.consume || {};
     if ( (item.type !== "spell") || !consume.scale ) return null;
-    const spellLevels = Object.keys(CONFIG.DND5E.spellLevels).length - 1;
+    const spellLevels = Object.keys(CONFIG.SKJAALD.spellLevels).length - 1;
 
     const min = consume.amount || 1;
     const cap = spellLevels + min - item.system.level;
@@ -11402,11 +11402,11 @@ class AbilityUseDialog extends Dialog {
       case "hitDice": {
         target = item.actor;
         if ( ["smallest", "largest"].includes(consume.target) ) {
-          label = game.i18n.localize(`DND5E.ConsumeHitDice${consume.target.capitalize()}Long`);
+          label = game.i18n.localize(`SKJAALD.ConsumeHitDice${consume.target.capitalize()}Long`);
           value = target.system.attributes.hd.value;
         } else {
           value = item.actor.system.attributes.hd.bySize[consume.target] ?? 0;
-          label = `${game.i18n.localize("DND5E.HitDice")} (${consume.target})`;
+          label = `${game.i18n.localize("SKJAALD.HitDice")} (${consume.target})`;
         }
         break;
       }
@@ -11445,11 +11445,11 @@ class AbilityUseDialog extends Dialog {
     if ( !item.isActive ) return "";
 
     // Zero quantity
-    if ( quantity <= 0 ) return game.i18n.localize("DND5E.AbilityUseUnavailableHint");
+    if ( quantity <= 0 ) return game.i18n.localize("SKJAALD.AbilityUseUnavailableHint");
 
     // Abilities which use Recharge
     if ( config.consumeUsage && recharge?.value ) {
-      return game.i18n.format(recharge.charged ? "DND5E.AbilityUseChargedHint" : "DND5E.AbilityUseRechargeHint", {
+      return game.i18n.format(recharge.charged ? "SKJAALD.AbilityUseChargedHint" : "SKJAALD.AbilityUseRechargeHint", {
         type: game.i18n.localize(CONFIG.Item.typeLabels[item.type])
       });
     }
@@ -11459,25 +11459,25 @@ class AbilityUseDialog extends Dialog {
 
     // Consumables
     if ( uses.autoDestroy ) {
-      let str = "DND5E.AbilityUseNormalHint";
-      if ( uses.value > 1 ) str = "DND5E.AbilityUseConsumableChargeHint";
-      else if ( quantity > 1 ) str = "DND5E.AbilityUseConsumableQuantityHint";
+      let str = "SKJAALD.AbilityUseNormalHint";
+      if ( uses.value > 1 ) str = "SKJAALD.AbilityUseConsumableChargeHint";
+      else if ( quantity > 1 ) str = "SKJAALD.AbilityUseConsumableQuantityHint";
       return game.i18n.format(str, {
-        type: game.i18n.localize(`DND5E.Consumable${item.system.type.value.capitalize()}`),
+        type: game.i18n.localize(`SKJAALD.Consumable${item.system.type.value.capitalize()}`),
         value: uses.value,
         quantity: quantity,
         max: uses.max,
-        per: CONFIG.DND5E.limitedUsePeriods[uses.per]?.label
+        per: CONFIG.SKJAALD.limitedUsePeriods[uses.per]?.label
       });
     }
 
     // Other Items
     else {
-      return game.i18n.format(`DND5E.AbilityUse${uses.value ? "Normal" : "Unavailable"}Hint`, {
+      return game.i18n.format(`SKJAALD.AbilityUse${uses.value ? "Normal" : "Unavailable"}Hint`, {
         type: game.i18n.localize(CONFIG.Item.typeLabels[item.type]),
         value: uses.value,
         max: uses.max,
-        per: CONFIG.DND5E.limitedUsePeriods[uses.per]?.label
+        per: CONFIG.SKJAALD.limitedUsePeriods[uses.per]?.label
       });
     }
   }
@@ -11504,20 +11504,20 @@ class AbilityUseDialog extends Dialog {
 
     if ( (scale === "slot") && data.slotOptions.every(o => !o.hasSlots) ) {
       // Warn that the actor has no spell slots of any level with which to use this item.
-      warnings.push(game.i18n.format("DND5E.SpellCastNoSlotsLeft", {
+      warnings.push(game.i18n.format("SKJAALD.SpellCastNoSlotsLeft", {
         name: item.name
       }));
     } else if ( (scale === "slot") && !data.slotOptions.some(o => levels.includes(o.level) && o.hasSlots) ) {
       // Warn that the actor has no spell slots of this particular level with which to use this item.
-      warnings.push(game.i18n.format("DND5E.SpellCastNoSlots", {
-        level: CONFIG.DND5E.spellLevels[level],
+      warnings.push(game.i18n.format("SKJAALD.SpellCastNoSlots", {
+        level: CONFIG.SKJAALD.spellLevels[level],
         name: item.name
       }));
     } else if ( (scale === "resource") && foundry.utils.isEmpty(data.resourceOptions) ) {
       // Warn that the resource does not have enough left.
-      warnings.push(game.i18n.format("DND5E.ConsumeWarningNoQuantity", {
+      warnings.push(game.i18n.format("SKJAALD.ConsumeWarningNoQuantity", {
         name: item.name,
-        type: CONFIG.DND5E.abilityConsumptionTypes[consume.type]
+        type: CONFIG.SKJAALD.abilityConsumptionTypes[consume.type]
       }));
     }
 
@@ -11525,32 +11525,32 @@ class AbilityUseDialog extends Dialog {
     if ( item.hasResource ) {
       const isItem = ["ammo", "material", "charges"].includes(consume.type);
       if ( isItem && !item.actor.items.get(consume.target) ) {
-        warnings.push(game.i18n.format("DND5E.ConsumeWarningNoSource", {
-          name: item.name, type: CONFIG.DND5E.abilityConsumptionTypes[consume.type]
+        warnings.push(game.i18n.format("SKJAALD.ConsumeWarningNoSource", {
+          name: item.name, type: CONFIG.SKJAALD.abilityConsumptionTypes[consume.type]
         }));
       }
     }
 
     // Display warnings that the item or its resource item will be destroyed.
     if ( item.type === "consumable" ) {
-      const type = game.i18n.localize(`DND5E.Consumable${item.system.type.value.capitalize()}`);
+      const type = game.i18n.localize(`SKJAALD.Consumable${item.system.type.value.capitalize()}`);
       if ( this._willLowerQuantity(item) && (quantity === 1) ) {
-        warnings.push(game.i18n.format("DND5E.AbilityUseConsumableDestroyHint", {type}));
+        warnings.push(game.i18n.format("SKJAALD.AbilityUseConsumableDestroyHint", {type}));
       }
 
       const resource = item.actor.items.get(consume.target);
       const qty = consume.amount || 1;
       if ( resource && (resource.system.quantity === 1) && this._willLowerQuantity(resource, qty) ) {
-        warnings.push(game.i18n.format("DND5E.AbilityUseConsumableDestroyResourceHint", {type, name: resource.name}));
+        warnings.push(game.i18n.format("SKJAALD.AbilityUseConsumableDestroyResourceHint", {type, name: resource.name}));
       }
     }
 
     // Display warnings that the actor cannot concentrate on this item, or if it must replace one of the effects.
     if ( data.concentration.show ) {
-      const locale = `DND5E.ConcentratingWarnLimit${data.concentration.optional ? "Optional" : ""}`;
+      const locale = `SKJAALD.ConcentratingWarnLimit${data.concentration.optional ? "Optional" : ""}`;
       warnings.push(game.i18n.localize(locale));
     } else if ( data.beginConcentrating && !item.actor.system.attributes?.concentration?.limit ) {
-      const locale = "DND5E.ConcentratingWarnLimitZero";
+      const locale = "SKJAALD.ConcentratingWarnLimitZero";
       warnings.push(game.i18n.localize(locale));
     }
 
@@ -11596,10 +11596,10 @@ class AbilityUseDialog extends Dialog {
     const level = this.item.actor?.system.spells?.[event.target.value]?.level;
     const item = this.item.clone({ "system.level": level ?? this.item.system.level });
     this._updateProfilesInput(
-      "enchantmentProfile", "DND5E.Enchantment.Label", this.constructor._createEnchantmentOptions(item)
+      "enchantmentProfile", "SKJAALD.Enchantment.Label", this.constructor._createEnchantmentOptions(item)
     );
     this._updateProfilesInput(
-      "summonsProfile", "DND5E.Summoning.Profile.Label", this.constructor._createSummoningOptions(item)
+      "summonsProfile", "SKJAALD.Summoning.Profile.Label", this.constructor._createSummoningOptions(item)
     );
   }
 
@@ -11672,18 +11672,18 @@ class Item5e extends SystemDocumentMixin(Item) {
     // Migrate backpack -> container.
     if ( data.type === "backpack" ) {
       data.type = "container";
-      foundry.utils.setProperty(data, "flags.dnd5e.persistSourceMigration", true);
+      foundry.utils.setProperty(data, "flags.skjaald.persistSourceMigration", true);
     }
 
     /**
      * A hook event that fires before source data is initialized for an Item in a compendium.
-     * @function dnd5e.initializeItemSource
+     * @function skjaald.initializeItemSource
      * @memberof hookEvents
      * @param {Item5e} item     Item for which the data is being initialized.
      * @param {object} data     Source data being initialized.
      * @param {object} options  Additional data initialization options.
      */
-    if ( options.pack || options.parent?.pack ) Hooks.callAll("dnd5e.initializeItemSource", this, data, options);
+    if ( options.pack || options.parent?.pack ) Hooks.callAll("skjaald.initializeItemSource", this, data, options);
 
     return super._initializeSource(data, options);
   }
@@ -11986,7 +11986,7 @@ class Item5e extends SystemDocumentMixin(Item) {
   get usageScaling() {
     const { level, preparation, consume } = this.system;
     const isLeveled = (this.type === "spell") && (level > 0);
-    if ( isLeveled && CONFIG.DND5E.spellPreparationModes[preparation.mode]?.upcast ) return "slot";
+    if ( isLeveled && CONFIG.SKJAALD.spellPreparationModes[preparation.mode]?.upcast ) return "slot";
     else if ( isLeveled && this.hasResource && consume.scale ) return "resource";
     return null;
   }
@@ -11997,7 +11997,7 @@ class Item5e extends SystemDocumentMixin(Item) {
    * Spellcasting details for a class or subclass.
    *
    * @typedef {object} SpellcastingDescription
-   * @property {string} type              Spellcasting type as defined in ``CONFIG.DND5E.spellcastingTypes`.
+   * @property {string} type              Spellcasting type as defined in ``CONFIG.SKJAALD.spellcastingTypes`.
    * @property {string|null} progression  Progression within the specified spellcasting type if supported.
    * @property {string} ability           Ability used when casting spells from this class or subclass.
    * @property {number|null} levels       Number of levels of this class or subclass's class if embedded.
@@ -12022,8 +12022,8 @@ class Item5e extends SystemDocumentMixin(Item) {
     finalSC.levels = this.isEmbedded ? (this.system.levels ?? this.class?.system.levels) : null;
 
     // Temp method for determining spellcasting type until this data is available directly using advancement
-    if ( CONFIG.DND5E.spellcastingTypes[finalSC.progression] ) finalSC.type = finalSC.progression;
-    else finalSC.type = Object.entries(CONFIG.DND5E.spellcastingTypes).find(([type, data]) => {
+    if ( CONFIG.SKJAALD.spellcastingTypes[finalSC.progression] ) finalSC.type = finalSC.progression;
+    else finalSC.type = Object.entries(CONFIG.SKJAALD.spellcastingTypes).find(([type, data]) => {
       return !!data.progression?.[finalSC.progression];
     })?.[0];
 
@@ -12119,8 +12119,8 @@ class Item5e extends SystemDocumentMixin(Item) {
         if ( (prop === "concentration") && !this.requiresConcentration ) return acc;
         acc.push({
           abbr: prop,
-          label: CONFIG.DND5E.itemProperties[prop]?.label,
-          icon: CONFIG.DND5E.itemProperties[prop]?.icon
+          label: CONFIG.SKJAALD.itemProperties[prop]?.label,
+          icon: CONFIG.SKJAALD.itemProperties[prop]?.icon
         });
         return acc;
       }, []);
@@ -12153,7 +12153,7 @@ class Item5e extends SystemDocumentMixin(Item) {
    * @protected
    */
   _prepareEquipment() {
-    this.labels.armor = this.system.armor.value ? `${this.system.armor.value} ${game.i18n.localize("DND5E.AC")}` : "";
+    this.labels.armor = this.system.armor.value ? `${this.system.armor.value} ${game.i18n.localize("SKJAALD.AC")}` : "";
   }
 
   /* -------------------------------------------- */
@@ -12164,13 +12164,13 @@ class Item5e extends SystemDocumentMixin(Item) {
    */
   _prepareFeat() {
     const act = this.system.activation;
-    if ( act?.type === "legendary" ) this.labels.featType = game.i18n.localize("DND5E.LegendaryActionLabel");
-    else if ( act?.type === "lair" ) this.labels.featType = game.i18n.localize("DND5E.LairActionLabel");
+    if ( act?.type === "legendary" ) this.labels.featType = game.i18n.localize("SKJAALD.LegendaryActionLabel");
+    else if ( act?.type === "lair" ) this.labels.featType = game.i18n.localize("SKJAALD.LairActionLabel");
     else if ( act?.type ) {
       const isAttack = /\w\wak$/.test(this.system.actionType);
-      this.labels.featType = game.i18n.localize(isAttack ? "DND5E.Attack" : "DND5E.Action");
+      this.labels.featType = game.i18n.localize(isAttack ? "SKJAALD.Attack" : "SKJAALD.Action");
     }
-    else this.labels.featType = game.i18n.localize("DND5E.Passive");
+    else this.labels.featType = game.i18n.localize("SKJAALD.Passive");
   }
 
   /* -------------------------------------------- */
@@ -12181,12 +12181,12 @@ class Item5e extends SystemDocumentMixin(Item) {
    */
   _prepareSpell() {
     const attributes = this.system?.validProperties.reduce((obj, k) => {
-      obj[k] = CONFIG.DND5E.itemProperties[k];
+      obj[k] = CONFIG.SKJAALD.itemProperties[k];
       return obj;
     }, {});
     this.system.preparation.mode ||= "prepared";
-    this.labels.level = CONFIG.DND5E.spellLevels[this.system.level];
-    this.labels.school = CONFIG.DND5E.spellSchools[this.system.school]?.label;
+    this.labels.level = CONFIG.SKJAALD.spellLevels[this.system.level];
+    this.labels.school = CONFIG.SKJAALD.spellSchools[this.system.school]?.label;
     this.labels.components = this.system.properties.reduce((obj, c) => {
       const config = attributes[c];
       if ( !config ) return obj;
@@ -12208,7 +12208,7 @@ class Item5e extends SystemDocumentMixin(Item) {
    * @protected
    */
   _prepareWeapon() {
-    this.labels.armor = this.system.armor.value ? `${this.system.armor.value} ${game.i18n.localize("DND5E.AC")}` : "";
+    this.labels.armor = this.system.armor.value ? `${this.system.armor.value} ${game.i18n.localize("SKJAALD.AC")}` : "";
   }
 
   /* -------------------------------------------- */
@@ -12221,7 +12221,7 @@ class Item5e extends SystemDocumentMixin(Item) {
     if ( !("actionType" in this.system) ) return;
     let dmg = this.system.damage || {};
     if ( dmg.parts ) {
-      const types = CONFIG.DND5E.damageTypes;
+      const types = CONFIG.SKJAALD.damageTypes;
       this.labels.damage = dmg.parts.map(d => d[0]).join(" + ").replace(/\+ -/g, "- ");
       this.labels.damageTypes = dmg.parts.map(d => types[d[1]]?.label).join(", ");
     }
@@ -12235,7 +12235,7 @@ class Item5e extends SystemDocumentMixin(Item) {
    */
   _prepareRecovery() {
     const { per } = this.system.uses ?? {};
-    const config = CONFIG.DND5E.limitedUsePeriods[per] ?? {};
+    const config = CONFIG.SKJAALD.limitedUsePeriods[per] ?? {};
     this.labels.recovery = config.abbreviation ?? config.label;
   }
 
@@ -12250,7 +12250,7 @@ class Item5e extends SystemDocumentMixin(Item) {
     this.advancement = {
       byId: {},
       byLevel: Object.fromEntries(
-        Array.fromRange(CONFIG.DND5E.maxLevel, minAdvancementLevel).map(l => [l, []])
+        Array.fromRange(CONFIG.SKJAALD.maxLevel, minAdvancementLevel).map(l => [l, []])
       ),
       byType: {},
       needingConfiguration: []
@@ -12305,8 +12305,8 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // Action usage
     if ( "actionType" in this.system ) {
-      this.labels.abilityCheck = game.i18n.format("DND5E.AbilityPromptTitle", {
-        ability: CONFIG.DND5E.abilities[this.system.ability]?.label ?? ""
+      this.labels.abilityCheck = game.i18n.format("SKJAALD.AbilityPromptTitle", {
+        ability: CONFIG.SKJAALD.abilities[this.system.ability]?.label ?? ""
       });
 
       // Saving throws
@@ -12330,7 +12330,7 @@ class Item5e extends SystemDocumentMixin(Item) {
   getDerivedDamageLabel() {
     if ( !this.hasDamage || !this.isOwned ) return [];
     const rollData = this.getRollData();
-    const damageLabels = { ...CONFIG.DND5E.damageTypes, ...CONFIG.DND5E.healingTypes };
+    const damageLabels = { ...CONFIG.SKJAALD.damageTypes, ...CONFIG.SKJAALD.healingTypes };
     const derivedDamage = this.system.damage?.parts?.map((damagePart, index) => {
       let formula;
       try {
@@ -12370,8 +12370,8 @@ class Item5e extends SystemDocumentMixin(Item) {
     }
 
     // Update labels
-    const abl = CONFIG.DND5E.abilities[save.ability]?.label ?? "";
-    this.labels.save = game.i18n.format("DND5E.SaveDC", {dc: save.dc || "", ability: abl});
+    const abl = CONFIG.SKJAALD.abilities[save.ability]?.label ?? "";
+    this.labels.save = game.i18n.format("SKJAALD.SaveDC", {dc: save.dc || "", ability: abl});
     return save.dc;
   }
 
@@ -12446,14 +12446,14 @@ class Item5e extends SystemDocumentMixin(Item) {
    * @param {object} options
    * @param {string} options.property  Name of the property to which this formula belongs.
    * @returns {string}                 Formula with replaced data.
-   * @deprecated since DnD5e 3.2, available until DnD5e 3.4
+   * @deprecated since Skjaald 3.2, available until Skjaald 3.4
    */
   replaceFormulaData(formula, data, { property }) {
     foundry.utils.logCompatibilityWarning(
-      "Item5e#replaceFormulaData has been moved to dnd5e.utils.replaceFormulaData.",
-      { since: "DnD5e 3.2", until: "DnD5e 3.4" }
+      "Item5e#replaceFormulaData has been moved to skjaald.utils.replaceFormulaData.",
+      { since: "Skjaald 3.2", until: "Skjaald 3.4" }
     );
-    return dnd5e.utils.replaceFormulaData(formula, data, { actor: this.actor, property });
+    return skjaald.utils.replaceFormulaData(formula, data, { actor: this.actor, property });
   }
 
   /* -------------------------------------------- */
@@ -12508,7 +12508,7 @@ class Item5e extends SystemDocumentMixin(Item) {
    */
   async use(config={}, options={}) {
     if ( !this.isOwner ) {
-      ui.notifications.error("DND5E.DocumentUseWarn", { localize: true });
+      ui.notifications.error("SKJAALD.DocumentUseWarn", { localize: true });
       return null;
     }
     let item = this;
@@ -12519,7 +12519,7 @@ class Item5e extends SystemDocumentMixin(Item) {
     options = foundry.utils.mergeObject({
       configureDialog: true,
       createMessage: true,
-      "flags.dnd5e.use": {type: this.type, itemId: this.id, itemUuid: this.uuid}
+      "flags.skjaald.use": {type: this.type, itemId: this.id, itemUuid: this.uuid}
     }, options);
 
     // Define follow-up actions resulting from the item usage
@@ -12532,14 +12532,14 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     /**
      * A hook event that fires before an item usage is configured.
-     * @function dnd5e.preUseItem
+     * @function skjaald.preUseItem
      * @memberof hookEvents
      * @param {Item5e} item                  Item being used.
      * @param {ItemUseConfiguration} config  Configuration data for the item usage being prepared.
      * @param {ItemUseOptions} options       Additional options used for configuring item usage.
      * @returns {boolean}                    Explicitly return `false` to prevent item from being used.
      */
-    if ( Hooks.call("dnd5e.preUseItem", item, config, options) === false ) return;
+    if ( Hooks.call("skjaald.preUseItem", item, config, options) === false ) return;
 
     // Are any default values necessitating a prompt?
     const needsConfiguration = Object.values(config).includes(true);
@@ -12553,7 +12553,7 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // Store selected enchantment profile in flag
     if ( config.enchantmentProfile ) {
-      foundry.utils.setProperty(options.flags, "dnd5e.use.enchantmentProfile", config.enchantmentProfile);
+      foundry.utils.setProperty(options.flags, "skjaald.use.enchantmentProfile", config.enchantmentProfile);
     }
 
     // Handle upcasting
@@ -12578,7 +12578,7 @@ class Item5e extends SystemDocumentMixin(Item) {
         item.prepareFinalAttributes();
       }
     }
-    if ( item.type === "spell" ) foundry.utils.mergeObject(options.flags, {"dnd5e.use.spellLevel": item.system.level});
+    if ( item.type === "spell" ) foundry.utils.mergeObject(options.flags, {"skjaald.use.spellLevel": item.system.level});
 
     // Calculate and consume item consumption
     if ( await this.consume(item, config, options) === false ) return;
@@ -12589,7 +12589,7 @@ class Item5e extends SystemDocumentMixin(Item) {
       const effect = await item.actor.beginConcentrating(item);
       if ( effect ) {
         effects.push(effect);
-        foundry.utils.setProperty(options.flags, "dnd5e.use.concentrationId", effect.id);
+        foundry.utils.setProperty(options.flags, "skjaald.use.concentrationId", effect.id);
       }
       if ( config.endConcentration ) {
         const deleted = await item.actor.endConcentration(config.endConcentration);
@@ -12604,10 +12604,10 @@ class Item5e extends SystemDocumentMixin(Item) {
     let templates;
     if ( config.createMeasuredTemplate ) {
       try {
-        templates = await (dnd5e.canvas.AbilityTemplate.fromItem(item))?.drawPreview();
+        templates = await (skjaald.canvas.AbilityTemplate.fromItem(item))?.drawPreview();
       } catch(err) {
         Hooks.onError("Item5e#use", err, {
-          msg: game.i18n.localize("DND5E.PlaceTemplateError"),
+          msg: game.i18n.localize("SKJAALD.PlaceTemplateError"),
           log: "error",
           notify: "error"
         });
@@ -12626,7 +12626,7 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     /**
      * A hook event that fires when an item is used, after the measured template has been created if one is needed.
-     * @function dnd5e.useItem
+     * @function skjaald.useItem
      * @memberof hookEvents
      * @param {Item5e} item                                Item being used.
      * @param {ItemUseConfiguration} config                Configuration data for the roll.
@@ -12635,7 +12635,7 @@ class Item5e extends SystemDocumentMixin(Item) {
      * @param {ActiveEffect5e[]} effects                   The active effects that were created or deleted.
      * @param {TokenDocument5e[]|null} summoned            Summoned tokens if they were created.
      */
-    Hooks.callAll("dnd5e.useItem", item, config, options, templates ?? null, effects, summoned ?? null);
+    Hooks.callAll("skjaald.useItem", item, config, options, templates ?? null, effects, summoned ?? null);
 
     return cardData;
   }
@@ -12652,28 +12652,28 @@ class Item5e extends SystemDocumentMixin(Item) {
   async consume(item, config, options) {
     /**
      * A hook event that fires before an item's resource consumption has been calculated.
-     * @function dnd5e.preItemUsageConsumption
+     * @function skjaald.preItemUsageConsumption
      * @memberof hookEvents
      * @param {Item5e} item                  Item being used.
      * @param {ItemUseConfiguration} config  Configuration data for the item usage being prepared.
      * @param {ItemUseOptions} options       Additional options used for configuring item usage.
      * @returns {boolean}                    Explicitly return `false` to prevent item from being used.
      */
-    if ( Hooks.call("dnd5e.preItemUsageConsumption", item, config, options) === false ) return false;
+    if ( Hooks.call("skjaald.preItemUsageConsumption", item, config, options) === false ) return false;
 
     // Determine whether the item can be used by testing the chosen values of the config.
     const usage = item._getUsageUpdates(config);
     if ( !usage ) return false;
 
     options.flags ??= {};
-    if ( config.consumeUsage ) foundry.utils.setProperty(options.flags, "dnd5e.use.consumedUsage", true);
-    if ( config.consumeResource ) foundry.utils.setProperty(options.flags, "dnd5e.use.consumedResource", true);
-    if ( config.consumeSpellSlot ) foundry.utils.setProperty(options.flags, "dnd5e.use.consumedSpellSlot", true);
+    if ( config.consumeUsage ) foundry.utils.setProperty(options.flags, "skjaald.use.consumedUsage", true);
+    if ( config.consumeResource ) foundry.utils.setProperty(options.flags, "skjaald.use.consumedResource", true);
+    if ( config.consumeSpellSlot ) foundry.utils.setProperty(options.flags, "skjaald.use.consumedSpellSlot", true);
 
     /**
      * A hook event that fires after an item's resource consumption has been calculated but before any
      * changes have been made.
-     * @function dnd5e.itemUsageConsumption
+     * @function skjaald.itemUsageConsumption
      * @memberof hookEvents
      * @param {Item5e} item                     Item being used.
      * @param {ItemUseConfiguration} config     Configuration data for the item usage being prepared.
@@ -12685,7 +12685,7 @@ class Item5e extends SystemDocumentMixin(Item) {
      * @param {Set<string>} usage.deleteIds     Item ids for those which consumption will delete.
      * @returns {boolean}                       Explicitly return `false` to prevent item from being used.
      */
-    if ( Hooks.call("dnd5e.itemUsageConsumption", item, config, options, usage) === false ) return false;
+    if ( Hooks.call("skjaald.itemUsageConsumption", item, config, options, usage) === false ) return false;
 
     // Commit pending data updates
     const { actorUpdates, itemUpdates, resourceUpdates, deleteIds } = usage;
@@ -12745,13 +12745,13 @@ class Item5e extends SystemDocumentMixin(Item) {
       config.createSummons = summons.prompt;
       config.summonsProfile = this.system.summons.profiles[0]._id;
     }
-    if ( this.requiresConcentration && !game.settings.get("dnd5e", "disableConcentration") ) {
+    if ( this.requiresConcentration && !game.settings.get("skjaald", "disableConcentration") ) {
       config.beginConcentrating = true;
       const { effects } = this.actor.concentration;
       const limit = this.actor.system.attributes?.concentration?.limit ?? 0;
       if ( limit && (limit <= effects.size) ) {
         const id = effects.find(e => {
-          const data = e.flags.dnd5e?.itemData ?? {};
+          const data = e.flags.skjaald?.itemData ?? {};
           return (data === this.id) || (data._id === this.id);
         })?.id ?? effects.first()?.id ?? null;
         config.endConcentration = id;
@@ -12795,9 +12795,9 @@ class Item5e extends SystemDocumentMixin(Item) {
       const spells = Number(level?.value ?? 0);
       if ( spells === 0 ) {
         const isLeveled = /spell\d+/.test(config.slotLevel || "");
-        const labelKey = isLeveled ? `DND5E.SpellLevel${this.system.level}`: `DND5E.SpellProg${config.slotLevel?.capitalize()}`;
+        const labelKey = isLeveled ? `SKJAALD.SpellLevel${this.system.level}`: `SKJAALD.SpellProg${config.slotLevel?.capitalize()}`;
         const label = game.i18n.localize(labelKey);
-        ui.notifications.warn(game.i18n.format("DND5E.SpellCastNoSlots", {name: this.name, level: label}));
+        ui.notifications.warn(game.i18n.format("SKJAALD.SpellCastNoSlots", {name: this.name, level: label}));
         return false;
       }
       actorUpdates[`system.spells.${config.slotLevel}.value`] = Math.max(spells - 1, 0);
@@ -12811,14 +12811,14 @@ class Item5e extends SystemDocumentMixin(Item) {
       if ( config.endConcentration ) {
         const replacedEffect = effects.find(i => i.id === config.endConcentration);
         if ( !replacedEffect ) {
-          ui.notifications.warn("DND5E.ConcentratingMissingItem", {localize: true});
+          ui.notifications.warn("SKJAALD.ConcentratingMissingItem", {localize: true});
           return false;
         }
       }
 
       // Case 2: Starting concentration, but at limit.
       else if ( effects.size >= this.actor.system.attributes.concentration.limit ) {
-        ui.notifications.warn("DND5E.ConcentratingLimited", {localize: true});
+        ui.notifications.warn("SKJAALD.ConcentratingLimited", {localize: true});
         return false;
       }
     }
@@ -12871,7 +12871,7 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // If the item was not used, return a warning
     if ( !used ) {
-      ui.notifications.warn(game.i18n.format("DND5E.ItemNoUses", {name: this.name}));
+      ui.notifications.warn(game.i18n.format("SKJAALD.ItemNoUses", {name: this.name}));
       return false;
     }
   }
@@ -12893,9 +12893,9 @@ class Item5e extends SystemDocumentMixin(Item) {
     if ( !consume.type ) return;
 
     // No consumed target
-    const typeLabel = CONFIG.DND5E.abilityConsumptionTypes[consume.type];
+    const typeLabel = CONFIG.SKJAALD.abilityConsumptionTypes[consume.type];
     if ( !consume.target ) {
-      ui.notifications.warn(game.i18n.format("DND5E.ConsumeWarningNoResource", {name: this.name, type: typeLabel}));
+      ui.notifications.warn(game.i18n.format("SKJAALD.ConsumeWarningNoResource", {name: this.name, type: typeLabel}));
       return false;
     }
 
@@ -12936,14 +12936,14 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // Verify that a consumed resource is available
     if ( resource === undefined ) {
-      ui.notifications.warn(game.i18n.format("DND5E.ConsumeWarningNoSource", {name: this.name, type: typeLabel}));
+      ui.notifications.warn(game.i18n.format("SKJAALD.ConsumeWarningNoSource", {name: this.name, type: typeLabel}));
       return false;
     }
 
     // Verify that the required quantity is available
     let remaining = quantity - amount;
     if ( remaining < 0 ) {
-      ui.notifications.warn(game.i18n.format("DND5E.ConsumeWarningNoQuantity", {name: this.name, type: typeLabel}));
+      ui.notifications.warn(game.i18n.format("SKJAALD.ConsumeWarningNoQuantity", {name: this.name, type: typeLabel}));
       return false;
     }
 
@@ -13008,18 +13008,18 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // Render the chat card template
     const token = this.actor.token;
-    const consumeUsage = this.hasLimitedUses && !options.flags?.dnd5e?.use?.consumedUsage;
-    const consumeResource = this.hasResource && !options.flags?.dnd5e?.use?.consumedResource;
+    const consumeUsage = this.hasLimitedUses && !options.flags?.skjaald?.use?.consumedUsage;
+    const consumeResource = this.hasResource && !options.flags?.skjaald?.use?.consumedResource;
     const hasButtons = this.hasAttack || this.hasDamage || this.isVersatile || this.hasSave || this.system.formula
       || this.hasAreaTarget || (this.type === "tool") || this.hasAbilityCheck || this.system.hasSummoning
       || consumeUsage || consumeResource;
     const templateData = {
       hasButtons,
       actor: this.actor,
-      config: CONFIG.DND5E,
+      config: CONFIG.SKJAALD,
       tokenId: token?.uuid || null,
       item: this,
-      effects: this.effects.filter(e => (e.getFlag("dnd5e", "type") !== "enchantment") && !e.getFlag("dnd5e", "rider")),
+      effects: this.effects.filter(e => (e.getFlag("skjaald", "type") !== "enchantment") && !e.getFlag("skjaald", "rider")),
       data: await this.system.getCardData(),
       labels: this.labels,
       hasAttack: this.hasAttack,
@@ -13034,7 +13034,7 @@ class Item5e extends SystemDocumentMixin(Item) {
       consumeUsage,
       consumeResource
     };
-    const html = await renderTemplate("systems/dnd5e/templates/chat/item-card.hbs", templateData);
+    const html = await renderTemplate("systems/skjaald/templates/chat/item-card.hbs", templateData);
 
     // Create the ChatMessage data object
     const chatData = {
@@ -13048,7 +13048,7 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // If the Item was destroyed in the process of displaying its card - embed the item data in the chat message
     if ( (this.type === "consumable") && !this.actor.items.has(this.id) ) {
-      chatData.flags["dnd5e.itemData"] = templateData.item.toObject();
+      chatData.flags["skjaald.itemData"] = templateData.item.toObject();
     }
 
     // Merge in the flags from options
@@ -13056,13 +13056,13 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     /**
      * A hook event that fires before an item chat card is created.
-     * @function dnd5e.preDisplayCard
+     * @function skjaald.preDisplayCard
      * @memberof hookEvents
      * @param {Item5e} item             Item for which the chat card is being displayed.
      * @param {object} chatData         Data used to create the chat message.
      * @param {ItemUseOptions} options  Options which configure the display of the item chat card.
      */
-    Hooks.callAll("dnd5e.preDisplayCard", this, chatData, options);
+    Hooks.callAll("skjaald.preDisplayCard", this, chatData, options);
 
     // Apply the roll mode to adjust message visibility
     ChatMessage.applyRollMode(chatData, options.rollMode ?? game.settings.get("core", "rollMode"));
@@ -13072,13 +13072,13 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     /**
      * A hook event that fires after an item chat card is created.
-     * @function dnd5e.displayCard
+     * @function skjaald.displayCard
      * @memberof hookEvents
      * @param {Item5e} item              Item for which the chat card is being displayed.
      * @param {ChatMessage|object} card  The created ChatMessage instance or ChatMessageData depending on whether
      *                                   options.createMessage was set to `true`.
      */
-    Hooks.callAll("dnd5e.displayCard", this, card);
+    Hooks.callAll("skjaald.displayCard", this, card);
 
     return card;
   }
@@ -13125,9 +13125,9 @@ class Item5e extends SystemDocumentMixin(Item) {
    * @returns {Promise<D20Roll|null>}       A Promise which resolves to the created Roll instance
    */
   async rollAttack(options={}) {
-    const flags = this.actor.flags.dnd5e ?? {};
+    const flags = this.actor.flags.skjaald ?? {};
     if ( !this.hasAttack ) throw new Error("You may not place an Attack Roll with this Item.");
-    let title = `${this.name} - ${game.i18n.localize("DND5E.AttackRoll")}`;
+    let title = `${this.name} - ${game.i18n.localize("SKJAALD.AttackRoll")}`;
 
     // Get the parts and rollData for this item's attack
     const {parts, rollData} = this.getAttackToHit();
@@ -13152,7 +13152,7 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // Flags
     const elvenAccuracy = (flags.elvenAccuracy
-      && CONFIG.DND5E.characterFlags.elvenAccuracy.abilities.includes(this.abilityMod)) || undefined;
+      && CONFIG.SKJAALD.characterFlags.elvenAccuracy.abilities.includes(this.abilityMod)) || undefined;
 
     // Compose roll options
     const rollConfig = foundry.utils.mergeObject({
@@ -13169,7 +13169,7 @@ class Item5e extends SystemDocumentMixin(Item) {
         left: window.innerWidth - 710
       },
       messageData: {
-        "flags.dnd5e": {
+        "flags.skjaald": {
           targets: this.constructor._formatAttackTargets(),
           roll: { type: "attack", itemId: this.id, itemUuid: this.uuid }
         },
@@ -13180,26 +13180,26 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     /**
      * A hook event that fires before an attack is rolled for an Item.
-     * @function dnd5e.preRollAttack
+     * @function skjaald.preRollAttack
      * @memberof hookEvents
      * @param {Item5e} item                  Item for which the roll is being performed.
      * @param {D20RollConfiguration} config  Configuration data for the pending roll.
      * @returns {boolean}                    Explicitly return false to prevent the roll from being performed.
      */
-    if ( Hooks.call("dnd5e.preRollAttack", this, rollConfig) === false ) return;
+    if ( Hooks.call("skjaald.preRollAttack", this, rollConfig) === false ) return;
 
     const roll = await d20Roll(rollConfig);
     if ( roll === null ) return null;
 
     /**
      * A hook event that fires after an attack has been rolled for an Item.
-     * @function dnd5e.rollAttack
+     * @function skjaald.rollAttack
      * @memberof hookEvents
      * @param {Item5e} item          Item for which the roll was performed.
      * @param {D20Roll} roll         The resulting roll.
      * @param {object[]} ammoUpdate  Updates that will be applied to ammo Items as a result of this attack.
      */
-    Hooks.callAll("dnd5e.rollAttack", this, roll, ammoUpdate);
+    Hooks.callAll("skjaald.rollAttack", this, roll, ammoUpdate);
 
     // Commit ammunition consumption on attack rolls resource consumption if the attack roll was made
     if ( ammoUpdate.length ) await this.actor?.updateEmbeddedDocuments("Item", ammoUpdate);
@@ -13251,7 +13251,7 @@ class Item5e extends SystemDocumentMixin(Item) {
     // Fetch level from tags if not specified
     let originalLevel = this.system.level;
     let scaling = this.system.scaling;
-    const levelingFlag = this.getFlag("dnd5e", "spellLevel");
+    const levelingFlag = this.getFlag("skjaald", "spellLevel");
     if ( !spellLevel && levelingFlag ) {
       spellLevel = levelingFlag.value;
       originalLevel = levelingFlag.base;
@@ -13260,13 +13260,13 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // Get roll data
     const dmg = this.system.damage;
-    const properties = Array.from(this.system.properties).filter(p => CONFIG.DND5E.itemProperties[p]?.isPhysical);
+    const properties = Array.from(this.system.properties).filter(p => CONFIG.SKJAALD.itemProperties[p]?.isPhysical);
     const rollConfigs = dmg.parts.map(([formula, type]) => ({ parts: [formula], type, properties }));
     const rollData = this.getRollData();
     if ( spellLevel ) rollData.item.level = spellLevel;
 
     // Configure the damage roll
-    const actionFlavor = game.i18n.localize(this.system.actionType === "heal" ? "DND5E.Healing" : "DND5E.DamageRoll");
+    const actionFlavor = game.i18n.localize(this.system.actionType === "heal" ? "SKJAALD.Healing" : "SKJAALD.DamageRoll");
     const title = `${this.name} - ${actionFlavor}`;
     const rollConfig = {
       actor: this.actor,
@@ -13281,7 +13281,7 @@ class Item5e extends SystemDocumentMixin(Item) {
         left: window.innerWidth - 710
       },
       messageData: {
-        "flags.dnd5e": {
+        "flags.skjaald": {
           targets: this.constructor._formatAttackTargets(),
           roll: {type: "damage", itemId: this.id, itemUuid: this.uuid}
         },
@@ -13292,7 +13292,7 @@ class Item5e extends SystemDocumentMixin(Item) {
     // Adjust damage from versatile usage
     if ( versatile && dmg.versatile ) {
       rollConfigs[0].parts[0] = dmg.versatile;
-      rollConfig.messageData["flags.dnd5e"].roll.versatile = true;
+      rollConfig.messageData["flags.skjaald"].roll.versatile = true;
     }
 
     // Add magical damage if available
@@ -13325,7 +13325,7 @@ class Item5e extends SystemDocumentMixin(Item) {
     // Only add the ammunition damage if the ammunition is a consumable with type 'ammo'
     const ammo = this.hasAmmo ? this.actor.items.get(this.system.consume.target) : null;
     if ( ammo ) {
-      const properties = Array.from(ammo.system.properties).filter(p => CONFIG.DND5E.itemProperties[p]?.isPhysical);
+      const properties = Array.from(ammo.system.properties).filter(p => CONFIG.SKJAALD.itemProperties[p]?.isPhysical);
       if ( this.system.properties.has("mgc") && !properties.includes("mgc") ) properties.push("mgc");
       const ammoConfigs = ammo.system.damage.parts.map((([formula, type]) => ({ parts: [formula], type, properties })));
       if ( ammo.system.magicalBonus && ammo.system.magicAvailable ) {
@@ -13340,7 +13340,7 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // Factor in extra critical damage dice from the Barbarian's "Brutal Critical"
     if ( this.system.actionType === "mwak" ) {
-      rollConfig.criticalBonusDice = this.actor.getFlag("dnd5e", "meleeCriticalDamageDice") ?? 0;
+      rollConfig.criticalBonusDice = this.actor.getFlag("skjaald", "meleeCriticalDamageDice") ?? 0;
     }
 
     // Factor in extra weapon-specific critical damage
@@ -13351,24 +13351,24 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     /**
      * A hook event that fires before a damage is rolled for an Item.
-     * @function dnd5e.preRollDamage
+     * @function skjaald.preRollDamage
      * @memberof hookEvents
      * @param {Item5e} item                     Item for which the roll is being performed.
      * @param {DamageRollConfiguration} config  Configuration data for the pending roll.
      * @returns {boolean}                       Explicitly return false to prevent the roll from being performed.
      */
-    if ( Hooks.call("dnd5e.preRollDamage", this, rollConfig) === false ) return;
+    if ( Hooks.call("skjaald.preRollDamage", this, rollConfig) === false ) return;
 
     const rolls = await damageRoll(rollConfig);
 
     /**
      * A hook event that fires after a damage has been rolled for an Item.
-     * @function dnd5e.rollDamage
+     * @function skjaald.rollDamage
      * @memberof hookEvents
      * @param {Item5e} item                    Item for which the roll was performed.
      * @param {DamageRoll|DamageRoll[]} rolls  The resulting rolls (or single roll if `returnMultiple` is `false`).
      */
-    if ( rolls || (rollConfig.returnMultiple && rolls?.length) ) Hooks.callAll("dnd5e.rollDamage", this, rolls);
+    if ( rolls || (rollConfig.returnMultiple && rolls?.length) ) Hooks.callAll("skjaald.rollDamage", this, rolls);
 
     return rolls;
   }
@@ -13462,7 +13462,7 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     /**
      * A hook event that fires before a formula is rolled for an Item.
-     * @function dnd5e.preRollFormula
+     * @function skjaald.preRollFormula
      * @memberof hookEvents
      * @param {Item5e} item                 Item for which the roll is being performed.
      * @param {object} config               Configuration data for the pending roll.
@@ -13471,27 +13471,27 @@ class Item5e extends SystemDocumentMixin(Item) {
      * @param {boolean} config.chatMessage  Should a chat message be created for this roll?
      * @returns {boolean}                   Explicitly return false to prevent the roll from being performed.
      */
-    if ( Hooks.call("dnd5e.preRollFormula", this, rollConfig) === false ) return;
+    if ( Hooks.call("skjaald.preRollFormula", this, rollConfig) === false ) return;
 
     const roll = await new Roll(rollConfig.formula, rollConfig.data).roll({async: true});
 
     if ( rollConfig.chatMessage ) {
       roll.toMessage({
         speaker: ChatMessage.getSpeaker({actor: this.actor}),
-        flavor: `${this.name} - ${game.i18n.localize("DND5E.OtherFormula")}`,
+        flavor: `${this.name} - ${game.i18n.localize("SKJAALD.OtherFormula")}`,
         rollMode: game.settings.get("core", "rollMode"),
-        messageData: {"flags.dnd5e.roll": {type: "other", itemId: this.id, itemUuid: this.uuid}}
+        messageData: {"flags.skjaald.roll": {type: "other", itemId: this.id, itemUuid: this.uuid}}
       });
     }
 
     /**
      * A hook event that fires after a formula has been rolled for an Item.
-     * @function dnd5e.rollFormula
+     * @function skjaald.rollFormula
      * @memberof hookEvents
      * @param {Item5e} item  Item for which the roll was performed.
      * @param {Roll} roll    The resulting roll.
      */
-    Hooks.callAll("dnd5e.rollFormula", this, roll);
+    Hooks.callAll("skjaald.rollFormula", this, roll);
 
     return roll;
   }
@@ -13515,7 +13515,7 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     /**
      * A hook event that fires before the Item is rolled to recharge.
-     * @function dnd5e.preRollRecharge
+     * @function skjaald.preRollRecharge
      * @memberof hookEvents
      * @param {Item5e} item                 Item for which the roll is being performed.
      * @param {object} config               Configuration data for the pending roll.
@@ -13525,28 +13525,28 @@ class Item5e extends SystemDocumentMixin(Item) {
      * @param {boolean} config.chatMessage  Should a chat message be created for this roll?
      * @returns {boolean}                   Explicitly return false to prevent the roll from being performed.
      */
-    if ( Hooks.call("dnd5e.preRollRecharge", this, rollConfig) === false ) return;
+    if ( Hooks.call("skjaald.preRollRecharge", this, rollConfig) === false ) return;
 
     const roll = await new Roll(rollConfig.formula, rollConfig.data).roll({async: true});
     const success = roll.total >= rollConfig.target;
 
     if ( rollConfig.chatMessage ) {
-      const resultMessage = game.i18n.localize(`DND5E.ItemRecharge${success ? "Success" : "Failure"}`);
+      const resultMessage = game.i18n.localize(`SKJAALD.ItemRecharge${success ? "Success" : "Failure"}`);
       roll.toMessage({
-        flavor: `${game.i18n.format("DND5E.ItemRechargeCheck", {name: this.name})} - ${resultMessage}`,
+        flavor: `${game.i18n.format("SKJAALD.ItemRechargeCheck", {name: this.name})} - ${resultMessage}`,
         speaker: ChatMessage.getSpeaker({actor: this.actor, token: this.actor.token})
       });
     }
 
     /**
      * A hook event that fires after the Item has rolled to recharge, but before any changes have been performed.
-     * @function dnd5e.rollRecharge
+     * @function skjaald.rollRecharge
      * @memberof hookEvents
      * @param {Item5e} item  Item for which the roll was performed.
      * @param {Roll} roll    The resulting roll.
      * @returns {boolean}    Explicitly return false to prevent the item from being recharged.
      */
-    if ( Hooks.call("dnd5e.rollRecharge", this, roll) === false ) return roll;
+    if ( Hooks.call("skjaald.rollRecharge", this, roll) === false ) return roll;
 
     // Update the Item data
     if ( success ) this.update({"system.recharge.charged": true});
@@ -13642,10 +13642,10 @@ class Item5e extends SystemDocumentMixin(Item) {
       if ( !( isTargetted || game.user.isGM || actor.isOwner ) ) return;
 
       // Get the Item from stored flag data or by the item ID on the Actor
-      const storedData = message.getFlag("dnd5e", "itemData");
+      const storedData = message.getFlag("skjaald", "itemData");
       let item = storedData ? new this(storedData, {parent: actor}) : actor.items.get(card.dataset.itemId);
       if ( !item ) {
-        ui.notifications.error(game.i18n.format("DND5E.ActionWarningNoItem", {
+        ui.notifications.error(game.i18n.format("SKJAALD.ActionWarningNoItem", {
           item: card.dataset.itemId, name: actor.name
         }));
         return null;
@@ -13670,8 +13670,8 @@ class Item5e extends SystemDocumentMixin(Item) {
           const li = button.closest("li.effect");
           let effect = item.effects.get(li.dataset.effectId);
           if ( !effect ) effect = await fromUuid(li.dataset.uuid);
-          const concentration = actor.effects.get(message.getFlag("dnd5e", "use.concentrationId"));
-          const effectData = { "flags.dnd5e.spellLevel": spellLevel };
+          const concentration = actor.effects.get(message.getFlag("skjaald", "use.concentrationId"));
+          const effectData = { "flags.skjaald.spellLevel": spellLevel };
           for ( const token of canvas.tokens.controlled ) {
             try {
               await this._applyEffectToToken(effect, token, { concentration, effectData });
@@ -13705,10 +13705,10 @@ class Item5e extends SystemDocumentMixin(Item) {
           break;
         case "placeTemplate":
           try {
-            await dnd5e.canvas.AbilityTemplate.fromItem(item, {"flags.dnd5e.spellLevel": spellLevel})?.drawPreview();
+            await skjaald.canvas.AbilityTemplate.fromItem(item, {"flags.skjaald.spellLevel": spellLevel})?.drawPreview();
           } catch(err) {
             Hooks.onError("Item5e#_onChatCardAction", err, {
-              msg: game.i18n.localize("DND5E.PlaceTemplateError"),
+              msg: game.i18n.localize("SKJAALD.PlaceTemplateError"),
               log: "error",
               notify: "error"
             });
@@ -13759,7 +13759,7 @@ class Item5e extends SystemDocumentMixin(Item) {
   static async _applyEffectToToken(effect, token, { concentration, effectData={} }={}) {
     const origin = concentration ?? effect;
     if ( !game.user.isGM && !token.actor?.isOwner ) {
-      throw new Error(game.i18n.localize("DND5E.EffectApplyWarningOwnership"));
+      throw new Error(game.i18n.localize("SKJAALD.EffectApplyWarningOwnership"));
     }
 
     // Enable an existing effect on the target if it originated from this effect
@@ -13772,7 +13772,7 @@ class Item5e extends SystemDocumentMixin(Item) {
     }
 
     if ( !game.user.isGM && concentration && !concentration.actor?.isOwner ) {
-      throw new Error(game.i18n.localize("DND5E.EffectApplyWarningConcentration"));
+      throw new Error(game.i18n.localize("SKJAALD.EffectApplyWarningConcentration"));
     }
 
     // Otherwise, create a new effect on the target
@@ -13819,7 +13819,7 @@ class Item5e extends SystemDocumentMixin(Item) {
       }, {
         button: {
           icon: '<i class="fa-solid fa-spaghetti-monster-flying"></i>',
-          label: game.i18n.localize("DND5E.Summoning.Action.Summon")
+          label: game.i18n.localize("SKJAALD.Summoning.Action.Summon")
         },
         disableScaling: true
       });
@@ -13887,7 +13887,7 @@ class Item5e extends SystemDocumentMixin(Item) {
    */
   static _getChatCardTargets(card) {
     const targets = getSceneTargets();
-    if ( !targets.length ) ui.notifications.warn("DND5E.ActionWarningNoToken", {localize: true});
+    if ( !targets.length ) ui.notifications.warn("SKJAALD.ActionWarningNoToken", {localize: true});
     return targets;
   }
 
@@ -13908,12 +13908,12 @@ class Item5e extends SystemDocumentMixin(Item) {
   createAdvancement(type, data={}, { showConfig=true, source=false }={}) {
     if ( !this.system.advancement ) return this;
 
-    let config = CONFIG.DND5E.advancementTypes[type];
-    if ( !config ) throw new Error(`${type} not found in CONFIG.DND5E.advancementTypes`);
+    let config = CONFIG.SKJAALD.advancementTypes[type];
+    if ( !config ) throw new Error(`${type} not found in CONFIG.SKJAALD.advancementTypes`);
     if ( config.prototype instanceof Advancement ) {
       foundry.utils.logCompatibilityWarning(
         "Advancement type configuration changed into an object with `documentClass` defining the advancement class.",
-        { since: "DnD5e 3.1", until: "DnD5e 3.3", once: true }
+        { since: "Skjaald 3.1", until: "Skjaald 3.3", once: true }
       );
       config = {
         documentClass: config,
@@ -14086,22 +14086,22 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // Check to make sure the updated class level isn't below zero
     if ( changed.system.levels <= 0 ) {
-      ui.notifications.warn("DND5E.MaxClassLevelMinimumWarn", {localize: true});
+      ui.notifications.warn("SKJAALD.MaxClassLevelMinimumWarn", {localize: true});
       changed.system.levels = 1;
     }
 
     // Check to make sure the updated class level doesn't exceed level cap
-    if ( changed.system.levels > CONFIG.DND5E.maxLevel ) {
-      ui.notifications.warn(game.i18n.format("DND5E.MaxClassLevelExceededWarn", {max: CONFIG.DND5E.maxLevel}));
-      changed.system.levels = CONFIG.DND5E.maxLevel;
+    if ( changed.system.levels > CONFIG.SKJAALD.maxLevel ) {
+      ui.notifications.warn(game.i18n.format("SKJAALD.MaxClassLevelExceededWarn", {max: CONFIG.SKJAALD.maxLevel}));
+      changed.system.levels = CONFIG.SKJAALD.maxLevel;
     }
     if ( !this.isEmbedded || (this.parent.type !== "character") ) return;
 
     // Check to ensure the updated character doesn't exceed level cap
     const newCharacterLevel = this.actor.system.details.level + (changed.system.levels - this.system.levels);
-    if ( newCharacterLevel > CONFIG.DND5E.maxLevel ) {
-      ui.notifications.warn(game.i18n.format("DND5E.MaxCharacterLevelExceededWarn", {max: CONFIG.DND5E.maxLevel}));
-      changed.system.levels -= newCharacterLevel - CONFIG.DND5E.maxLevel;
+    if ( newCharacterLevel > CONFIG.SKJAALD.maxLevel ) {
+      ui.notifications.warn(game.i18n.format("SKJAALD.MaxCharacterLevelExceededWarn", {max: CONFIG.SKJAALD.maxLevel}));
+      changed.system.levels -= newCharacterLevel - CONFIG.SKJAALD.maxLevel;
     }
   }
 
@@ -14200,7 +14200,7 @@ class Item5e extends SystemDocumentMixin(Item) {
   /** @inheritdoc */
   async deleteDialog(options={}) {
     // If item has advancement, handle it separately
-    if ( this.actor?.system.metadata?.supportsAdvancement && !game.settings.get("dnd5e", "disableAdvancements") ) {
+    if ( this.actor?.system.metadata?.supportsAdvancement && !game.settings.get("skjaald", "disableAdvancements") ) {
       const manager = AdvancementManager.forDeletedItem(this.actor, this.id);
       if ( manager.steps.length ) {
         try {
@@ -14217,12 +14217,12 @@ class Item5e extends SystemDocumentMixin(Item) {
     const count = await this.system.contentsCount;
     if ( count ) {
       return Dialog.confirm({
-        title: `${game.i18n.format("DOCUMENT.Delete", {type: game.i18n.localize("DND5E.Container")})}: ${this.name}`,
+        title: `${game.i18n.format("DOCUMENT.Delete", {type: game.i18n.localize("SKJAALD.Container")})}: ${this.name}`,
         content: `<h4>${game.i18n.localize("AreYouSure")}</h4>
-          <p>${game.i18n.format("DND5E.ContainerDeleteMessage", {count})}</p>
+          <p>${game.i18n.format("SKJAALD.ContainerDeleteMessage", {count})}</p>
           <label>
             <input type="checkbox" name="deleteContents">
-            ${game.i18n.localize("DND5E.ContainerDeleteContents")}
+            ${game.i18n.localize("SKJAALD.ContainerDeleteContents")}
           </label>`,
         yes: html => {
           const deleteContents = html.querySelector('[name="deleteContents"]').checked;
@@ -14250,7 +14250,7 @@ class Item5e extends SystemDocumentMixin(Item) {
       return `Compendium.${pack}.Item.${li.data("documentId")}`;
     };
     entryOptions.push({
-      name: "DND5E.Scroll.CreateScroll",
+      name: "SKJAALD.Scroll.CreateScroll",
       icon: '<i class="fa-solid fa-scroll"></i>',
       callback: async li => {
         const spell = await fromUuid(makeUuid(li));
@@ -14273,7 +14273,7 @@ class Item5e extends SystemDocumentMixin(Item) {
    */
   static addDirectoryContextOptions(html, entryOptions) {
     entryOptions.push({
-      name: "DND5E.Scroll.CreateScroll",
+      name: "SKJAALD.Scroll.CreateScroll",
       icon: '<i class="fa-solid fa-scroll"></i>',
       callback: async li => {
         const spell = game.items.get(li.data("documentId"));
@@ -14305,7 +14305,7 @@ class Item5e extends SystemDocumentMixin(Item) {
     if ( container ) {
       depth = 1 + (await container.system.allContainers()).length;
       if ( depth > PhysicalItemTemplate.MAX_DEPTH ) {
-        ui.notifications.warn(game.i18n.format("DND5E.ContainerMaxDepth", { depth: PhysicalItemTemplate.MAX_DEPTH }));
+        ui.notifications.warn(game.i18n.format("SKJAALD.ContainerMaxDepth", { depth: PhysicalItemTemplate.MAX_DEPTH }));
         return;
       }
     }
@@ -14351,17 +14351,17 @@ class Item5e extends SystemDocumentMixin(Item) {
    */
   static async createScrollFromSpell(spell, options={}, config={}) {
     config = foundry.utils.mergeObject({
-      explanation: game.user.getFlag("dnd5e", "creation.scrollExplanation") ?? "reference",
+      explanation: game.user.getFlag("skjaald", "creation.scrollExplanation") ?? "reference",
       level: spell.system.level
     }, config);
 
     if ( config.dialog !== false ) {
       const anchor = spell instanceof Item5e ? spell.toAnchor().outerHTML : `<span>${spell.name}</span>`;
       const result = await Dialog.prompt({
-        title: game.i18n.format("DND5E.Scroll.CreateFrom", { spell: spell.name }),
-        label: game.i18n.localize("DND5E.Scroll.CreateScroll"),
-        content: await renderTemplate("systems/dnd5e/templates/apps/spell-scroll-dialog.hbs", {
-          ...config, anchor, spellLevels: Object.entries(CONFIG.DND5E.spellLevels).reduce((obj, [k, v]) => {
+        title: game.i18n.format("SKJAALD.Scroll.CreateFrom", { spell: spell.name }),
+        label: game.i18n.localize("SKJAALD.Scroll.CreateScroll"),
+        content: await renderTemplate("systems/skjaald/templates/apps/spell-scroll-dialog.hbs", {
+          ...config, anchor, spellLevels: Object.entries(CONFIG.SKJAALD.spellLevels).reduce((obj, [k, v]) => {
             if ( Number(k) >= spell.system.level ) obj[k] = v;
             return obj;
           }, {})
@@ -14372,14 +14372,14 @@ class Item5e extends SystemDocumentMixin(Item) {
       });
       if ( result === null ) return;
       foundry.utils.mergeObject(config, result);
-      await game.user.setFlag("dnd5e", "creation.scrollExplanation", config.explanation);
+      await game.user.setFlag("skjaald", "creation.scrollExplanation", config.explanation);
     }
 
     // Get spell data
     const flags = {};
     const itemData = (spell instanceof Item5e) ? spell.toObject() : spell;
     if ( Number.isNumeric(config.level) ) {
-      flags.dnd5e = { spellLevel: {
+      flags.skjaald = { spellLevel: {
         value: config.level,
         base: spell.system.level,
         scaling: spell.system.scaling
@@ -14389,14 +14389,14 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     /**
      * A hook event that fires before the item data for a scroll is created.
-     * @function dnd5e.preCreateScrollFromSpell
+     * @function skjaald.preCreateScrollFromSpell
      * @memberof hookEvents
      * @param {object} itemData                  The initial item data of the spell to convert to a scroll.
      * @param {object} options                   Additional options that modify the created scroll.
      * @param {SpellScrollConfiguration} config  Configuration options for scroll creation.
      * @returns {boolean}                        Explicitly return false to prevent the scroll to be created.
      */
-    if ( Hooks.call("dnd5e.preCreateScrollFromSpell", itemData, options, config) === false ) return;
+    if ( Hooks.call("skjaald.preCreateScrollFromSpell", itemData, options, config) === false ) return;
 
     let {
       actionType, description, source, activation, duration, target, summons,
@@ -14405,9 +14405,9 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // Get scroll data
     let scrollUuid;
-    const id = CONFIG.DND5E.spellScrollIds[level];
+    const id = CONFIG.SKJAALD.spellScrollIds[level];
     if ( foundry.data.validators.isValidId(id) ) {
-      scrollUuid = game.packs.get(CONFIG.DND5E.sourcePacks.ITEMS).index.get(id).uuid;
+      scrollUuid = game.packs.get(CONFIG.SKJAALD.sourcePacks.ITEMS).index.get(id).uuid;
     } else {
       scrollUuid = id;
     }
@@ -14429,12 +14429,12 @@ class Item5e extends SystemDocumentMixin(Item) {
         desc = [
           scrollIntro,
           "<hr>",
-          `<h3>${itemData.name} (${game.i18n.format("DND5E.LevelNumber", {level})})</h3>`,
-          isConc ? `<p><em>${game.i18n.localize("DND5E.Scroll.RequiresConcentration")}</em></p>` : null,
+          `<h3>${itemData.name} (${game.i18n.format("SKJAALD.LevelNumber", {level})})</h3>`,
+          isConc ? `<p><em>${game.i18n.localize("SKJAALD.Scroll.RequiresConcentration")}</em></p>` : null,
           "<hr>",
           description.value,
           "<hr>",
-          `<h3>${game.i18n.localize("DND5E.Scroll.Details")}</h3>`,
+          `<h3>${game.i18n.localize("SKJAALD.Scroll.Details")}</h3>`,
           "<hr>",
           scrollDetails
         ].filterJoin("");
@@ -14442,9 +14442,9 @@ class Item5e extends SystemDocumentMixin(Item) {
       case "reference":
         desc = [
           "<p><em>",
-          CONFIG.DND5E.spellLevels[level] ?? level,
+          CONFIG.SKJAALD.spellLevels[level] ?? level,
           " &Reference[Spell Scroll]",
-          isConc ? `, ${game.i18n.localize("DND5E.Scroll.RequiresConcentration")}` : null,
+          isConc ? `, ${game.i18n.localize("SKJAALD.Scroll.RequiresConcentration")}` : null,
           "</em></p>",
           description.value
         ].filterJoin("");
@@ -14465,7 +14465,7 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     // Create the spell scroll data
     const spellScrollData = foundry.utils.mergeObject(scrollData, {
-      name: `${game.i18n.localize("DND5E.SpellScroll")}: ${itemData.name}`,
+      name: `${game.i18n.localize("SKJAALD.SpellScroll")}: ${itemData.name}`,
       img: itemData.img,
       effects: itemData.effects ?? [],
       flags,
@@ -14484,13 +14484,13 @@ class Item5e extends SystemDocumentMixin(Item) {
 
     /**
      * A hook event that fires after the item data for a scroll is created but before the item is returned.
-     * @function dnd5e.createScrollFromSpell
+     * @function skjaald.createScrollFromSpell
      * @memberof hookEvents
      * @param {Item5e|object} spell              The spell or item data to be made into a scroll.
      * @param {object} spellScrollData           The final item data used to make the scroll.
      * @param {SpellScrollConfiguration} config  Configuration options for scroll creation.
      */
-    Hooks.callAll("dnd5e.createScrollFromSpell", spell, spellScrollData, config);
+    Hooks.callAll("skjaald.createScrollFromSpell", spell, spellScrollData, config);
 
     return new this(spellScrollData);
   }
@@ -14516,7 +14516,7 @@ class Item5e extends SystemDocumentMixin(Item) {
     const name = data.name || game.i18n.format("DOCUMENT.New", { type: label });
     let type = data.type || CONFIG[this.documentName]?.defaultType;
     if ( !types.includes(type) ) type = types[0];
-    const content = await renderTemplate("systems/dnd5e/templates/apps/document-create.hbs", {
+    const content = await renderTemplate("systems/skjaald/templates/apps/document-create.hbs", {
       folders, name, type,
       folder: data.folder,
       hasFolders: folders.length > 0,
@@ -14555,7 +14555,7 @@ class Item5e extends SystemDocumentMixin(Item) {
         return this.create(createData, { parent, pack, renderSheet: true });
       },
       rejectClose: false,
-      options: { ...options, jQuery: false, width: 350, classes: ["dnd5e2", "create-document", "dialog"] }
+      options: { ...options, jQuery: false, width: 350, classes: ["skjaald2", "create-document", "dialog"] }
     });
   }
 
@@ -14565,7 +14565,7 @@ class Item5e extends SystemDocumentMixin(Item) {
   static getDefaultArtwork(itemData={}) {
     const { type } = itemData;
     const { img } = super.getDefaultArtwork(itemData);
-    return { img: CONFIG.DND5E.defaultArtwork.Item[type] ?? img };
+    return { img: CONFIG.SKJAALD.defaultArtwork.Item[type] ?? img };
   }
 
   /* -------------------------------------------- */
@@ -14612,9 +14612,9 @@ class Award extends DialogMixin(FormApplication) {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e2", "award", "dialog"],
-      template: "systems/dnd5e/templates/apps/award.hbs",
-      title: "DND5E.Award.Title",
+      classes: ["skjaald2", "award", "dialog"],
+      template: "systems/skjaald/templates/apps/award.hbs",
+      title: "SKJAALD.Award.Title",
       width: 350,
       height: "auto",
       currency: null,
@@ -14635,7 +14635,7 @@ class Award extends DialogMixin(FormApplication) {
   get transferDestinations() {
     if ( this.isPartyAward ) return this.object.system.transferDestinations ?? [];
     if ( !game.user.isGM ) return [];
-    const primaryParty = game.settings.get("dnd5e", "primaryParty")?.actor;
+    const primaryParty = game.settings.get("skjaald", "primaryParty")?.actor;
     return primaryParty
       ? [primaryParty, ...primaryParty.system.transferDestinations]
       : game.users.map(u => u.character).filter(c => c);
@@ -14659,15 +14659,15 @@ class Award extends DialogMixin(FormApplication) {
   getData(options={}) {
     const context = super.getData(options);
 
-    context.CONFIG = CONFIG.DND5E;
-    context.currency = Object.entries(CONFIG.DND5E.currencies).reduce((obj, [k, { label }]) => {
+    context.CONFIG = CONFIG.SKJAALD;
+    context.currency = Object.entries(CONFIG.SKJAALD.currencies).reduce((obj, [k, { label }]) => {
       obj[k] = { label, value: this.options.currency ? this.options.currency[k] : this.object?.system.currency[k] };
       return obj;
     }, {});
     context.destinations = Award.prepareDestinations(this.transferDestinations, this.options.savedDestinations);
     context.each = this.options.each ?? false;
-    context.hideXP = game.settings.get("dnd5e", "disableExperienceTracking");
-    context.noPrimaryParty = !game.settings.get("dnd5e", "primaryParty")?.actor && !this.isPartyAward;
+    context.hideXP = game.settings.get("skjaald", "disableExperienceTracking");
+    context.noPrimaryParty = !game.settings.get("skjaald", "primaryParty")?.actor && !this.isPartyAward;
     context.xp = this.options.xp ?? this.object?.system.details.xp.value ?? this.object?.system.details.xp.derived;
 
     return context;
@@ -14683,7 +14683,7 @@ class Award extends DialogMixin(FormApplication) {
    */
   static prepareDestinations(destinations, savedDestinations) {
     const icons = {
-      container: '<dnd5e-icon class="fa-fw" src="systems/dnd5e/icons/svg/backpack.svg"></dnd5e-icon>',
+      container: '<skjaald-icon class="fa-fw" src="systems/skjaald/icons/svg/backpack.svg"></skjaald-icon>',
       group: '<i class="fa-solid fa-people-group"></i>',
       vehicle: '<i class="fa-solid fa-sailboat"></i>'
     };
@@ -14748,7 +14748,7 @@ class Award extends DialogMixin(FormApplication) {
    */
   _saveDestinations(destinations) {
     const target = this.isPartyAward ? this.object : game.user;
-    target.setFlag("dnd5e", "awardDestinations", destinations);
+    target.setFlag("skjaald", "awardDestinations", destinations);
   }
 
   /* -------------------------------------------- */
@@ -14843,7 +14843,7 @@ class Award extends DialogMixin(FormApplication) {
     for ( const [destination, result] of results ) {
       const entries = [];
       for ( const [key, amount] of Object.entries(result.currency ?? {}) ) {
-        const label = CONFIG.DND5E.currencies[key].label;
+        const label = CONFIG.SKJAALD.currencies[key].label;
         entries.push(`
           <span class="award-entry">
             ${formatNumber(amount)} <i class="currency ${key}" data-tooltip="${label}" aria-label="${label}"></i>
@@ -14852,13 +14852,13 @@ class Award extends DialogMixin(FormApplication) {
       }
       if ( result.xp ) entries.push(`
         <span class="award-entry">
-          ${formatNumber(result.xp)} ${game.i18n.localize("DND5E.ExperiencePointsAbbr")}
+          ${formatNumber(result.xp)} ${game.i18n.localize("SKJAALD.ExperiencePointsAbbr")}
         </span>
       `);
       if ( !entries.length ) continue;
 
-      const content = game.i18n.format("DND5E.Award.Message", {
-        name: destination.name, award: `<span class="dnd5e2">${game.i18n.getListFormatter().format(entries)}</span>`
+      const content = game.i18n.format("SKJAALD.Award.Message", {
+        name: destination.name, award: `<span class="skjaald2">${game.i18n.getListFormatter().format(entries)}</span>`
       });
 
       const whisperTargets = game.users.filter(user => destination.testUserPermission(user, "OWNER"));
@@ -14913,7 +14913,7 @@ class Award extends DialogMixin(FormApplication) {
    */
   static async handleAward(message) {
     if ( !game.user.isGM ) {
-      ui.notifications.error("DND5E.Award.NotGMError", { localize: true });
+      ui.notifications.error("SKJAALD.Award.NotGMError", { localize: true });
       return;
     }
 
@@ -14927,7 +14927,7 @@ class Award extends DialogMixin(FormApplication) {
       }
 
       // If the party command is set, a primary party is set, and the award isn't empty, skip the UI
-      const primaryParty = game.settings.get("dnd5e", "primaryParty")?.actor;
+      const primaryParty = game.settings.get("skjaald", "primaryParty")?.actor;
       if ( party && primaryParty && (xp || filteredKeys(currency).length) ) {
         const destinations = each ? primaryParty.system.playerCharacters : [primaryParty];
         const results = new Map();
@@ -14938,7 +14938,7 @@ class Award extends DialogMixin(FormApplication) {
 
       // Otherwise show the UI with defaults
       else {
-        const savedDestinations = game.user.getFlag("dnd5e", "awardDestinations");
+        const savedDestinations = game.user.getFlag("skjaald", "awardDestinations");
         const app = new Award(null, { currency, xp, each, savedDestinations });
         app.render(true);
       }
@@ -14968,7 +14968,7 @@ class Award extends DialogMixin(FormApplication) {
       label = label?.toLowerCase();
       try {
         new Roll(amount);
-        if ( label in CONFIG.DND5E.currencies ) currency[label] = amount;
+        if ( label in CONFIG.SKJAALD.currencies ) currency[label] = amount;
         else if ( label === "xp" ) xp = Number(amount);
         else if ( part === "each" ) each = true;
         else if ( part === "party" ) party = true;
@@ -14979,7 +14979,7 @@ class Award extends DialogMixin(FormApplication) {
     }
 
     // Display warning about an unrecognized commands
-    if ( unrecognized.length ) throw new Error(game.i18n.format("DND5E.Award.UnrecognizedWarning", {
+    if ( unrecognized.length ) throw new Error(game.i18n.format("SKJAALD.Award.UnrecognizedWarning", {
       commands: game.i18n.getListFormatter().format(unrecognized.map(u => `"${u}"`))
     }));
 
@@ -15020,27 +15020,27 @@ class SpellListJournalPageData extends foundry.abstract.DataModel {
   static defineSchema() {
     return {
       type: new StringField$d({
-        initial: "class", label: "JOURNALENTRYPAGE.DND5E.SpellList.Type.Label"
+        initial: "class", label: "JOURNALENTRYPAGE.SKJAALD.SpellList.Type.Label"
       }),
-      identifier: new IdentifierField({label: "DND5E.Identifier"}),
+      identifier: new IdentifierField({label: "SKJAALD.Identifier"}),
       grouping: new StringField$d({
         initial: "level", choices: this.GROUPING_MODES,
-        label: "JOURNALENTRYPAGE.DND5E.SpellList.Grouping.Label",
-        hint: "JOURNALENTRYPAGE.DND5E.SpellList.Grouping.Hint"
+        label: "JOURNALENTRYPAGE.SKJAALD.SpellList.Grouping.Label",
+        hint: "JOURNALENTRYPAGE.SKJAALD.SpellList.Grouping.Hint"
       }),
       description: new SchemaField$b({
-        value: new HTMLField$2({label: "DND5E.Description"})
+        value: new HTMLField$2({label: "SKJAALD.Description"})
       }),
-      spells: new SetField$7(new StringField$d(), {label: "DND5E.ItemTypeSpellPl"}),
+      spells: new SetField$7(new StringField$d(), {label: "SKJAALD.ItemTypeSpellPl"}),
       unlinkedSpells: new ArrayField$4(new SchemaField$b({
         _id: new DocumentIdField({initial: () => foundry.utils.randomID()}),
         name: new StringField$d({required: true, label: "Name"}),
         system: new SchemaField$b({
-          level: new NumberField$a({min: 0, integer: true, label: "DND5E.Level"}),
-          school: new StringField$d({label: "DND5E.School"})
+          level: new NumberField$a({min: 0, integer: true, label: "SKJAALD.Level"}),
+          school: new StringField$d({label: "SKJAALD.School"})
         }),
         source: new SourceField({license: false, uuid: new StringField$d()})
-      }), {label: "JOURNALENTRYPAGE.DND5E.SpellList.UnlinkedSpells.Label"})
+      }), {label: "JOURNALENTRYPAGE.SKJAALD.SpellList.UnlinkedSpells.Label"})
     };
   }
 
@@ -15051,10 +15051,10 @@ class SpellListJournalPageData extends foundry.abstract.DataModel {
    * @enum {string}
    */
   static GROUPING_MODES = {
-    none: "JOURNALENTRYPAGE.DND5E.SpellList.Grouping.None",
-    alphabetical: "JOURNALENTRYPAGE.DND5E.SpellList.Grouping.Alphabetical",
-    level: "JOURNALENTRYPAGE.DND5E.SpellList.Grouping.Level",
-    school: "JOURNALENTRYPAGE.DND5E.SpellList.Grouping.School"
+    none: "JOURNALENTRYPAGE.SKJAALD.SpellList.Grouping.None",
+    alphabetical: "JOURNALENTRYPAGE.SKJAALD.SpellList.Grouping.Alphabetical",
+    level: "JOURNALENTRYPAGE.SKJAALD.SpellList.Grouping.Level",
+    school: "JOURNALENTRYPAGE.SKJAALD.SpellList.Grouping.School"
   };
 }
 
@@ -15101,8 +15101,8 @@ class SpellsUnlinkedConfig extends DocumentSheet {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "unlinked-spell-config"],
-      template: "systems/dnd5e/templates/journal/page-spell-list-unlinked-config.hbs",
+      classes: ["skjaald", "unlinked-spell-config"],
+      template: "systems/skjaald/templates/journal/page-spell-list-unlinked-config.hbs",
       width: 400,
       height: "auto",
       sheetConfig: false
@@ -15124,7 +15124,7 @@ class SpellsUnlinkedConfig extends DocumentSheet {
   /** @inheritDoc */
   get title() {
     return `${game.i18n.localize(
-      "JOURNALENTRYPAGE.DND5E.SpellList.UnlinkedSpells.Configuration")}: ${this.document.name}`;
+      "JOURNALENTRYPAGE.SKJAALD.SpellList.UnlinkedSpells.Configuration")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -15137,7 +15137,7 @@ class SpellsUnlinkedConfig extends DocumentSheet {
       ...super.getData(),
       ...this.document.system.unlinkedSpells.find(u => u._id === this.unlinkedId),
       appId: this.id,
-      CONFIG: CONFIG.DND5E
+      CONFIG: CONFIG.SKJAALD
     };
     return context;
   }
@@ -15194,8 +15194,8 @@ class JournalSpellListPageSheet extends JournalPageSheet {
 
   /** @inheritDoc */
   get template() {
-    if ( this.options.displayAsTable ) return "systems/dnd5e/templates/journal/page-spell-list-table.hbs";
-    return `systems/dnd5e/templates/journal/page-spell-list-${this.isEditable ? "edit" : "view"}.hbs`;
+    if ( this.options.displayAsTable ) return "systems/skjaald/templates/journal/page-spell-list-table.hbs";
+    return `systems/skjaald/templates/journal/page-spell-list-${this.isEditable ? "edit" : "view"}.hbs`;
   }
 
   /* -------------------------------------------- */
@@ -15203,7 +15203,7 @@ class JournalSpellListPageSheet extends JournalPageSheet {
   /** @inheritDoc */
   async getData(options) {
     const context = super.getData(options);
-    context.CONFIG = CONFIG.DND5E;
+    context.CONFIG = CONFIG.SKJAALD;
     context.system = context.document.system;
     context.embedRendering = this.options.embedRendering ?? false;
 
@@ -15226,11 +15226,11 @@ class JournalSpellListPageSheet extends JournalPageSheet {
       switch ( context.grouping ) {
         case "level":
           const level = spell.system.level;
-          section = context.sections[level] ??= { header: CONFIG.DND5E.spellLevels[level], spells: [] };
+          section = context.sections[level] ??= { header: CONFIG.SKJAALD.spellLevels[level], spells: [] };
           break;
         case "school":
           const school = spell.system.school;
-          section = context.sections[school] ??= { header: CONFIG.DND5E.spellSchools[school]?.label, spells: [] };
+          section = context.sections[school] ??= { header: CONFIG.SKJAALD.spellSchools[school]?.label, spells: [] };
           break;
         case "alphabetical":
           const letter = spell.name.slice(0, 1).toLowerCase();
@@ -15440,7 +15440,7 @@ function chunkTerms(terms, type) {
     currentChunk = null;
     negative = false;
   };
-  const isValidType = t => ((t in CONFIG.DND5E.damageTypes) || (t in CONFIG.DND5E.healingTypes));
+  const isValidType = t => ((t in CONFIG.SKJAALD.damageTypes) || (t in CONFIG.SKJAALD.healingTypes));
   const chunks = [];
   let currentChunk;
   let negative = false;
@@ -15540,7 +15540,7 @@ class D20Roll extends Roll {
    * The HTML template path used to configure evaluation of this Roll
    * @type {string}
    */
-  static EVALUATION_TEMPLATE = "systems/dnd5e/templates/chat/roll-dialog.hbs";
+  static EVALUATION_TEMPLATE = "systems/skjaald/templates/chat/roll-dialog.hbs";
 
   /* -------------------------------------------- */
 
@@ -15649,16 +15649,16 @@ class D20Roll extends Roll {
     // Evaluate the roll now so we have the results available to determine whether reliable talent came into play
     if ( !this._evaluated ) await this.evaluate({async: true});
 
-    // Add appropriate advantage mode message flavor and dnd5e roll flags
+    // Add appropriate advantage mode message flavor and skjaald roll flags
     messageData.flavor = messageData.flavor || this.options.flavor;
-    if ( this.hasAdvantage ) messageData.flavor += ` (${game.i18n.localize("DND5E.Advantage")})`;
-    else if ( this.hasDisadvantage ) messageData.flavor += ` (${game.i18n.localize("DND5E.Disadvantage")})`;
+    if ( this.hasAdvantage ) messageData.flavor += ` (${game.i18n.localize("SKJAALD.Advantage")})`;
+    else if ( this.hasDisadvantage ) messageData.flavor += ` (${game.i18n.localize("SKJAALD.Disadvantage")})`;
 
     // Add reliable talent to the d20-term flavor text if it applied
     if ( this.validD20Roll && this.options.reliableTalent ) {
       const d20 = this.dice[0];
       const isRT = d20.results.every(r => !r.active || (r.result < 10));
-      const label = `(${game.i18n.localize("DND5E.FlagsReliableTalent")})`;
+      const label = `(${game.i18n.localize("SKJAALD.FlagsReliableTalent")})`;
       if ( isRT ) d20.options.flavor = d20.options.flavor ? `${d20.options.flavor} (${label})` : label;
     }
 
@@ -15694,7 +15694,7 @@ class D20Roll extends Roll {
       rollModes: CONFIG.Dice.rollModes,
       chooseModifier,
       defaultAbility,
-      abilities: CONFIG.DND5E.abilities
+      abilities: CONFIG.SKJAALD.abilities
     });
 
     let defaultButton = "normal";
@@ -15710,15 +15710,15 @@ class D20Roll extends Roll {
         content,
         buttons: {
           advantage: {
-            label: game.i18n.localize("DND5E.Advantage"),
+            label: game.i18n.localize("SKJAALD.Advantage"),
             callback: html => resolve(this._onDialogSubmit(html, D20Roll.ADV_MODE.ADVANTAGE))
           },
           normal: {
-            label: game.i18n.localize("DND5E.Normal"),
+            label: game.i18n.localize("SKJAALD.Normal"),
             callback: html => resolve(this._onDialogSubmit(html, D20Roll.ADV_MODE.NORMAL))
           },
           disadvantage: {
-            label: game.i18n.localize("DND5E.Disadvantage"),
+            label: game.i18n.localize("SKJAALD.Disadvantage"),
             callback: html => resolve(this._onDialogSubmit(html, D20Roll.ADV_MODE.DISADVANTAGE))
           }
         },
@@ -15759,7 +15759,7 @@ class D20Roll extends Roll {
         }
         return t;
       });
-      this.options.flavor += ` (${CONFIG.DND5E.abilities[form.ability.value]?.label ?? ""})`;
+      this.options.flavor += ` (${CONFIG.SKJAALD.abilities[form.ability.value]?.label ?? ""})`;
     }
 
     // Apply advantage or disadvantage
@@ -15808,7 +15808,7 @@ class DamageRoll extends Roll {
    * The HTML template path used to configure evaluation of this Roll
    * @type {string}
    */
-  static EVALUATION_TEMPLATE = "systems/dnd5e/templates/chat/roll-dialog.hbs";
+  static EVALUATION_TEMPLATE = "systems/skjaald/templates/chat/roll-dialog.hbs";
 
   /* -------------------------------------------- */
 
@@ -15904,7 +15904,7 @@ class DamageRoll extends Roll {
           if ( this.options.powerfulCritical ) {
             let bonus = term.number * term.faces;
             if ( bonus > 0 ) {
-              const flavor = term.flavor?.toLowerCase().trim() ?? game.i18n.localize("DND5E.PowerfulCritical");
+              const flavor = term.flavor?.toLowerCase().trim() ?? game.i18n.localize("SKJAALD.PowerfulCritical");
               flatBonus.set(flavor, (flatBonus.get(flavor) ?? 0) + bonus);
             }
             cm = Math.max(1, cm-1);
@@ -15983,7 +15983,7 @@ class DamageRoll extends Roll {
       isCritical ||= roll.isCritical;
     }
     if ( isCritical ) {
-      const label = game.i18n.localize("DND5E.CriticalHit");
+      const label = game.i18n.localize("SKJAALD.CriticalHit");
       messageData.flavor = messageData.flavor ? `${messageData.flavor} (${label})` : label;
     }
     rollMode ??= messageData.rollMode;
@@ -16052,8 +16052,8 @@ class DamageRoll extends Roll {
     const content = await renderTemplate(template ?? this.EVALUATION_TEMPLATE, {
       formulas: rolls.map((roll, index) => ({
         formula: `${roll.formula}${index === 0 ? " + @bonus" : ""}`,
-        type: CONFIG.DND5E.damageTypes[roll.options.type]?.label
-          ?? CONFIG.DND5E.healingTypes[roll.options.type]?.label ?? null
+        type: CONFIG.SKJAALD.damageTypes[roll.options.type]?.label
+          ?? CONFIG.SKJAALD.healingTypes[roll.options.type]?.label ?? null
       })),
       defaultRollMode,
       rollModes: CONFIG.Dice.rollModes
@@ -16067,11 +16067,11 @@ class DamageRoll extends Roll {
         buttons: {
           critical: {
             condition: allowCritical,
-            label: game.i18n.localize("DND5E.CriticalHit"),
+            label: game.i18n.localize("SKJAALD.CriticalHit"),
             callback: html => resolve(rolls.map((r, i) => r._onDialogSubmit(html, true, i === 0)))
           },
           normal: {
-            label: game.i18n.localize(allowCritical ? "DND5E.Normal" : "DND5E.Roll"),
+            label: game.i18n.localize(allowCritical ? "SKJAALD.Normal" : "SKJAALD.Roll"),
             callback: html => resolve(rolls.map((r, i) => r._onDialogSubmit(html, false, i === 0)))
           }
         },
@@ -16146,8 +16146,8 @@ async function create5eMacro(dropData, slot) {
       foundry.utils.mergeObject(macroData, {
         name: itemData.name,
         img: itemData.img,
-        command: `dnd5e.documents.macro.rollItem("${itemData._source.name}")`,
-        flags: {"dnd5e.itemMacro": true}
+        command: `skjaald.documents.macro.rollItem("${itemData._source.name}")`,
+        flags: {"skjaald.itemMacro": true}
       });
       break;
     case "ActiveEffect":
@@ -16159,8 +16159,8 @@ async function create5eMacro(dropData, slot) {
       foundry.utils.mergeObject(macroData, {
         name: effectData.name,
         img: effectData.icon,
-        command: `dnd5e.documents.macro.toggleEffect("${effectData.name}")`,
-        flags: {"dnd5e.effectMacro": true}
+        command: `skjaald.documents.macro.toggleEffect("${effectData.name}")`,
+        flags: {"skjaald.effectMacro": true}
       });
       break;
     default:
@@ -16339,12 +16339,12 @@ async function enrichAward(config, label, options) {
   }
 
   const block = document.createElement("span");
-  block.classList.add("award-block", "dnd5e2");
+  block.classList.add("award-block", "skjaald2");
   block.dataset.awardCommand = command;
 
   const entries = [];
   for ( let [key, amount] of Object.entries(parsed.currency) ) {
-    const label = CONFIG.DND5E.currencies[key].label;
+    const label = CONFIG.SKJAALD.currencies[key].label;
     amount = Number.isNumeric(amount) ? formatNumber(amount) : amount;
     entries.push(`
       <span class="award-entry">
@@ -16354,17 +16354,17 @@ async function enrichAward(config, label, options) {
   }
   if ( parsed.xp ) entries.push(`
     <span class="award-entry">
-      ${formatNumber(parsed.xp)} ${game.i18n.localize("DND5E.ExperiencePointsAbbr")}
+      ${formatNumber(parsed.xp)} ${game.i18n.localize("SKJAALD.ExperiencePointsAbbr")}
     </span>
   `);
 
   let award = game.i18n.getListFormatter({ type: "unit" }).format(entries);
-  if ( parsed.each ) award = game.i18n.format("EDITOR.DND5E.Inline.AwardEach", { award });
+  if ( parsed.each ) award = game.i18n.format("EDITOR.SKJAALD.Inline.AwardEach", { award });
 
   block.innerHTML += `
     ${award}
     <a class="award-link" data-action="awardRequest">
-      <i class="fa-solid fa-trophy"></i> ${label ?? game.i18n.localize("DND5E.Award.Action")}
+      <i class="fa-solid fa-trophy"></i> ${label ?? game.i18n.localize("SKJAALD.Award.Action")}
     </a>
   `;
 
@@ -16432,16 +16432,16 @@ async function enrichAward(config, label, options) {
 async function enrichCheck(config, label, options) {
   for ( let value of config.values ) {
     value = foundry.utils.getType(value) === "string" ? slugify(value) : value;
-    if ( value in CONFIG.DND5E.enrichmentLookup.abilities ) config.ability = value;
-    else if ( value in CONFIG.DND5E.enrichmentLookup.skills ) config.skill = value;
-    else if ( value in CONFIG.DND5E.enrichmentLookup.tools ) config.tool = value;
+    if ( value in CONFIG.SKJAALD.enrichmentLookup.abilities ) config.ability = value;
+    else if ( value in CONFIG.SKJAALD.enrichmentLookup.skills ) config.skill = value;
+    else if ( value in CONFIG.SKJAALD.enrichmentLookup.tools ) config.tool = value;
     else if ( Number.isNumeric(value) ) config.dc = Number(value);
     else config[value] = true;
   }
 
   let invalid = false;
 
-  const skillConfig = CONFIG.DND5E.enrichmentLookup.skills[slugify(config.skill)];
+  const skillConfig = CONFIG.SKJAALD.enrichmentLookup.skills[slugify(config.skill)];
   if ( config.skill && !skillConfig ) {
     console.warn(`Skill ${config.skill} not found while enriching ${config._input}.`);
     invalid = true;
@@ -16450,14 +16450,14 @@ async function enrichCheck(config, label, options) {
   }
   if ( skillConfig?.key ) config.skill = skillConfig.key;
 
-  const toolUUID = CONFIG.DND5E.enrichmentLookup.tools[slugify(config.tool)];
+  const toolUUID = CONFIG.SKJAALD.enrichmentLookup.tools[slugify(config.tool)];
   const toolIndex = toolUUID ? getBaseItem(toolUUID, { indexOnly: true }) : null;
   if ( config.tool && !toolIndex ) {
     console.warn(`Tool ${config.tool} not found while enriching ${config._input}.`);
     invalid = true;
   }
 
-  let abilityConfig = CONFIG.DND5E.enrichmentLookup.abilities[slugify(config.ability)];
+  let abilityConfig = CONFIG.SKJAALD.enrichmentLookup.abilities[slugify(config.ability)];
   if ( config.ability && !abilityConfig ) {
     console.warn(`Ability ${config.ability} not found while enriching ${config._input}.`);
     invalid = true;
@@ -16506,12 +16506,12 @@ async function enrichCheck(config, label, options) {
  */
 async function enrichSave(config, label, options) {
   for ( const value of config.values ) {
-    if ( value in CONFIG.DND5E.enrichmentLookup.abilities ) config.ability = value;
+    if ( value in CONFIG.SKJAALD.enrichmentLookup.abilities ) config.ability = value;
     else if ( Number.isNumeric(value) ) config.dc = Number(value);
     else config[value] = true;
   }
 
-  const abilityConfig = CONFIG.DND5E.enrichmentLookup.abilities[config.ability];
+  const abilityConfig = CONFIG.SKJAALD.enrichmentLookup.abilities[config.ability];
   if ( !abilityConfig ) {
     console.warn(`Ability ${config.ability} not found while enriching ${config._input}.`);
     return null;
@@ -16576,8 +16576,8 @@ async function enrichDamage(config, label, options) {
   const formulaParts = [];
   if ( config.formula ) formulaParts.push(config.formula);
   for ( const value of config.values ) {
-    if ( value in CONFIG.DND5E.damageTypes ) config.type = value;
-    else if ( value in CONFIG.DND5E.healingTypes ) config.type = value;
+    if ( value in CONFIG.SKJAALD.damageTypes ) config.type = value;
+    else if ( value in CONFIG.SKJAALD.healingTypes ) config.type = value;
     else if ( value === "average" ) config.average = true;
     else if ( value === "temp" ) config.type = "temphp";
     else formulaParts.push(value);
@@ -16589,7 +16589,7 @@ async function enrichDamage(config, label, options) {
 
   if ( label ) return createRollLink(label, config);
 
-  const typeConfig = CONFIG.DND5E.damageTypes[config.damageType] ?? CONFIG.DND5E.healingTypes[config.damageType];
+  const typeConfig = CONFIG.SKJAALD.damageTypes[config.damageType] ?? CONFIG.SKJAALD.healingTypes[config.damageType];
   const localizationData = {
     formula: createRollLink(config.formula, config).outerHTML,
     type: game.i18n.localize(typeConfig?.label ?? "").toLowerCase()
@@ -16608,7 +16608,7 @@ async function enrichDamage(config, label, options) {
   }
 
   const span = document.createElement("span");
-  span.innerHTML = game.i18n.format(`EDITOR.DND5E.Inline.Damage${localizationType}`, localizationData);
+  span.innerHTML = game.i18n.format(`EDITOR.SKJAALD.Inline.Damage${localizationType}`, localizationData);
   return span;
 }
 
@@ -16995,12 +16995,12 @@ function enrichLookup(config, fallback, options) {
  * ```html
  * <span class="reference-link">
  *   <a class="content-link" draggable="true"
- *      data-uuid="Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.UWw13ISmMxDzmwbd"
+ *      data-uuid="Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.UWw13ISmMxDzmwbd"
  *      data-type="JournalEntryPage" data-tooltip="Text Page">
  *     <i class="fas fa-book-open"></i> Label
  *   </a>
  *   <a class="enricher-action" data-action="apply" data-status="unconscious"
- *      data-tooltip="EDITOR.DND5E.Inline.ApplyStatus" aria-label="Apply Status to Selected Tokens">
+ *      data-tooltip="EDITOR.SKJAALD.Inline.ApplyStatus" aria-label="Apply Status to Selected Tokens">
  *     <i class="fas fa-fw fa-reply-all fa-flip-horizontal"></i>
  *   </a>
  * </span>
@@ -17010,14 +17010,14 @@ async function enrichReference(config, label, options) {
   let key;
   let source;
   let isCondition = "condition" in config;
-  const type = Object.keys(config).find(k => k in CONFIG.DND5E.ruleTypes);
+  const type = Object.keys(config).find(k => k in CONFIG.SKJAALD.ruleTypes);
   if ( type ) {
     key = slugify(config[type]);
-    source = foundry.utils.getProperty(CONFIG.DND5E, CONFIG.DND5E.ruleTypes[type].references)?.[key];
+    source = foundry.utils.getProperty(CONFIG.SKJAALD, CONFIG.SKJAALD.ruleTypes[type].references)?.[key];
   } else if ( config.values.length ) {
     key = slugify(config.values.join(""));
-    for ( const [type, { references }] of Object.entries(CONFIG.DND5E.ruleTypes) ) {
-      source = foundry.utils.getProperty(CONFIG.DND5E, references)[key];
+    for ( const [type, { references }] of Object.entries(CONFIG.SKJAALD.ruleTypes) ) {
+      source = foundry.utils.getProperty(CONFIG.SKJAALD, references)[key];
       if ( source ) {
         if ( type === "condition" ) isCondition = true;
         break;
@@ -17039,7 +17039,7 @@ async function enrichReference(config, label, options) {
     apply.classList.add("enricher-action");
     apply.dataset.action = "apply";
     apply.dataset.status = key;
-    apply.dataset.tooltip = "EDITOR.DND5E.Inline.ApplyStatus";
+    apply.dataset.tooltip = "EDITOR.SKJAALD.Inline.ApplyStatus";
     apply.setAttribute("aria-label", game.i18n.localize(apply.dataset.tooltip));
     apply.innerHTML = '<i class="fas fa-fw fa-reply-all fa-flip-horizontal"></i>';
     span.append(apply);
@@ -17172,9 +17172,9 @@ function createPassiveTag(label, dataset) {
  * @returns {string}
  */
 function createRollLabel(config) {
-  const { label: ability, abbreviation } = CONFIG.DND5E.abilities[config.ability] ?? {};
-  const skill = CONFIG.DND5E.skills[config.skill]?.label;
-  const toolUUID = CONFIG.DND5E.enrichmentLookup.tools[config.tool];
+  const { label: ability, abbreviation } = CONFIG.SKJAALD.abilities[config.ability] ?? {};
+  const skill = CONFIG.SKJAALD.skills[config.skill]?.label;
+  const toolUUID = CONFIG.SKJAALD.enrichmentLookup.tools[config.tool];
   const tool = toolUUID ? getBaseItem(toolUUID, { indexOnly: true })?.name : null;
   const longSuffix = config.format === "long" ? "Long" : "Short";
   const showDC = config.dc && !config.hideDC;
@@ -17185,23 +17185,23 @@ function createRollLabel(config) {
     case "skill":
     case "tool":
       if ( ability && (skill || tool) ) {
-        label = game.i18n.format("EDITOR.DND5E.Inline.SpecificCheck", { ability, type: skill ?? tool });
+        label = game.i18n.format("EDITOR.SKJAALD.Inline.SpecificCheck", { ability, type: skill ?? tool });
       } else {
         label = ability;
       }
       if ( config.passive ) {
-        label = game.i18n.format(`EDITOR.DND5E.Inline.DCPassive${longSuffix}`, { dc: config.dc, check: label });
+        label = game.i18n.format(`EDITOR.SKJAALD.Inline.DCPassive${longSuffix}`, { dc: config.dc, check: label });
       } else {
-        if ( showDC ) label = game.i18n.format("EDITOR.DND5E.Inline.DC", { dc: config.dc, check: label });
-        label = game.i18n.format(`EDITOR.DND5E.Inline.Check${longSuffix}`, { check: label });
+        if ( showDC ) label = game.i18n.format("EDITOR.SKJAALD.Inline.DC", { dc: config.dc, check: label });
+        label = game.i18n.format(`EDITOR.SKJAALD.Inline.Check${longSuffix}`, { check: label });
       }
       break;
     case "concentration":
     case "save":
       if ( config.type === "save" ) label = ability;
-      else label = `${game.i18n.localize("DND5E.Concentration")} ${ability ? `(${abbreviation})` : ""}`;
-      if ( showDC ) label = game.i18n.format("EDITOR.DND5E.Inline.DC", { dc: config.dc, check: label });
-      label = game.i18n.format(`EDITOR.DND5E.Inline.Save${longSuffix}`, { save: label });
+      else label = `${game.i18n.localize("SKJAALD.Concentration")} ${ability ? `(${abbreviation})` : ""}`;
+      if ( showDC ) label = game.i18n.format("EDITOR.SKJAALD.Inline.DC", { dc: config.dc, check: label });
+      label = game.i18n.format(`EDITOR.SKJAALD.Inline.Save${longSuffix}`, { save: label });
       break;
     default:
       return "";
@@ -17211,7 +17211,7 @@ function createRollLabel(config) {
     switch ( config.type ) {
       case "check":
       case "skill":
-        label = `<i class="dnd5e-icon" data-src="systems/dnd5e/icons/svg/ability-score-improvement.svg"></i>${label}`;
+        label = `<i class="skjaald-icon" data-src="systems/skjaald/icons/svg/ability-score-improvement.svg"></i>${label}`;
         break;
       case "tool":
         label = `<i class="fas fa-hammer"></i>${label}`;
@@ -17250,7 +17250,7 @@ function createRollLink(label, dataset) {
     const gmLink = document.createElement("a");
     gmLink.classList.add("enricher-action");
     gmLink.dataset.action = "request";
-    gmLink.dataset.tooltip = "EDITOR.DND5E.Inline.RequestRoll";
+    gmLink.dataset.tooltip = "EDITOR.SKJAALD.Inline.RequestRoll";
     gmLink.setAttribute("aria-label", game.i18n.localize(gmLink.dataset.tooltip));
     gmLink.innerHTML = '<i class="fa-solid fa-comment-dots"></i>';
     span.insertAdjacentElement("beforeend", gmLink);
@@ -17321,7 +17321,7 @@ async function rollAction(event) {
 
       const tokens = getSceneTargets();
       if ( !tokens.length ) {
-        ui.notifications.warn("EDITOR.DND5E.Inline.Warning.NoActor", { localize: true });
+        ui.notifications.warn("EDITOR.SKJAALD.Inline.Warning.NoActor", { localize: true });
         return;
       }
 
@@ -17332,7 +17332,7 @@ async function rollAction(event) {
             await actor.rollAbilityTest(ability, options);
             break;
           case "concentration":
-            if ( ability in CONFIG.DND5E.abilities ) options.ability = ability;
+            if ( ability in CONFIG.SKJAALD.abilities ) options.ability = ability;
             await actor.rollConcentration(options);
             break;
           case "save":
@@ -17358,12 +17358,12 @@ async function rollAction(event) {
     const MessageClass = getDocumentClass("ChatMessage");
     const chatData = {
       user: game.user.id,
-      content: await renderTemplate("systems/dnd5e/templates/chat/request-card.hbs", {
+      content: await renderTemplate("systems/skjaald/templates/chat/request-card.hbs", {
         buttonLabel: createRollLabel({ ...target.dataset, format: "short", icon: true }),
         hiddenLabel: createRollLabel({ ...target.dataset, format: "short", icon: true, hideDC: true }),
         dataset: { ...target.dataset, action: "rollRequest" }
       }),
-      flavor: game.i18n.localize("EDITOR.DND5E.Inline.RollRequest"),
+      flavor: game.i18n.localize("EDITOR.SKJAALD.Inline.RollRequest"),
       speaker: MessageClass.getSpeaker({user: game.user})
     };
     // TODO: Remove when v11 support is dropped.
@@ -17383,8 +17383,8 @@ async function rollDamage(event) {
   const target = event.target.closest(".roll-link");
   const { formula, damageType } = target.dataset;
 
-  const isHealing = damageType in CONFIG.DND5E.healingTypes;
-  const title = game.i18n.localize(`DND5E.${isHealing ? "Healing" : "Damage"}Roll`);
+  const isHealing = damageType in CONFIG.SKJAALD.healingTypes;
+  const title = game.i18n.localize(`SKJAALD.${isHealing ? "Healing" : "Damage"}Roll`);
   const rollConfig = {
     rollConfigs: [{
       parts: [formula],
@@ -17394,7 +17394,7 @@ async function rollDamage(event) {
     event,
     title,
     messageData: {
-      "flags.dnd5e": {
+      "flags.skjaald": {
         targets: Item5e._formatAttackTargets(),
         roll: {type: "damage"}
       },
@@ -17402,9 +17402,9 @@ async function rollDamage(event) {
     }
   };
 
-  if ( Hooks.call("dnd5e.preRollDamage", undefined, rollConfig) === false ) return;
+  if ( Hooks.call("skjaald.preRollDamage", undefined, rollConfig) === false ) return;
   const roll = await damageRoll(rollConfig);
-  if ( roll ) Hooks.callAll("dnd5e.rollDamage", undefined, roll);
+  if ( roll ) Hooks.callAll("skjaald.rollDamage", undefined, roll);
 }
 
 /* -------------------------------------------- */
@@ -17446,7 +17446,7 @@ async function useItem({ rollItemUuid, rollItemName, rollItemActor }={}) {
   if ( item ) return item.use();
 
   // If no item could be found at all, display a warning
-  ui.notifications.warn(game.i18n.format("EDITOR.DND5E.Inline.Warning.NoItemOnActor", {
+  ui.notifications.warn(game.i18n.format("EDITOR.SKJAALD.Inline.Warning.NoItemOnActor", {
     actor: actor.name, name: rollItemName, type: game.i18n.localize("DOCUMENT.Item")
   }));
 }
@@ -17499,7 +17499,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @type {boolean}
    */
   get isPolymorphed() {
-    return this.getFlag("dnd5e", "isPolymorphed") || false;
+    return this.getFlag("skjaald", "isPolymorphed") || false;
   }
 
   /* -------------------------------------------- */
@@ -17539,7 +17539,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     for ( const effect of this.effects ) {
       if ( !effect.statuses.has(CONFIG.specialStatusEffects.CONCENTRATING) ) continue;
-      const data = effect.getFlag("dnd5e", "itemData");
+      const data = effect.getFlag("skjaald", "itemData");
       concentration.effects.add(effect);
       if ( data ) {
         const item = typeof data === "string"
@@ -17568,9 +17568,9 @@ class Actor5e extends SystemDocumentMixin(Actor) {
   /** @inheritdoc */
   _initializeSource(source, options={}) {
     source = super._initializeSource(source, options);
-    if ( !source._id || !options.pack || dnd5e.moduleArt.suppressArt ) return source;
+    if ( !source._id || !options.pack || skjaald.moduleArt.suppressArt ) return source;
     const uuid = `Compendium.${options.pack}.${source._id}`;
-    const art = game.dnd5e.moduleArt.map.get(uuid);
+    const art = game.skjaald.moduleArt.map.get(uuid);
     if ( art?.actor || art?.token ) {
       if ( art.actor ) source.img = art.actor;
       if ( typeof art.token === "string" ) source.prototypeToken.texture.src = art.token;
@@ -17588,7 +17588,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
   /** @inheritDoc */
   prepareData() {
-    if ( this.system.modelProvider !== dnd5e ) return super.prepareData();
+    if ( this.system.modelProvider !== skjaald ) return super.prepareData();
     this._classes = undefined;
     this._preparationWarnings = [];
     super.prepareData();
@@ -17624,7 +17624,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
   /** @inheritDoc */
   *allApplicableEffects() {
     for ( const effect of super.allApplicableEffects() ) {
-      if ( (effect.getFlag("dnd5e", "type") !== "enchantment") && !effect.getFlag("dnd5e", "rider") ) yield effect;
+      if ( (effect.getFlag("skjaald", "type") !== "enchantment") && !effect.getFlag("skjaald", "rider") ) yield effect;
     }
   }
 
@@ -17632,11 +17632,11 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
   /** @inheritDoc */
   prepareDerivedData() {
-    const origin = this.getFlag("dnd5e", "summon.origin");
+    const origin = this.getFlag("skjaald", "summon.origin");
     // TODO: Replace with parseUuid once V11 support is dropped
     if ( origin && this.token?.id ) SummonsData.trackSummon(origin.split(".Item.")[0], this.uuid);
 
-    if ( (this.system.modelProvider !== dnd5e) || (this.type === "group") ) return;
+    if ( (this.system.modelProvider !== skjaald) || (this.type === "group") ) return;
 
     this.labels = {};
 
@@ -17673,7 +17673,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @returns {number}      The XP required.
    */
   getLevelExp(level) {
-    const levels = CONFIG.DND5E.CHARACTER_EXP_LEVELS;
+    const levels = CONFIG.SKJAALD.CHARACTER_EXP_LEVELS;
     return levels[Math.min(level, levels.length - 1)];
   }
 
@@ -17686,7 +17686,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    */
   getCRExp(cr) {
     if ( cr < 1.0 ) return Math.max(200 * cr, 10);
-    return CONFIG.DND5E.CR_EXP_LEVELS[cr];
+    return CONFIG.SKJAALD.CR_EXP_LEVELS[cr];
   }
 
   /* -------------------------------------------- */
@@ -17710,11 +17710,11 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
   /**
    * Is this actor under the effect of this property from some status or due to its level of exhaustion?
-   * @param {string} key      A key in `DND5E.conditionEffects`.
+   * @param {string} key      A key in `SKJAALD.conditionEffects`.
    * @returns {boolean}       Whether the actor is affected.
    */
   hasConditionEffect(key) {
-    const props = CONFIG.DND5E.conditionEffects[key] ?? new Set();
+    const props = CONFIG.SKJAALD.conditionEffects[key] ?? new Set();
     const level = this.system.attributes?.exhaustion ?? null;
     const imms = this.system.traits?.ci?.value ?? new Set();
     const statuses = this.statuses;
@@ -17736,7 +17736,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    */
   _prepareScaleValues() {
     this.system.scale = this.items.reduce((scale, item) => {
-      if ( CONFIG.DND5E.advancementTypes.ScaleValue.validItemTypes.has(item.type) ) {
+      if ( CONFIG.SKJAALD.advancementTypes.ScaleValue.validItemTypes.has(item.type) ) {
         scale[item.identifier] = item.scaleValues;
       }
       return scale;
@@ -17776,7 +17776,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    *                                             If undefined, `this.getRollData()` is used.
    * @param {object} [options.originalSkills]    Original skills if actor is polymorphed.
    *                                             If undefined, the skills of the actor identified by
-   *                                             `this.flags.dnd5e.originalActor` are used.
+   *                                             `this.flags.skjaald.originalActor` are used.
    * @param {object} [options.globalBonuses]     Global ability bonuses for this actor.
    *                                             If undefined, `this.system.bonuses.abilities` is used.
    * @param {number} [options.globalCheckBonus]  Global check bonus for this actor.
@@ -17792,7 +17792,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     skillData, rollData, originalSkills, globalBonuses,
     globalCheckBonus, globalSkillBonus, ability
   }={}) {
-    const flags = this.flags.dnd5e ?? {};
+    const flags = this.flags.skjaald ?? {};
 
     skillData ??= foundry.utils.deepClone(this.system.skills[skillId]);
     rollData ??= this.getRollData();
@@ -17804,7 +17804,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     const abilityData = this.system.abilities[ability];
     skillData.ability = ability;
 
-    const feats = CONFIG.DND5E.characterFlags;
+    const feats = CONFIG.SKJAALD.characterFlags;
 
     const baseBonus = simplifyBonus(skillData.bonuses?.check, rollData);
     let roundDown = true;
@@ -17853,7 +17853,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    */
   _prepareTools(bonusData, globalBonuses, checkBonus) {
     if ( this.type === "vehicle" ) return;
-    const flags = this.flags.dnd5e ?? {};
+    const flags = this.flags.skjaald ?? {};
     for ( const tool of Object.values(this.system.tools) ) {
       const ability = this.system.abilities[tool.ability];
       const baseBonus = simplifyBonus(tool.bonuses.check, bonusData);
@@ -17887,15 +17887,15 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     const ac = this.system.attributes.ac;
 
     // Apply automatic migrations for older data structures
-    let cfg = CONFIG.DND5E.armorClasses[ac.calc];
+    let cfg = CONFIG.SKJAALD.armorClasses[ac.calc];
     if ( !cfg ) {
       ac.calc = "flat";
       if ( Number.isNumeric(ac.value) ) ac.flat = Number(ac.value);
-      cfg = CONFIG.DND5E.armorClasses.flat;
+      cfg = CONFIG.SKJAALD.armorClasses.flat;
     }
 
     // Identify Equipped Items
-    const armorTypes = new Set(Object.keys(CONFIG.DND5E.armorTypes));
+    const armorTypes = new Set(Object.keys(CONFIG.SKJAALD.armorTypes));
     const {armors, shields} = this.itemTypes.equipment.reduce((obj, equip) => {
       if ( !equip.system.equipped || !armorTypes.has(equip.system.type.value) ) return obj;
       if ( equip.system.type.value === "shield" ) obj.shields.push(equip);
@@ -17921,7 +17921,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
         let formula = ac.calc === "custom" ? ac.formula : cfg.formula;
         if ( armors.length ) {
           if ( armors.length > 1 ) this._preparationWarnings.push({
-            message: game.i18n.localize("DND5E.WarnMultipleArmor"), type: "warning"
+            message: game.i18n.localize("SKJAALD.WarnMultipleArmor"), type: "warning"
           });
           const armorData = armors[0].system.armor;
           const isHeavy = armors[0].system.type.value === "heavy";
@@ -17937,9 +17937,9 @@ class Actor5e extends SystemDocumentMixin(Actor) {
           ac.base = Roll.safeEval(replaced);
         } catch(err) {
           this._preparationWarnings.push({
-            message: game.i18n.localize("DND5E.WarnBadACFormula"), link: "armor", type: "error"
+            message: game.i18n.localize("SKJAALD.WarnBadACFormula"), link: "armor", type: "error"
           });
-          const replaced = Roll.replaceFormulaData(CONFIG.DND5E.armorClasses.default.formula, rollData);
+          const replaced = Roll.replaceFormulaData(CONFIG.SKJAALD.armorClasses.default.formula, rollData);
           ac.base = Roll.safeEval(replaced);
         }
         break;
@@ -17948,7 +17948,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     // Equipped Shield
     if ( shields.length ) {
       if ( shields.length > 1 ) this._preparationWarnings.push({
-        message: game.i18n.localize("DND5E.WarnMultipleShields"), type: "warning"
+        message: game.i18n.localize("SKJAALD.WarnMultipleShields"), type: "warning"
       });
       ac.shield = shields[0].system.armor.value ?? 0;
       ac.equippedShield = shields[0];
@@ -17970,10 +17970,10 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    */
   _prepareInitiative(bonusData, globalCheckBonus=0) {
     const init = this.system.attributes.init ??= {};
-    const flags = this.flags.dnd5e || {};
+    const flags = this.flags.skjaald || {};
 
     // Compute initiative modifier
-    const abilityId = init.ability || CONFIG.DND5E.defaultAbilities.initiative;
+    const abilityId = init.ability || CONFIG.SKJAALD.defaultAbilities.initiative;
     const ability = this.system.abilities?.[abilityId] || {};
     init.mod = ability.mod ?? 0;
 
@@ -18030,7 +18030,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       else progression.slot = this.system.details.spellLevel ?? 0;
     }
 
-    for ( const type of Object.keys(CONFIG.DND5E.spellcastingTypes) ) {
+    for ( const type of Object.keys(CONFIG.SKJAALD.spellcastingTypes) ) {
       this.constructor.prepareSpellcastingSlots(this.system.spells, type, progression, { actor: this });
     }
   }
@@ -18052,18 +18052,18 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook event that fires while computing the spellcasting progression for each class on each actor.
-     * The actual hook names include the spellcasting type (e.g. `dnd5e.computeLeveledProgression`).
+     * The actual hook names include the spellcasting type (e.g. `skjaald.computeLeveledProgression`).
      * @param {object} progression                    Spellcasting progression data. *Will be mutated.*
      * @param {Actor5e|null} [actor]                  Actor for whom the data is being prepared.
      * @param {Item5e} cls                            Class for whom this progression is being computed.
      * @param {SpellcastingDescription} spellcasting  Spellcasting descriptive object.
      * @param {number} count                          Number of classes with this type of spellcasting.
      * @returns {boolean}  Explicitly return false to prevent default progression from being calculated.
-     * @function dnd5e.computeSpellcastingProgression
+     * @function skjaald.computeSpellcastingProgression
      * @memberof hookEvents
      */
     const allowed = Hooks.call(
-      `dnd5e.compute${type.capitalize()}Progression`, progression, actor, cls, spellcasting, count
+      `skjaald.compute${type.capitalize()}Progression`, progression, actor, cls, spellcasting, count
     );
 
     if ( allowed && (type === "pact") ) {
@@ -18084,7 +18084,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @param {number} count                          Number of classes with this type of spellcasting.
    */
   static computeLeveledProgression(progression, actor, cls, spellcasting, count) {
-    const prog = CONFIG.DND5E.spellcastingTypes.leveled.progression[spellcasting.progression];
+    const prog = CONFIG.SKJAALD.spellcastingTypes.leveled.progression[spellcasting.progression];
     if ( !prog ) return;
     const rounding = prog.roundUp ? Math.ceil : Math.floor;
     progression.slot += rounding(spellcasting.levels / prog.divisor ?? 1);
@@ -18121,15 +18121,15 @@ class Actor5e extends SystemDocumentMixin(Actor) {
   static prepareSpellcastingSlots(spells, type, progression, {actor}={}) {
     /**
      * A hook event that fires to convert the provided spellcasting progression into spell slots.
-     * The actual hook names include the spellcasting type (e.g. `dnd5e.prepareLeveledSlots`).
+     * The actual hook names include the spellcasting type (e.g. `skjaald.prepareLeveledSlots`).
      * @param {object} spells        The `data.spells` object within actor's data. *Will be mutated.*
      * @param {Actor5e} actor        Actor for whom the data is being prepared.
      * @param {object} progression   Spellcasting progression data.
      * @returns {boolean}            Explicitly return false to prevent default preparation from being performed.
-     * @function dnd5e.prepareSpellcastingSlots
+     * @function skjaald.prepareSpellcastingSlots
      * @memberof hookEvents
      */
-    const allowed = Hooks.call(`dnd5e.prepare${type.capitalize()}Slots`, spells, actor, progression);
+    const allowed = Hooks.call(`skjaald.prepare${type.capitalize()}Slots`, spells, actor, progression);
 
     if ( allowed && (type === "pact") ) this.preparePactSlots(spells, actor, progression);
     else if ( allowed && (type === "leveled") ) this.prepareLeveledSlots(spells, actor, progression);
@@ -18144,9 +18144,9 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @param {object} progression   Spellcasting progression data.
    */
   static prepareLeveledSlots(spells, actor, progression) {
-    const levels = Math.clamp(progression.slot, 0, CONFIG.DND5E.maxLevel);
-    const slots = CONFIG.DND5E.SPELL_SLOT_TABLE[Math.min(levels, CONFIG.DND5E.SPELL_SLOT_TABLE.length) - 1] ?? [];
-    for ( const level of Array.fromRange(Object.keys(CONFIG.DND5E.spellLevels).length - 1, 1) ) {
+    const levels = Math.clamp(progression.slot, 0, CONFIG.SKJAALD.maxLevel);
+    const slots = CONFIG.SKJAALD.SPELL_SLOT_TABLE[Math.min(levels, CONFIG.SKJAALD.SPELL_SLOT_TABLE.length) - 1] ?? [];
+    for ( const level of Array.fromRange(Object.keys(CONFIG.SKJAALD.spellLevels).length - 1, 1) ) {
       const slot = spells[`spell${level}`] ??= { value: 0 };
       slot.level = level;
       slot.max = Number.isNumeric(slot.override) ? Math.max(parseInt(slot.override), 0) : slots[level - 1] ?? 0;
@@ -18170,7 +18170,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     // - x.value: Currently available slots
     // - x.override: Override number of available spell slots
 
-    let keyLevel = Math.clamp(progression[key], 0, CONFIG.DND5E.maxLevel);
+    let keyLevel = Math.clamp(progression[key], 0, CONFIG.SKJAALD.maxLevel);
     spells[key] ??= {};
     const override = Number.isNumeric(spells[key].override) ? parseInt(spells[key].override) : null;
 
@@ -18202,7 +18202,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @param {object} progression   Spellcasting progression data.
    */
   static preparePactSlots(spells, actor, progression) {
-    this.prepareAltSlots(spells, actor, progression, "pact", CONFIG.DND5E.pactCastingProgression);
+    this.prepareAltSlots(spells, actor, progression, "pact", CONFIG.SKJAALD.pactCastingProgression);
   }
 
   /* -------------------------------------------- */
@@ -18219,7 +18219,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     // Configure prototype token settings
     const prototypeToken = {};
     if ( "size" in (this.system.traits || {}) ) {
-      const size = CONFIG.DND5E.actorSizes[this.system.traits.size || "med"].token ?? 1;
+      const size = CONFIG.SKJAALD.actorSizes[this.system.traits.size || "med"].token ?? 1;
       if ( !foundry.utils.hasProperty(data, "prototypeToken.width") ) prototypeToken.width = size;
       if ( !foundry.utils.hasProperty(data, "prototypeToken.height") ) prototypeToken.height = size;
     }
@@ -18239,7 +18239,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     if ( "size" in (this.system.traits || {}) ) {
       const newSize = foundry.utils.getProperty(changed, "system.traits.size");
       if ( newSize && (newSize !== this.system.traits?.size) ) {
-        let size = CONFIG.DND5E.actorSizes[newSize].token ?? 1;
+        let size = CONFIG.SKJAALD.actorSizes[newSize].token ?? 1;
         if ( !foundry.utils.hasProperty(changed, "prototypeToken.width") ) {
           changed.prototypeToken ||= {};
           changed.prototypeToken.height = size;
@@ -18255,12 +18255,12 @@ class Actor5e extends SystemDocumentMixin(Actor) {
         foundry.utils.setProperty(changed, "system.attributes.death.success", 0);
         foundry.utils.setProperty(changed, "system.attributes.death.failure", 0);
       }
-      foundry.utils.setProperty(options, "dnd5e.hp", { ...this.system.attributes.hp });
+      foundry.utils.setProperty(options, "skjaald.hp", { ...this.system.attributes.hp });
     }
 
     // Record previous exhaustion level.
     if ( Number.isFinite(foundry.utils.getProperty(changed, "system.attributes.exhaustion")) ) {
-      foundry.utils.setProperty(options, "dnd5e.originalExhaustion", this.system.attributes.exhaustion);
+      foundry.utils.setProperty(options, "skjaald.originalExhaustion", this.system.attributes.exhaustion);
     }
   }
 
@@ -18376,10 +18376,10 @@ class Actor5e extends SystemDocumentMixin(Actor) {
      * @param {object} updates                    Distinct updates to be performed on the actor.
      * @param {DamageApplicationOptions} options  Additional damage application options.
      * @returns {boolean}                         Explicitly return `false` to prevent damage application.
-     * @function dnd5e.preApplyDamage
+     * @function skjaald.preApplyDamage
      * @memberof hookEvents
      */
-    if ( Hooks.call("dnd5e.preApplyDamage", this, amount, updates, options) === false ) return this;
+    if ( Hooks.call("skjaald.preApplyDamage", this, amount, updates, options) === false ) return this;
 
     // Delegate damage application to a hook
     // TODO: Replace this in the future with a better modifyTokenAttribute function in the core
@@ -18397,10 +18397,10 @@ class Actor5e extends SystemDocumentMixin(Actor) {
      * @param {Actor5e} actor                     Actor that has been damaged.
      * @param {number} amount                     Amount of damage that has been applied.
      * @param {DamageApplicationOptions} options  Additional damage application options.
-     * @function dnd5e.applyDamage
+     * @function skjaald.applyDamage
      * @memberof hookEvents
      */
-    Hooks.callAll("dnd5e.applyDamage", this, amount, options);
+    Hooks.callAll("skjaald.applyDamage", this, amount, options);
 
     return this;
   }
@@ -18423,10 +18423,10 @@ class Actor5e extends SystemDocumentMixin(Actor) {
      * @param {DamageDescription[]} damages       Damage descriptions.
      * @param {DamageApplicationOptions} options  Additional damage application options.
      * @returns {boolean}                         Explicitly return `false` to prevent damage application.
-     * @function dnd5e.preCalculateDamage
+     * @function skjaald.preCalculateDamage
      * @memberof hookEvents
      */
-    if ( Hooks.call("dnd5e.preCalculateDamage", this, damages, options) === false ) return false;
+    if ( Hooks.call("skjaald.preCalculateDamage", this, damages, options) === false ) return false;
 
     const multiplier = options.multiplier ?? 1;
 
@@ -18445,13 +18445,13 @@ class Actor5e extends SystemDocumentMixin(Actor) {
         && !ignore("immunity", type, true) ) return true;
       const config = traits[category];
       if ( !config?.value.has(type) ) return false;
-      if ( !CONFIG.DND5E.damageTypes[type]?.isPhysical || !properties?.size ) return true;
+      if ( !CONFIG.SKJAALD.damageTypes[type]?.isPhysical || !properties?.size ) return true;
       return !config.bypasses?.intersection(properties)?.size;
     };
 
     const skipped = type => {
-      if ( options.only === "damage" ) return type in CONFIG.DND5E.healingTypes;
-      if ( options.only === "healing" ) return type in CONFIG.DND5E.damageTypes;
+      if ( options.only === "damage" ) return type in CONFIG.SKJAALD.healingTypes;
+      if ( options.only === "healing" ) return type in CONFIG.SKJAALD.damageTypes;
       return false;
     };
 
@@ -18504,10 +18504,10 @@ class Actor5e extends SystemDocumentMixin(Actor) {
      * @param {DamageDescription[]} damages       Damage descriptions.
      * @param {DamageApplicationOptions} options  Additional damage application options.
      * @returns {boolean}                         Explicitly return `false` to prevent damage application.
-     * @function dnd5e.calculateDamage
+     * @function skjaald.calculateDamage
      * @memberof hookEvents
      */
-    if ( Hooks.call("dnd5e.calculateDamage", this, damages, options) === false ) return false;
+    if ( Hooks.call("skjaald.calculateDamage", this, damages, options) === false ) return false;
 
     return damages;
   }
@@ -18554,26 +18554,26 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook that is called before a concentration effect is created.
-     * @function dnd5e.preBeginConcentrating
+     * @function skjaald.preBeginConcentrating
      * @memberof hookEvents
      * @param {Actor5e} actor         The actor initiating concentration.
      * @param {Item5e} item           The item that will be concentrated on.
      * @param {object} effectData     Data used to create the ActiveEffect.
      * @returns {boolean}             Explicitly return false to prevent the effect from being created.
      */
-    if ( Hooks.call("dnd5e.preBeginConcentrating", this, item, effectData) === false ) return;
+    if ( Hooks.call("skjaald.preBeginConcentrating", this, item, effectData) === false ) return;
 
     const effect = await ActiveEffect5e.create(effectData, { parent: this });
 
     /**
      * A hook that is called after a concentration effect is created.
-     * @function dnd5e.createConcentrating
+     * @function skjaald.createConcentrating
      * @memberof hookEvents
      * @param {Actor5e} actor             The actor initiating concentration.
      * @param {Item5e} item               The item that is being concentrated on.
      * @param {ActiveEffect5e} effect     The created ActiveEffect instance.
      */
-    Hooks.callAll("dnd5e.beginConcentrating", this, item, effect);
+    Hooks.callAll("skjaald.beginConcentrating", this, item, effect);
 
     return effect;
   }
@@ -18601,7 +18601,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     else if ( target instanceof ActiveEffect5e ) effect = effects.has(target) ? target : null;
     else if ( target instanceof Item5e ) {
       effect = effects.find(e => {
-        const data = e.getFlag("dnd5e", "itemData") ?? {};
+        const data = e.getFlag("skjaald", "itemData") ?? {};
         return (data === target._id) || (data._id === target._id);
       });
     }
@@ -18609,24 +18609,24 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook that is called before a concentration effect is deleted.
-     * @function dnd5e.preEndConcentration
+     * @function skjaald.preEndConcentration
      * @memberof hookEvents
      * @param {Actor5e} actor             The actor ending concentration.
      * @param {ActiveEffect5e} effect     The ActiveEffect that will be deleted.
      * @returns {boolean}                 Explicitly return false to prevent the effect from being deleted.
      */
-    if ( Hooks.call("dnd5e.preEndConcentration", this, effect) === false) return [];
+    if ( Hooks.call("skjaald.preEndConcentration", this, effect) === false) return [];
 
     await effect.delete();
 
     /**
      * A hook that is called after a concentration effect is deleted.
-     * @function dnd5e.endConcentration
+     * @function skjaald.endConcentration
      * @memberof hookEvents
      * @param {Actor5e} actor             The actor ending concentration.
      * @param {ActiveEffect5e} effect     The ActiveEffect that was deleted.
      */
-    Hooks.callAll("dnd5e.endConcentration", this, effect);
+    Hooks.callAll("skjaald.endConcentration", this, effect);
 
     return [effect];
   }
@@ -18648,7 +18648,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       action: "concentration",
       dc: dc
     };
-    if ( ability in CONFIG.DND5E.abilities ) dataset.ability = ability;
+    if ( ability in CONFIG.SKJAALD.abilities ) dataset.ability = ability;
 
     const config = {
       type: "concentration",
@@ -18657,7 +18657,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     };
 
     return ChatMessage.implementation.create({
-      content: await renderTemplate("systems/dnd5e/templates/chat/request-card.hbs", {
+      content: await renderTemplate("systems/skjaald/templates/chat/request-card.hbs", {
         dataset: { ...dataset, type: "concentration" },
         buttonLabel: createRollLabel({ ...dataset, ...config }),
         hiddenLabel: createRollLabel({ ...dataset, ...config, hideDC: true })
@@ -18676,8 +18676,8 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @private
    */
   _isRemarkableAthlete(ability) {
-    return this.getFlag("dnd5e", "remarkableAthlete")
-      && CONFIG.DND5E.characterFlags.remarkableAthlete.abilities.includes(ability);
+    return this.getFlag("skjaald", "remarkableAthlete")
+      && CONFIG.SKJAALD.characterFlags.remarkableAthlete.abilities.includes(ability);
   }
 
   /* -------------------------------------------- */
@@ -18732,46 +18732,46 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     }
 
     // Reliable Talent applies to any skill check we have full or better proficiency in
-    const reliableTalent = (skl.value >= 1 && this.getFlag("dnd5e", "reliableTalent"));
+    const reliableTalent = (skl.value >= 1 && this.getFlag("skjaald", "reliableTalent"));
 
     // Roll and return
-    const flavor = game.i18n.format("DND5E.SkillPromptTitle", {skill: CONFIG.DND5E.skills[skillId]?.label ?? ""});
+    const flavor = game.i18n.format("SKJAALD.SkillPromptTitle", {skill: CONFIG.SKJAALD.skills[skillId]?.label ?? ""});
     const rollData = foundry.utils.mergeObject({
       data: data,
       title: `${flavor}: ${this.name}`,
       flavor,
       chooseModifier: true,
-      halflingLucky: this.getFlag("dnd5e", "halflingLucky"),
+      halflingLucky: this.getFlag("skjaald", "halflingLucky"),
       reliableTalent,
       messageData: {
         speaker: options.speaker || ChatMessage.getSpeaker({actor: this}),
-        "flags.dnd5e.roll": {type: "skill", skillId }
+        "flags.skjaald.roll": {type: "skill", skillId }
       }
     }, options);
     rollData.parts = parts.concat(options.parts ?? []);
 
     /**
      * A hook event that fires before a skill check is rolled for an Actor.
-     * @function dnd5e.preRollSkill
+     * @function skjaald.preRollSkill
      * @memberof hookEvents
      * @param {Actor5e} actor                Actor for which the skill check is being rolled.
      * @param {D20RollConfiguration} config  Configuration data for the pending roll.
-     * @param {string} skillId               ID of the skill being rolled as defined in `DND5E.skills`.
+     * @param {string} skillId               ID of the skill being rolled as defined in `SKJAALD.skills`.
      * @returns {boolean}                    Explicitly return `false` to prevent skill check from being rolled.
      */
-    if ( Hooks.call("dnd5e.preRollSkill", this, rollData, skillId) === false ) return;
+    if ( Hooks.call("skjaald.preRollSkill", this, rollData, skillId) === false ) return;
 
     const roll = await d20Roll(rollData);
 
     /**
      * A hook event that fires after a skill check has been rolled for an Actor.
-     * @function dnd5e.rollSkill
+     * @function skjaald.rollSkill
      * @memberof hookEvents
      * @param {Actor5e} actor   Actor for which the skill check has been rolled.
      * @param {D20Roll} roll    The resulting roll.
-     * @param {string} skillId  ID of the skill that was rolled as defined in `DND5E.skills`.
+     * @param {string} skillId  ID of the skill that was rolled as defined in `SKJAALD.skills`.
      */
-    if ( roll ) Hooks.callAll("dnd5e.rollSkill", this, roll, skillId);
+    if ( roll ) Hooks.callAll("skjaald.rollSkill", this, roll, skillId);
 
     return roll;
   }
@@ -18824,44 +18824,44 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     }
 
     // Reliable Talent applies to any tool check we have full or better proficiency in
-    const reliableTalent = (prof?.multiplier >= 1 && this.getFlag("dnd5e", "reliableTalent"));
+    const reliableTalent = (prof?.multiplier >= 1 && this.getFlag("skjaald", "reliableTalent"));
 
-    const flavor = game.i18n.format("DND5E.ToolPromptTitle", {tool: keyLabel(toolId, {trait: "tool"}) ?? ""});
+    const flavor = game.i18n.format("SKJAALD.ToolPromptTitle", {tool: keyLabel(toolId, {trait: "tool"}) ?? ""});
     const rollData = foundry.utils.mergeObject({
       data, flavor,
       title: `${flavor}: ${this.name}`,
       chooseModifier: true,
-      halflingLucky: this.getFlag("dnd5e", "halflingLucky"),
+      halflingLucky: this.getFlag("skjaald", "halflingLucky"),
       reliableTalent,
       messageData: {
         speaker: options.speaker || ChatMessage.implementation.getSpeaker({actor: this}),
-        "flags.dnd5e.roll": {type: "tool", toolId}
+        "flags.skjaald.roll": {type: "tool", toolId}
       }
     }, options);
     rollData.parts = parts.concat(options.parts ?? []);
 
     /**
      * A hook event that fires before a tool check is rolled for an Actor.
-     * @function dnd5e.preRollRool
+     * @function skjaald.preRollRool
      * @memberof hookEvents
      * @param {Actor5e} actor                Actor for which the tool check is being rolled.
      * @param {D20RollConfiguration} config  Configuration data for the pending roll.
      * @param {string} toolId                Identifier of the tool being rolled.
      * @returns {boolean}                    Explicitly return `false` to prevent skill check from being rolled.
      */
-    if ( Hooks.call("dnd5e.preRollToolCheck", this, rollData, toolId) === false ) return;
+    if ( Hooks.call("skjaald.preRollToolCheck", this, rollData, toolId) === false ) return;
 
     const roll = await d20Roll(rollData);
 
     /**
      * A hook event that fires after a tool check has been rolled for an Actor.
-     * @function dnd5e.rollTool
+     * @function skjaald.rollTool
      * @memberof hookEvents
      * @param {Actor5e} actor   Actor for which the tool check has been rolled.
      * @param {D20Roll} roll    The resulting roll.
      * @param {string} toolId   Identifier of the tool that was rolled.
      */
-    if ( roll ) Hooks.callAll("dnd5e.rollToolCheck", this, roll, toolId);
+    if ( roll ) Hooks.callAll("skjaald.rollToolCheck", this, roll, toolId);
 
     return roll;
   }
@@ -18875,17 +18875,17 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @param {object} options      Options which configure how ability tests or saving throws are rolled
    */
   rollAbility(abilityId, options={}) {
-    const label = CONFIG.DND5E.abilities[abilityId]?.label ?? "";
+    const label = CONFIG.SKJAALD.abilities[abilityId]?.label ?? "";
     new Dialog({
-      title: `${game.i18n.format("DND5E.AbilityPromptTitle", {ability: label})}: ${this.name}`,
-      content: `<p>${game.i18n.format("DND5E.AbilityPromptText", {ability: label})}</p>`,
+      title: `${game.i18n.format("SKJAALD.AbilityPromptTitle", {ability: label})}: ${this.name}`,
+      content: `<p>${game.i18n.format("SKJAALD.AbilityPromptText", {ability: label})}</p>`,
       buttons: {
         test: {
-          label: game.i18n.localize("DND5E.ActionAbil"),
+          label: game.i18n.localize("SKJAALD.ActionAbil"),
           callback: () => this.rollAbilityTest(abilityId, options)
         },
         save: {
-          label: game.i18n.localize("DND5E.ActionSave"),
+          label: game.i18n.localize("SKJAALD.ActionSave"),
           callback: () => this.rollAbilitySave(abilityId, options)
         }
       }
@@ -18902,7 +18902,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @returns {Promise<D20Roll>}  A Promise which resolves to the created Roll instance
    */
   async rollAbilityTest(abilityId, options={}) {
-    const label = CONFIG.DND5E.abilities[abilityId]?.label ?? "";
+    const label = CONFIG.SKJAALD.abilities[abilityId]?.label ?? "";
     const abl = this.system.abilities[abilityId];
     const globalBonuses = this.system.bonuses?.abilities ?? {};
     const parts = [];
@@ -18932,41 +18932,41 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     }
 
     // Roll and return
-    const flavor = game.i18n.format("DND5E.AbilityPromptTitle", {ability: label});
+    const flavor = game.i18n.format("SKJAALD.AbilityPromptTitle", {ability: label});
     const rollData = foundry.utils.mergeObject({
       data,
       title: `${flavor}: ${this.name}`,
       flavor,
-      halflingLucky: this.getFlag("dnd5e", "halflingLucky"),
+      halflingLucky: this.getFlag("skjaald", "halflingLucky"),
       messageData: {
         speaker: options.speaker || ChatMessage.getSpeaker({actor: this}),
-        "flags.dnd5e.roll": {type: "ability", abilityId }
+        "flags.skjaald.roll": {type: "ability", abilityId }
       }
     }, options);
     rollData.parts = parts.concat(options.parts ?? []);
 
     /**
      * A hook event that fires before an ability test is rolled for an Actor.
-     * @function dnd5e.preRollAbilityTest
+     * @function skjaald.preRollAbilityTest
      * @memberof hookEvents
      * @param {Actor5e} actor                Actor for which the ability test is being rolled.
      * @param {D20RollConfiguration} config  Configuration data for the pending roll.
-     * @param {string} abilityId             ID of the ability being rolled as defined in `DND5E.abilities`.
+     * @param {string} abilityId             ID of the ability being rolled as defined in `SKJAALD.abilities`.
      * @returns {boolean}                    Explicitly return `false` to prevent ability test from being rolled.
      */
-    if ( Hooks.call("dnd5e.preRollAbilityTest", this, rollData, abilityId) === false ) return;
+    if ( Hooks.call("skjaald.preRollAbilityTest", this, rollData, abilityId) === false ) return;
 
     const roll = await d20Roll(rollData);
 
     /**
      * A hook event that fires after an ability test has been rolled for an Actor.
-     * @function dnd5e.rollAbilityTest
+     * @function skjaald.rollAbilityTest
      * @memberof hookEvents
      * @param {Actor5e} actor     Actor for which the ability test has been rolled.
      * @param {D20Roll} roll      The resulting roll.
-     * @param {string} abilityId  ID of the ability that was rolled as defined in `DND5E.abilities`.
+     * @param {string} abilityId  ID of the ability that was rolled as defined in `SKJAALD.abilities`.
      */
-    if ( roll ) Hooks.callAll("dnd5e.rollAbilityTest", this, roll, abilityId);
+    if ( roll ) Hooks.callAll("skjaald.rollAbilityTest", this, roll, abilityId);
 
     return roll;
   }
@@ -18981,7 +18981,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @returns {Promise<D20Roll|null>}   A Promise which resolves to the created Roll instance
    */
   async rollAbilitySave(abilityId, options={}) {
-    const label = CONFIG.DND5E.abilities[abilityId]?.label ?? "";
+    const label = CONFIG.SKJAALD.abilities[abilityId]?.label ?? "";
     const abl = this.system.abilities[abilityId];
     const globalBonuses = this.system.bonuses?.abilities ?? {};
     const parts = [];
@@ -19011,41 +19011,41 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     }
 
     // Roll and return
-    const flavor = game.i18n.format("DND5E.SavePromptTitle", {ability: label});
+    const flavor = game.i18n.format("SKJAALD.SavePromptTitle", {ability: label});
     const rollData = foundry.utils.mergeObject({
       data,
       title: `${flavor}: ${this.name}`,
       flavor,
-      halflingLucky: this.getFlag("dnd5e", "halflingLucky"),
+      halflingLucky: this.getFlag("skjaald", "halflingLucky"),
       messageData: {
         speaker: options.speaker || ChatMessage.getSpeaker({actor: this}),
-        "flags.dnd5e.roll": {type: "save", abilityId }
+        "flags.skjaald.roll": {type: "save", abilityId }
       }
     }, options);
     rollData.parts = parts.concat(options.parts ?? []);
 
     /**
      * A hook event that fires before an ability save is rolled for an Actor.
-     * @function dnd5e.preRollAbilitySave
+     * @function skjaald.preRollAbilitySave
      * @memberof hookEvents
      * @param {Actor5e} actor                Actor for which the ability save is being rolled.
      * @param {D20RollConfiguration} config  Configuration data for the pending roll.
-     * @param {string} abilityId             ID of the ability being rolled as defined in `DND5E.abilities`.
+     * @param {string} abilityId             ID of the ability being rolled as defined in `SKJAALD.abilities`.
      * @returns {boolean}                    Explicitly return `false` to prevent ability save from being rolled.
      */
-    if ( Hooks.call("dnd5e.preRollAbilitySave", this, rollData, abilityId) === false ) return;
+    if ( Hooks.call("skjaald.preRollAbilitySave", this, rollData, abilityId) === false ) return;
 
     const roll = await d20Roll(rollData);
 
     /**
      * A hook event that fires after an ability save has been rolled for an Actor.
-     * @function dnd5e.rollAbilitySave
+     * @function skjaald.rollAbilitySave
      * @memberof hookEvents
      * @param {Actor5e} actor     Actor for which the ability save has been rolled.
      * @param {D20Roll} roll      The resulting roll.
-     * @param {string} abilityId  ID of the ability that was rolled as defined in `DND5E.abilities`.
+     * @param {string} abilityId  ID of the ability that was rolled as defined in `SKJAALD.abilities`.
      */
-    if ( roll ) Hooks.callAll("dnd5e.rollAbilitySave", this, roll, abilityId);
+    if ( roll ) Hooks.callAll("skjaald.rollAbilitySave", this, roll, abilityId);
 
     return roll;
   }
@@ -19063,7 +19063,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     // Display a warning if we are not at zero HP or if we already have reached 3
     if ( (this.system.attributes.hp.value > 0) || (death.failure >= 3) || (death.success >= 3) ) {
-      ui.notifications.warn("DND5E.DeathSaveUnnecessary", {localize: true});
+      ui.notifications.warn("SKJAALD.DeathSaveUnnecessary", {localize: true});
       return null;
     }
 
@@ -19074,7 +19074,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     const data = this.getRollData();
 
     // Diamond Soul adds proficiency
-    if ( this.getFlag("dnd5e", "diamondSoul") ) {
+    if ( this.getFlag("skjaald", "diamondSoul") ) {
       parts.push("@prof");
       data.prof = new Proficiency(this.system.attributes.prof, 1).term;
     }
@@ -19086,29 +19086,29 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     }
 
     // Evaluate the roll
-    const flavor = game.i18n.localize("DND5E.DeathSavingThrow");
+    const flavor = game.i18n.localize("SKJAALD.DeathSavingThrow");
     const rollData = foundry.utils.mergeObject({
       data,
       title: `${flavor}: ${this.name}`,
       flavor,
-      halflingLucky: this.getFlag("dnd5e", "halflingLucky"),
+      halflingLucky: this.getFlag("skjaald", "halflingLucky"),
       targetValue: 10,
       messageData: {
         speaker: speaker,
-        "flags.dnd5e.roll": {type: "death"}
+        "flags.skjaald.roll": {type: "death"}
       }
     }, options);
     rollData.parts = parts.concat(options.parts ?? []);
 
     /**
      * A hook event that fires before a death saving throw is rolled for an Actor.
-     * @function dnd5e.preRollDeathSave
+     * @function skjaald.preRollDeathSave
      * @memberof hookEvents
      * @param {Actor5e} actor                Actor for which the death saving throw is being rolled.
      * @param {D20RollConfiguration} config  Configuration data for the pending roll.
      * @returns {boolean}                    Explicitly return `false` to prevent death saving throw from being rolled.
      */
-    if ( Hooks.call("dnd5e.preRollDeathSave", this, rollData) === false ) return;
+    if ( Hooks.call("skjaald.preRollDeathSave", this, rollData) === false ) return;
 
     const roll = await d20Roll(rollData);
     if ( !roll ) return null;
@@ -19127,7 +19127,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
           "system.attributes.death.failure": 0,
           "system.attributes.hp.value": 1
         };
-        details.chatString = "DND5E.DeathSaveCriticalSuccess";
+        details.chatString = "SKJAALD.DeathSaveCriticalSuccess";
       }
 
       // 3 Successes = survive and reset checks
@@ -19136,7 +19136,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
           "system.attributes.death.success": 0,
           "system.attributes.death.failure": 0
         };
-        details.chatString = "DND5E.DeathSaveSuccess";
+        details.chatString = "SKJAALD.DeathSaveSuccess";
       }
 
       // Increment successes
@@ -19148,14 +19148,14 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       let failures = (death.failure || 0) + (roll.isFumble ? 2 : 1);
       details.updates = {"system.attributes.death.failure": Math.clamp(failures, 0, 3)};
       if ( failures >= 3 ) {  // 3 Failures = death
-        details.chatString = "DND5E.DeathSaveFailure";
+        details.chatString = "SKJAALD.DeathSaveFailure";
       }
     }
 
     /**
      * A hook event that fires after a death saving throw has been rolled for an Actor, but before
      * updates have been performed.
-     * @function dnd5e.rollDeathSave
+     * @function skjaald.rollDeathSave
      * @memberof hookEvents
      * @param {Actor5e} actor              Actor for which the death saving throw has been rolled.
      * @param {D20Roll} roll               The resulting roll.
@@ -19165,7 +19165,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
      *                                     no chat message will be displayed.
      * @returns {boolean}                  Explicitly return `false` to prevent updates from being performed.
      */
-    if ( Hooks.call("dnd5e.rollDeathSave", this, roll, details) === false ) return roll;
+    if ( Hooks.call("skjaald.rollDeathSave", this, roll, details) === false ) return roll;
 
     if ( !foundry.utils.isEmpty(details.updates) ) await this.update(details.updates);
 
@@ -19192,7 +19192,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     const conc = this.system.attributes?.concentration;
     if ( !conc ) throw new Error("You may not make a Concentration Saving Throw with this Actor.");
 
-    const config = CONFIG.DND5E;
+    const config = CONFIG.SKJAALD;
     const modes = CONFIG.Dice.D20Roll.ADV_MODE;
     const parts = [];
 
@@ -19212,25 +19212,25 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook event that fires before a saving throw to maintain concentration is rolled for an Actor.
-     * @function dnd5e.preRollConcentration
+     * @function skjaald.preRollConcentration
      * @memberof hookEvents
      * @param {Actor5e} actor                   Actor for which the saving throw is being rolled.
      * @param {D20RollConfiguration} options    Configuration data for the pending roll.
      * @returns {boolean}                       Explicitly return `false` to prevent the save from being performed.
      */
-    if ( Hooks.call("dnd5e.preRollConcentration", this, options) === false ) return;
+    if ( Hooks.call("skjaald.preRollConcentration", this, options) === false ) return;
 
     // Perform a standard ability save.
     const roll = await this.rollAbilitySave(options.ability, options);
 
     /**
      * A hook event that fires after a saving throw to maintain concentration is rolled for an Actor.
-     * @function dnd5e.rollConcentration
+     * @function skjaald.rollConcentration
      * @memberof hookEvents
      * @param {Actor5e} actor     Actor for which the saving throw has been rolled.
      * @param {D20Roll} roll      The resulting roll.
      */
-    if ( roll ) Hooks.callAll("dnd5e.rollConcentration", this, roll);
+    if ( roll ) Hooks.callAll("skjaald.rollConcentration", this, roll);
 
     return roll;
   }
@@ -19251,10 +19251,10 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     // Obtain required data
     const init = this.system.attributes?.init;
-    const abilityId = init?.ability || CONFIG.DND5E.defaultAbilities.initiative;
+    const abilityId = init?.ability || CONFIG.SKJAALD.defaultAbilities.initiative;
     const data = this.getRollData();
-    const flags = this.flags.dnd5e || {};
-    if ( flags.initiativeAdv ) options.advantageMode ??= dnd5e.dice.D20Roll.ADV_MODE.ADVANTAGE;
+    const flags = this.flags.skjaald || {};
+    if ( flags.initiativeAdv ) options.advantageMode ??= skjaald.dice.D20Roll.ADV_MODE.ADVANTAGE;
 
     // Standard initiative formula
     const parts = ["1d20"];
@@ -19297,14 +19297,14 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     }
 
     // Ability score tiebreaker
-    const tiebreaker = game.settings.get("dnd5e", "initiativeDexTiebreaker");
+    const tiebreaker = game.settings.get("skjaald", "initiativeDexTiebreaker");
     if ( tiebreaker && ("abilities" in this.system) ) {
       const abilityValue = this.system.abilities[abilityId]?.value;
       if ( Number.isNumeric(abilityValue) ) parts.push(String(abilityValue / 100));
     }
 
     options = foundry.utils.mergeObject({
-      flavor: options.flavor ?? game.i18n.localize("DND5E.Initiative"),
+      flavor: options.flavor ?? game.i18n.localize("SKJAALD.Initiative"),
       halflingLucky: flags.halflingLucky ?? false,
       critical: null,
       fumble: null
@@ -19327,9 +19327,9 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     const roll = this.getInitiativeRoll(rollOptions);
     const choice = await roll.configureDialog({
       defaultRollMode: game.settings.get("core", "rollMode"),
-      title: `${game.i18n.localize("DND5E.InitiativeRoll")}: ${this.name}`,
+      title: `${game.i18n.localize("SKJAALD.InitiativeRoll")}: ${this.name}`,
       chooseModifier: false,
-      defaultAction: rollOptions.advantageMode ?? dnd5e.dice.D20Roll.ADV_MODE.NORMAL
+      defaultAction: rollOptions.advantageMode ?? skjaald.dice.D20Roll.ADV_MODE.NORMAL
     });
     if ( choice === null ) return; // Closed dialog
 
@@ -19346,12 +19346,12 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook event that fires before initiative is rolled for an Actor.
-     * @function dnd5e.preRollInitiative
+     * @function skjaald.preRollInitiative
      * @memberof hookEvents
      * @param {Actor5e} actor  The Actor that is rolling initiative.
      * @param {D20Roll} roll   The initiative roll.
      */
-    if ( Hooks.call("dnd5e.preRollInitiative", this, this._cachedInitiativeRoll) === false ) {
+    if ( Hooks.call("skjaald.preRollInitiative", this, this._cachedInitiativeRoll) === false ) {
       delete this._cachedInitiativeRoll;
       return null;
     }
@@ -19365,12 +19365,12 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook event that fires after an Actor has rolled for initiative.
-     * @function dnd5e.rollInitiative
+     * @function skjaald.rollInitiative
      * @memberof hookEvents
      * @param {Actor5e} actor           The Actor that rolled initiative.
      * @param {Combatant[]} combatants  The associated Combatants in the Combat.
      */
-    Hooks.callAll("dnd5e.rollInitiative", this, combatants);
+    Hooks.callAll("skjaald.rollInitiative", this, combatants);
     delete this._cachedInitiativeRoll;
     return combat;
   }
@@ -19393,7 +19393,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
       // If no hit dice are available, display an error notification
       if ( !this.system.attributes.hd.value ) {
-        ui.notifications.error(game.i18n.format("DND5E.HitDiceNPCWarn", {name: this.name}));
+        ui.notifications.error(game.i18n.format("SKJAALD.HitDiceNPCWarn", {name: this.name}));
         return null;
       }
     }
@@ -19414,13 +19414,13 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
       // If no class is available, display an error notification
       if ( !cls ) {
-        ui.notifications.error(game.i18n.format("DND5E.HitDiceWarn", {name: this.name, formula: denomination}));
+        ui.notifications.error(game.i18n.format("SKJAALD.HitDiceWarn", {name: this.name, formula: denomination}));
         return null;
       }
     }
 
     // Prepare roll data
-    const flavor = game.i18n.localize("DND5E.HitDiceRoll");
+    const flavor = game.i18n.localize("SKJAALD.HitDiceRoll");
     const rollConfig = foundry.utils.mergeObject({
       formula: `max(0, 1${denomination} + @abilities.con.mod)`,
       data: this.getRollData(),
@@ -19430,13 +19430,13 @@ class Actor5e extends SystemDocumentMixin(Actor) {
         flavor,
         title: `${flavor}: ${this.name}`,
         rollMode: game.settings.get("core", "rollMode"),
-        "flags.dnd5e.roll": {type: "hitDie"}
+        "flags.skjaald.roll": {type: "hitDie"}
       }
     }, options);
 
     /**
      * A hook event that fires before a hit die is rolled for an Actor.
-     * @function dnd5e.preRollHitDie
+     * @function skjaald.preRollHitDie
      * @memberof hookEvents
      * @param {Actor5e} actor               Actor for which the hit die is to be rolled.
      * @param {object} config               Configuration data for the pending roll.
@@ -19447,7 +19447,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
      * @param {string} denomination         Size of hit die to be rolled.
      * @returns {boolean}                   Explicitly return `false` to prevent hit die from being rolled.
      */
-    if ( Hooks.call("dnd5e.preRollHitDie", this, rollConfig, denomination) === false ) return;
+    if ( Hooks.call("skjaald.preRollHitDie", this, rollConfig, denomination) === false ) return;
 
     const roll = await new Roll(rollConfig.formula, rollConfig.data).roll({async: true});
     if ( rollConfig.chatMessage ) roll.toMessage(rollConfig.messageData);
@@ -19460,7 +19460,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook event that fires after a hit die has been rolled for an Actor, but before updates have been performed.
-     * @function dnd5e.rollHitDie
+     * @function skjaald.rollHitDie
      * @memberof hookEvents
      * @param {Actor5e} actor           Actor for which the hit die has been rolled.
      * @param {Roll} roll               The resulting roll.
@@ -19469,7 +19469,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
      * @param {object} [updates.class]  Updates that will be applied to the class.
      * @returns {boolean}               Explicitly return `false` to prevent updates from being performed.
      */
-    if ( Hooks.call("dnd5e.rollHitDie", this, roll, updates) === false ) return roll;
+    if ( Hooks.call("skjaald.rollHitDie", this, roll, updates) === false ) return roll;
 
     // Perform updates
     if ( !foundry.utils.isEmpty(updates.actor) ) await this.update(updates.actor);
@@ -19486,7 +19486,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @param {object} options
    * @param {boolean} [options.chatMessage=true]  Display the chat message for this roll.
    * @returns {Promise<Roll>}                     The completed roll.
-   * @see {@link dnd5e.preRollClassHitPoints}
+   * @see {@link skjaald.preRollClassHitPoints}
    */
   async rollClassHitPoints(item, { chatMessage=true }={}) {
     if ( item.type !== "class" ) throw new Error("Hit points can only be rolled for a class item.");
@@ -19495,17 +19495,17 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       data: item.getRollData(),
       chatMessage
     };
-    const flavor = game.i18n.format("DND5E.AdvancementHitPointsRollMessage", { class: item.name });
+    const flavor = game.i18n.format("SKJAALD.AdvancementHitPointsRollMessage", { class: item.name });
     const messageData = {
       title: `${flavor}: ${this.name}`,
       flavor,
       speaker: ChatMessage.implementation.getSpeaker({ actor: this }),
-      "flags.dnd5e.roll": { type: "hitPoints" }
+      "flags.skjaald.roll": { type: "hitPoints" }
     };
 
     /**
      * A hook event that fires before hit points are rolled for a character's class.
-     * @function dnd5e.preRollClassHitPoints
+     * @function skjaald.preRollClassHitPoints
      * @memberof hookEvents
      * @param {Actor5e} actor            Actor for which the hit points are being rolled.
      * @param {Item5e} item              The class item whose hit dice will be rolled.
@@ -19514,19 +19514,19 @@ class Actor5e extends SystemDocumentMixin(Actor) {
      * @param {object} rollData.data     The data object against which to parse attributes within the formula.
      * @param {object} messageData       The data object to use when creating the message.
      */
-    Hooks.callAll("dnd5e.preRollClassHitPoints", this, item, rollData, messageData);
+    Hooks.callAll("skjaald.preRollClassHitPoints", this, item, rollData, messageData);
 
     const roll = new Roll(rollData.formula, rollData.data);
     await roll.evaluate({async: true});
 
     /**
      * A hook event that fires after hit points haven been rolled for a character's class.
-     * @function dnd5e.rollClassHitPoints
+     * @function skjaald.rollClassHitPoints
      * @memberof hookEvents
      * @param {Actor5e} actor  Actor for which the hit points have been rolled.
      * @param {Roll} roll      The resulting roll.
      */
-    Hooks.callAll("dnd5e.rollClassHitPoints", this, roll);
+    Hooks.callAll("skjaald.rollClassHitPoints", this, roll);
 
     if ( rollData.chatMessage ) await roll.toMessage(messageData);
     return roll;
@@ -19539,7 +19539,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @param {object} options
    * @param {boolean} [options.chatMessage=true]  Display the chat message for this roll.
    * @returns {Promise<Roll>}                     The completed roll.
-   * @see {@link dnd5e.preRollNPCHitPoints}
+   * @see {@link skjaald.preRollNPCHitPoints}
    */
   async rollNPCHitPoints({ chatMessage=true }={}) {
     if ( this.type !== "npc" ) throw new Error("NPC hit points can only be rolled for NPCs");
@@ -19548,17 +19548,17 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       data: this.getRollData(),
       chatMessage
     };
-    const flavor = game.i18n.format("DND5E.HPFormulaRollMessage");
+    const flavor = game.i18n.format("SKJAALD.HPFormulaRollMessage");
     const messageData = {
       title: `${flavor}: ${this.name}`,
       flavor,
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      "flags.dnd5e.roll": { type: "hitPoints" }
+      "flags.skjaald.roll": { type: "hitPoints" }
     };
 
     /**
      * A hook event that fires before hit points are rolled for an NPC.
-     * @function dnd5e.preRollNPCHitPoints
+     * @function skjaald.preRollNPCHitPoints
      * @memberof hookEvents
      * @param {Actor5e} actor            Actor for which the hit points are being rolled.
      * @param {object} rollData
@@ -19566,19 +19566,19 @@ class Actor5e extends SystemDocumentMixin(Actor) {
      * @param {object} rollData.data     The data object against which to parse attributes within the formula.
      * @param {object} messageData       The data object to use when creating the message.
      */
-    Hooks.callAll("dnd5e.preRollNPCHitPoints", this, rollData, messageData);
+    Hooks.callAll("skjaald.preRollNPCHitPoints", this, rollData, messageData);
 
     const roll = new Roll(rollData.formula, rollData.data);
     await roll.evaluate({async: true});
 
     /**
      * A hook event that fires after hit points are rolled for an NPC.
-     * @function dnd5e.rollNPCHitPoints
+     * @function skjaald.rollNPCHitPoints
      * @memberof hookEvents
      * @param {Actor5e} actor  Actor for which the hit points have been rolled.
      * @param {Roll} roll      The resulting roll.
      */
-    Hooks.callAll("dnd5e.rollNPCHitPoints", this, roll);
+    Hooks.callAll("skjaald.rollNPCHitPoints", this, roll);
 
     if ( rollData.chatMessage ) await roll.toMessage(messageData);
     return roll;
@@ -19629,18 +19629,18 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     config = foundry.utils.mergeObject({
       type: "short", dialog: true, chat: true, newDay: false, advanceTime: false, autoHD: false, autoHDThreshold: 3,
-      duration: CONFIG.DND5E.restTypes.short.duration[game.settings.get("dnd5e", "restVariant")]
+      duration: CONFIG.SKJAALD.restTypes.short.duration[game.settings.get("skjaald", "restVariant")]
     }, config);
 
     /**
      * A hook event that fires before a short rest is started.
-     * @function dnd5e.preShortRest
+     * @function skjaald.preShortRest
      * @memberof hookEvents
      * @param {Actor5e} actor             The actor that is being rested.
      * @param {RestConfiguration} config  Configuration options for the rest.
      * @returns {boolean}                 Explicitly return `false` to prevent the rest from being started.
      */
-    if ( Hooks.call("dnd5e.preShortRest", this, config) === false ) return;
+    if ( Hooks.call("skjaald.preShortRest", this, config) === false ) return;
 
     // Take note of the initial hit points and number of hit dice the Actor has
     const hd0 = foundry.utils.getProperty(this, "system.attributes.hd.value");
@@ -19655,13 +19655,13 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook event that fires after a short rest has started, after the configuration is complete.
-     * @function dnd5e.shortRest
+     * @function skjaald.shortRest
      * @memberof hookEvents
      * @param {Actor5e} actor             The actor that is being rested.
      * @param {RestConfiguration} config  Configuration options for the rest.
      * @returns {boolean}                 Explicitly return `false` to prevent the rest from being continued.
      */
-    if ( Hooks.call("dnd5e.shortRest", this, config) === false ) return;
+    if ( Hooks.call("skjaald.shortRest", this, config) === false ) return;
 
     // Automatically spend hit dice
     if ( !config.dialog && config.autoHD ) await this.autoSpendHitDice({ threshold: config.autoHDThreshold });
@@ -19684,18 +19684,18 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     config = foundry.utils.mergeObject({
       type: "long", dialog: true, chat: true, newDay: true, advanceTime: false,
-      duration: CONFIG.DND5E.restTypes.long.duration[game.settings.get("dnd5e", "restVariant")]
+      duration: CONFIG.SKJAALD.restTypes.long.duration[game.settings.get("skjaald", "restVariant")]
     }, config);
 
     /**
      * A hook event that fires before a long rest is started.
-     * @function dnd5e.preLongRest
+     * @function skjaald.preLongRest
      * @memberof hookEvents
      * @param {Actor5e} actor             The actor that is being rested.
      * @param {RestConfiguration} config  Configuration options for the rest.
      * @returns {boolean}                 Explicitly return `false` to prevent the rest from being started.
      */
-    if ( Hooks.call("dnd5e.preLongRest", this, config) === false ) return;
+    if ( Hooks.call("skjaald.preLongRest", this, config) === false ) return;
 
     if ( config.dialog ) {
       try {
@@ -19705,13 +19705,13 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook event that fires after a long rest has started, after the configuration is complete.
-     * @function dnd5e.longRest
+     * @function skjaald.longRest
      * @memberof hookEvents
      * @param {Actor5e} actor             The actor that is being rested.
      * @param {RestConfiguration} config  Configuration options for the rest.
      * @returns {boolean}                 Explicitly return `false` to prevent the rest from being continued.
      */
-    if ( Hooks.call("dnd5e.longRest", this, config) === false ) return;
+    if ( Hooks.call("skjaald.longRest", this, config) === false ) return;
 
     return this._rest(config);
   }
@@ -19731,7 +19731,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     if ( args.length ) {
       foundry.utils.logCompatibilityWarning(
         "Actor5e._rest now takes a config object and a results object as parameters.",
-        { since: "DnD5e 3.1", until: "DnD5e 3.3" }
+        { since: "Skjaald 3.1", until: "Skjaald 3.3" }
       );
       const [longRest, dhd, dhp] = args;
       config = { chat: config, newDay: result };
@@ -19778,14 +19778,14 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook event that fires after rest result is calculated, but before any updates are performed.
-     * @function dnd5e.preRestCompleted
+     * @function skjaald.preRestCompleted
      * @memberof hookEvents
      * @param {Actor5e} actor             The actor that is being rested.
      * @param {RestResult} result         Details on the rest to be completed.
      * @param {RestConfiguration} config  Configuration data for the rest occurring.
      * @returns {boolean}                 Explicitly return `false` to prevent the rest updates from being performed.
      */
-    if ( Hooks.call("dnd5e.preRestCompleted", this, result, config) === false ) return result;
+    if ( Hooks.call("skjaald.preRestCompleted", this, result, config) === false ) return result;
 
     // Perform updates
     await this.update(result.updateData, { isRest: true });
@@ -19799,13 +19799,13 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook event that fires when the rest process is completed for an actor.
-     * @function dnd5e.restCompleted
+     * @function skjaald.restCompleted
      * @memberof hookEvents
      * @param {Actor5e} actor             The actor that just completed resting.
      * @param {RestResult} result         Details on the rest completed.
      * @param {RestConfiguration} config  Configuration data for that occurred.
      */
-    Hooks.callAll("dnd5e.restCompleted", this, result, config);
+    Hooks.callAll("skjaald.restCompleted", this, result, config);
 
     // Return data summarizing the rest effects
     return result;
@@ -19829,24 +19829,24 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     // Summarize the rest duration
     let restFlavor;
-    switch (game.settings.get("dnd5e", "restVariant")) {
+    switch (game.settings.get("skjaald", "restVariant")) {
       case "normal":
-        restFlavor = (longRest && newDay) ? "DND5E.LongRestOvernight" : `DND5E.${length}RestNormal`;
+        restFlavor = (longRest && newDay) ? "SKJAALD.LongRestOvernight" : `SKJAALD.${length}RestNormal`;
         break;
       case "gritty":
-        restFlavor = (!longRest && newDay) ? "DND5E.ShortRestOvernight" : `DND5E.${length}RestGritty`;
+        restFlavor = (!longRest && newDay) ? "SKJAALD.ShortRestOvernight" : `SKJAALD.${length}RestGritty`;
         break;
       case "epic":
-        restFlavor = `DND5E.${length}RestEpic`;
+        restFlavor = `SKJAALD.${length}RestEpic`;
         break;
     }
 
     // Determine the chat message to display
     let message;
-    if ( diceRestored && healthRestored ) message = `DND5E.${length}RestResult`;
-    else if ( longRest && !diceRestored && healthRestored ) message = "DND5E.LongRestResultHitPoints";
-    else if ( longRest && diceRestored && !healthRestored ) message = "DND5E.LongRestResultHitDice";
-    else message = `DND5E.${length}RestResultShort`;
+    if ( diceRestored && healthRestored ) message = `SKJAALD.${length}RestResult`;
+    else if ( longRest && !diceRestored && healthRestored ) message = "SKJAALD.LongRestResultHitPoints";
+    else if ( longRest && diceRestored && !healthRestored ) message = "SKJAALD.LongRestResultHitDice";
+    else message = `SKJAALD.${length}RestResultShort`;
 
     // Create a chat message
     let chatData = {
@@ -19940,8 +19940,8 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     let updates = {};
     if ( !spells ) return updates;
 
-    Object.entries(CONFIG.DND5E.spellPreparationModes).forEach(([k, v]) => {
-      const isSR = CONFIG.DND5E.spellcastingTypes[k === "prepared" ? "leveled" : k]?.shortRest;
+    Object.entries(CONFIG.SKJAALD.spellPreparationModes).forEach(([k, v]) => {
+      const isSR = CONFIG.SKJAALD.spellcastingTypes[k === "prepared" ? "leveled" : k]?.shortRest;
       if ( v.upcast && ((recoverShort && isSR) || recoverLong) ) {
         if ( k === "prepared" ) {
           Object.entries(spells).forEach(([m, n]) => {
@@ -20009,9 +20009,9 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       }
 
       // Items that roll to gain charges via a formula
-      if ( recoverDailyUses && uses.recovery && CONFIG.DND5E.limitedUsePeriods[uses.per]?.formula ) {
+      if ( recoverDailyUses && uses.recovery && CONFIG.SKJAALD.limitedUsePeriods[uses.per]?.formula ) {
         const roll = new Roll(uses.recovery, item.getRollData());
-        if ( recoverLongRestUses && (game.settings.get("dnd5e", "restVariant") === "gritty") ) {
+        if ( recoverLongRestUses && (game.settings.get("skjaald", "restVariant") === "gritty") ) {
           roll.alter(7, 0, {multiplyNumeric: true});
         }
 
@@ -20019,7 +20019,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
         try {
           total = (await roll.evaluate()).total;
         } catch(err) {
-          ui.notifications.warn(game.i18n.format("DND5E.ItemRecoveryFormulaWarning", {
+          ui.notifications.warn(game.i18n.format("SKJAALD.ItemRecoveryFormulaWarning", {
             name: item.name,
             formula: uses.recovery
           }));
@@ -20029,7 +20029,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
         if ( newValue !== uses.value ) {
           const diff = newValue - uses.value;
           const isMax = newValue === uses.max;
-          const locKey = `DND5E.Item${diff < 0 ? "Loss" : "Recovery"}Roll${isMax ? "Max" : ""}`;
+          const locKey = `SKJAALD.Item${diff < 0 ? "Loss" : "Recovery"}Roll${isMax ? "Max" : ""}`;
           updates.push({_id: item.id, "system.uses.value": newValue});
           rolls.push(roll);
           await roll.toMessage({
@@ -20071,8 +20071,8 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    */
   _prepareMovementAttribution() {
     const { movement } = this.system.attributes;
-    const units = movement.units || Object.keys(CONFIG.DND5E.movementUnits)[0];
-    return Object.entries(CONFIG.DND5E.movementTypes).reduce((html, [k, label]) => {
+    const units = movement.units || Object.keys(CONFIG.SKJAALD.movementUnits)[0];
+    return Object.entries(CONFIG.SKJAALD.movementTypes).reduce((html, [k, label]) => {
       const value = movement[k];
       if ( value || (k === "walk") ) html += `
         <div class="row">
@@ -20097,12 +20097,12 @@ class Actor5e extends SystemDocumentMixin(Actor) {
   async _prepareArmorClassAttribution({ title }={}) {
     const rollData = this.getRollData({ deterministic: true });
     const ac = rollData.attributes.ac;
-    const cfg = CONFIG.DND5E.armorClasses[ac.calc];
+    const cfg = CONFIG.SKJAALD.armorClasses[ac.calc];
     const attribution = [];
 
     if ( ac.calc === "flat" ) {
       attribution.push({
-        label: game.i18n.localize("DND5E.ArmorClassFlat"),
+        label: game.i18n.localize("SKJAALD.ArmorClassFlat"),
         mode: CONST.ACTIVE_EFFECT_MODES.OVERRIDE,
         value: ac.flat
       });
@@ -20115,7 +20115,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       // Natural armor
       case "natural":
         attribution.push({
-          label: game.i18n.localize("DND5E.ArmorClassNatural"),
+          label: game.i18n.localize("SKJAALD.ArmorClassNatural"),
           mode: CONST.ACTIVE_EFFECT_MODES.OVERRIDE,
           value: ac.flat
         });
@@ -20136,8 +20136,8 @@ class Actor5e extends SystemDocumentMixin(Actor) {
           });
         }
         const armorInFormula = formula.includes("@attributes.ac.armor");
-        let label = game.i18n.localize("DND5E.PropertyBase");
-        if ( armorInFormula ) label = this.armor?.name ?? game.i18n.localize("DND5E.ArmorClassUnarmored");
+        let label = game.i18n.localize("SKJAALD.PropertyBase");
+        if ( armorInFormula ) label = this.armor?.name ?? game.i18n.localize("SKJAALD.ArmorClassUnarmored");
         attribution.unshift({
           label,
           mode: CONST.ACTIVE_EFFECT_MODES.OVERRIDE,
@@ -20148,7 +20148,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     // Shield
     if ( ac.shield !== 0 ) attribution.push({
-      label: this.shield?.name ?? game.i18n.localize("DND5E.EquipmentShield"),
+      label: this.shield?.name ?? game.i18n.localize("SKJAALD.EquipmentShield"),
       mode: CONST.ACTIVE_EFFECT_MODES.ADD,
       value: ac.shield
     });
@@ -20158,7 +20158,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     // Cover
     if ( ac.cover !== 0 ) attribution.push({
-      label: game.i18n.localize("DND5E.Cover"),
+      label: game.i18n.localize("SKJAALD.Cover"),
       mode: CONST.ACTIVE_EFFECT_MODES.ADD,
       value: ac.cover
     });
@@ -20208,8 +20208,8 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     let originalSaves = null;
     let originalSkills = null;
     if ( this.isPolymorphed ) {
-      const transformOptions = this.flags.dnd5e?.transformOptions;
-      const original = game.actors?.get(this.flags.dnd5e?.originalActor);
+      const transformOptions = this.flags.skjaald?.transformOptions;
+      const original = game.actors?.get(this.flags.skjaald?.originalActor);
       if ( original ) {
         if ( transformOptions.mergeSaves ) originalSaves = original.system.abilities;
         if ( transformOptions.mergeSkills ) originalSkills = original.system.skills;
@@ -20264,21 +20264,21 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     transformTokens=true}={}, {renderSheet=true}={}) {
 
     // Ensure the player is allowed to polymorph
-    const allowed = game.settings.get("dnd5e", "allowPolymorphing");
+    const allowed = game.settings.get("skjaald", "allowPolymorphing");
     if ( !allowed && !game.user.isGM ) {
-      ui.notifications.warn("DND5E.PolymorphWarn", {localize: true});
+      ui.notifications.warn("SKJAALD.PolymorphWarn", {localize: true});
       return null;
     }
 
     // Get the original Actor data and the new source data
     const o = this.toObject();
-    o.flags.dnd5e = o.flags.dnd5e || {};
-    o.flags.dnd5e.transformOptions = {mergeSkills, mergeSaves};
+    o.flags.skjaald = o.flags.skjaald || {};
+    o.flags.skjaald.transformOptions = {mergeSkills, mergeSaves};
     const source = target.toObject();
 
     if ( keepSelf ) {
       o.img = source.img;
-      o.name = `${o.name} (${game.i18n.localize("DND5E.PolymorphSelf")})`;
+      o.name = `${o.name} (${game.i18n.localize("SKJAALD.PolymorphSelf")})`;
     }
 
     // Prepare new data to merge from the source
@@ -20315,9 +20315,9 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     for ( const k of ["offsetX", "offsetY", "scaleX", "scaleY", "src", "tint"] ) {
       d.prototypeToken.texture[k] = source.prototypeToken.texture[k];
     }
-    foundry.utils.setProperty(d.prototypeToken, "flags.dnd5e.tokenRing", foundry.utils.mergeObject(
-      foundry.utils.getProperty(d.prototypeToken, "flags.dnd5e.tokenRing") ?? {},
-      foundry.utils.getProperty(source.prototypeToken, "flags.dnd5e.tokenRing") ?? {},
+    foundry.utils.setProperty(d.prototypeToken, "flags.skjaald.tokenRing", foundry.utils.mergeObject(
+      foundry.utils.getProperty(d.prototypeToken, "flags.skjaald.tokenRing") ?? {},
+      foundry.utils.getProperty(source.prototypeToken, "flags.skjaald.tokenRing") ?? {},
       { inplace: false }
     ));
     for ( const k of ["bar1", "bar2", "displayBars", "displayName", "disposition", "rotation", "elevation"] ) {
@@ -20336,7 +20336,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       for ( let k of Object.keys(abilities) ) {
         const oa = o.system.abilities[k];
         const prof = abilities[k].proficient;
-        const type = CONFIG.DND5E.abilities[k]?.type;
+        const type = CONFIG.SKJAALD.abilities[k]?.type;
         if ( keepPhysical && (type === "physical") ) abilities[k] = oa;
         else if ( keepMental && (type === "mental") ) abilities[k] = oa;
 
@@ -20364,10 +20364,10 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
       // Transfer classes for NPCs
       if ( !keepClass && d.system.details.cr ) {
-        const cls = new dnd5e.dataModels.item.ClassData({levels: d.system.details.cr});
+        const cls = new skjaald.dataModels.item.ClassData({levels: d.system.details.cr});
         d.items.push({
           type: "class",
-          name: game.i18n.localize("DND5E.PolymorphTmpClass"),
+          name: game.i18n.localize("SKJAALD.PolymorphTmpClass"),
           system: cls.toObject()
         });
       }
@@ -20406,13 +20406,13 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     }
 
     // Set new data flags
-    if ( !this.isPolymorphed || !d.flags.dnd5e.originalActor ) d.flags.dnd5e.originalActor = this.id;
-    d.flags.dnd5e.isPolymorphed = true;
+    if ( !this.isPolymorphed || !d.flags.skjaald.originalActor ) d.flags.skjaald.originalActor = this.id;
+    d.flags.skjaald.isPolymorphed = true;
 
     // Gather previous actor data
-    const previousActorIds = this.getFlag("dnd5e", "previousActorIds") || [];
+    const previousActorIds = this.getFlag("skjaald", "previousActorIds") || [];
     previousActorIds.push(this._id);
-    foundry.utils.setProperty(d.flags, "dnd5e.previousActorIds", previousActorIds);
+    foundry.utils.setProperty(d.flags, "skjaald.previousActorIds", previousActorIds);
 
     // Update unlinked Tokens, and grab a copy of any actorData adjustments to re-apply
     if ( this.isToken ) {
@@ -20420,7 +20420,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       delete d.prototypeToken;
       tokenData.delta = d;
       const previousActorData = this.token.delta.toObject();
-      foundry.utils.setProperty(tokenData, "flags.dnd5e.previousActorData", previousActorData);
+      foundry.utils.setProperty(tokenData, "flags.skjaald.previousActorData", previousActorData);
       await this.sheet?.close();
       const update = await this.token.update(tokenData);
       if ( renderSheet ) this.sheet?.render(true);
@@ -20432,7 +20432,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
     /**
      * A hook event that fires just before the actor is transformed.
-     * @function dnd5e.transformActor
+     * @function skjaald.transformActor
      * @memberof hookEvents
      * @param {Actor5e} actor                  The original actor before transformation.
      * @param {Actor5e} target                 The target actor into which to transform.
@@ -20440,7 +20440,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
      * @param {TransformationOptions} options  Options that determine how the transformation is performed.
      * @param {object} [options]
      */
-    Hooks.callAll("dnd5e.transformActor", this, target, d, {
+    Hooks.callAll("skjaald.transformActor", this, target, d, {
       keepPhysical, keepMental, keepSaves, keepSkills, mergeSaves, mergeSkills, keepClass, keepFeats, keepSpells,
       keepItems, keepBio, keepVision, keepSelf, keepAE, keepOriginAE, keepOtherOriginAE, keepSpellAE,
       keepEquipmentAE, keepFeatAE, keepClassAE, keepBackgroundAE, transformTokens
@@ -20458,9 +20458,9 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       newTokenData.actorId = newActor.id;
       newTokenData.actorLink = true;
 
-      const dOriginalActor = foundry.utils.getProperty(d, "flags.dnd5e.originalActor");
-      foundry.utils.setProperty(newTokenData, "flags.dnd5e.originalActor", dOriginalActor);
-      foundry.utils.setProperty(newTokenData, "flags.dnd5e.isPolymorphed", true);
+      const dOriginalActor = foundry.utils.getProperty(d, "flags.skjaald.originalActor");
+      foundry.utils.setProperty(newTokenData, "flags.skjaald.originalActor", dOriginalActor);
+      foundry.utils.setProperty(newTokenData, "flags.skjaald.isPolymorphed", true);
       return newTokenData;
     });
     return canvas.scene?.updateEmbeddedDocuments("Token", updates);
@@ -20479,36 +20479,36 @@ class Actor5e extends SystemDocumentMixin(Actor) {
   async revertOriginalForm({renderSheet=true}={}) {
     if ( !this.isPolymorphed ) return;
     if ( !this.isOwner ) {
-      ui.notifications.warn("DND5E.PolymorphRevertWarn", {localize: true});
+      ui.notifications.warn("SKJAALD.PolymorphRevertWarn", {localize: true});
       return null;
     }
 
     /**
      * A hook event that fires just before the actor is reverted to original form.
-     * @function dnd5e.revertOriginalForm
+     * @function skjaald.revertOriginalForm
      * @memberof hookEvents
      * @param {Actor} this                 The original actor before transformation.
      * @param {object} [options]
      */
-    Hooks.callAll("dnd5e.revertOriginalForm", this, {renderSheet});
-    const previousActorIds = this.getFlag("dnd5e", "previousActorIds") ?? [];
+    Hooks.callAll("skjaald.revertOriginalForm", this, {renderSheet});
+    const previousActorIds = this.getFlag("skjaald", "previousActorIds") ?? [];
     const isOriginalActor = !previousActorIds.length;
     const isRendered = this.sheet.rendered;
 
     // Obtain a reference to the original actor
-    const original = game.actors.get(this.getFlag("dnd5e", "originalActor"));
+    const original = game.actors.get(this.getFlag("skjaald", "originalActor"));
 
     // If we are reverting an unlinked token, grab the previous actorData, and create a new token
     if ( this.isToken ) {
       const baseActor = original ? original : game.actors.get(this.token.actorId);
       if ( !baseActor ) {
-        ui.notifications.warn(game.i18n.format("DND5E.PolymorphRevertNoOriginalActorWarn", {
-          reference: this.getFlag("dnd5e", "originalActor")
+        ui.notifications.warn(game.i18n.format("SKJAALD.PolymorphRevertNoOriginalActorWarn", {
+          reference: this.getFlag("skjaald", "originalActor")
         }));
         return;
       }
       const prototypeTokenData = await baseActor.getTokenDocument();
-      const actorData = this.token.getFlag("dnd5e", "previousActorData");
+      const actorData = this.token.getFlag("skjaald", "previousActorData");
       const tokenUpdate = this.token.toObject();
       actorData._id = tokenUpdate.delta._id;
       tokenUpdate.delta = actorData;
@@ -20519,9 +20519,9 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       for ( const k of ["offsetX", "offsetY", "scaleX", "scaleY", "src", "tint"] ) {
         tokenUpdate.texture[k] = prototypeTokenData.texture[k];
       }
-      foundry.utils.setProperty(tokenUpdate, "flags.dnd5e.tokenRing", foundry.utils.mergeObject(
-        foundry.utils.getProperty(tokenUpdate, "flags.dnd5e.tokenRing") ?? {},
-        foundry.utils.getProperty(prototypeTokenData, "flags.dnd5e.tokenRing") ?? {},
+      foundry.utils.setProperty(tokenUpdate, "flags.skjaald.tokenRing", foundry.utils.mergeObject(
+        foundry.utils.getProperty(tokenUpdate, "flags.skjaald.tokenRing") ?? {},
+        foundry.utils.getProperty(prototypeTokenData, "flags.skjaald.tokenRing") ?? {},
         { inplace: false }
       ));
       tokenUpdate.sight = prototypeTokenData.sight;
@@ -20533,17 +20533,17 @@ class Actor5e extends SystemDocumentMixin(Actor) {
         parent: canvas.scene, keepId: true, render: true
       });
       if ( isOriginalActor ) {
-        await this.unsetFlag("dnd5e", "isPolymorphed");
-        await this.unsetFlag("dnd5e", "previousActorIds");
-        await this.token.unsetFlag("dnd5e", "previousActorData");
+        await this.unsetFlag("skjaald", "isPolymorphed");
+        await this.unsetFlag("skjaald", "previousActorIds");
+        await this.token.unsetFlag("skjaald", "previousActorData");
       }
       if ( isRendered && renderSheet ) token.actor?.sheet?.render(true);
       return token;
     }
 
     if ( !original ) {
-      ui.notifications.warn(game.i18n.format("DND5E.PolymorphRevertNoOriginalActorWarn", {
-        reference: this.getFlag("dnd5e", "originalActor")
+      ui.notifications.warn(game.i18n.format("SKJAALD.PolymorphRevertNoOriginalActorWarn", {
+        reference: this.getFlag("skjaald", "originalActor")
       }));
       return;
     }
@@ -20557,16 +20557,16 @@ class Actor5e extends SystemDocumentMixin(Actor) {
         update._id = t.id;
         delete update.x;
         delete update.y;
-        if ( !foundry.utils.getProperty(tokenData, "flags.dnd5e.tokenRing") ) {
-          foundry.utils.setProperty(update, "flags.dnd5e.tokenRing", {});
+        if ( !foundry.utils.getProperty(tokenData, "flags.skjaald.tokenRing") ) {
+          foundry.utils.setProperty(update, "flags.skjaald.tokenRing", {});
         }
         return update;
       });
       await canvas.scene.updateEmbeddedDocuments("Token", tokenUpdates, { diff: false, recursive: false });
     }
     if ( isOriginalActor ) {
-      await this.unsetFlag("dnd5e", "isPolymorphed");
-      await this.unsetFlag("dnd5e", "previousActorIds");
+      await this.unsetFlag("skjaald", "isPolymorphed");
+      await this.unsetFlag("skjaald", "previousActorIds");
     }
 
     // Delete the polymorphed version(s) of the actor, if possible
@@ -20593,41 +20593,41 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    */
   static addDirectoryContextOptions(html, entryOptions) {
     entryOptions.push({
-      name: "DND5E.PolymorphRestoreTransformation",
+      name: "SKJAALD.PolymorphRestoreTransformation",
       icon: '<i class="fa-solid fa-backward"></i>',
       callback: li => {
         const actor = game.actors.get(li.data("documentId"));
         return actor.revertOriginalForm();
       },
       condition: li => {
-        const allowed = game.settings.get("dnd5e", "allowPolymorphing");
+        const allowed = game.settings.get("skjaald", "allowPolymorphing");
         if ( !allowed && !game.user.isGM ) return false;
         const actor = game.actors.get(li.data("documentId"));
         return actor && actor.isPolymorphed;
       },
       group: "system"
     }, {
-      name: "DND5E.Group.Primary.Set",
+      name: "SKJAALD.Group.Primary.Set",
       icon: '<i class="fa-solid fa-star"></i>',
       callback: li => {
-        game.settings.set("dnd5e", "primaryParty", { actor: game.actors.get(li[0].dataset.documentId) });
+        game.settings.set("skjaald", "primaryParty", { actor: game.actors.get(li[0].dataset.documentId) });
       },
       condition: li => {
         const actor = game.actors.get(li[0].dataset.documentId);
-        const primary = game.settings.get("dnd5e", "primaryParty")?.actor;
+        const primary = game.settings.get("skjaald", "primaryParty")?.actor;
         return game.user.isGM && (actor.type === "group")
           && (actor.system.type.value === "party") && (actor !== primary);
       },
       group: "system"
     }, {
-      name: "DND5E.Group.Primary.Remove",
+      name: "SKJAALD.Group.Primary.Remove",
       icon: '<i class="fa-regular fa-star"></i>',
       callback: li => {
-        game.settings.set("dnd5e", "primaryParty", { actor: null });
+        game.settings.set("skjaald", "primaryParty", { actor: null });
       },
       condition: li => {
         const actor = game.actors.get(li[0].dataset.documentId);
-        const primary = game.settings.get("dnd5e", "primaryParty")?.actor;
+        const primary = game.settings.get("skjaald", "primaryParty")?.actor;
         return game.user.isGM && (actor === primary);
       },
       group: "system"
@@ -20641,7 +20641,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    * @param {jQuery} jQuery
    */
   static onRenderActorDirectory(jQuery) {
-    const primaryParty = game.settings.get("dnd5e", "primaryParty")?.actor;
+    const primaryParty = game.settings.get("skjaald", "primaryParty")?.actor;
     if ( primaryParty ) {
       const element = jQuery[0]?.querySelector(`[data-entry-id="${primaryParty.id}"]`);
       element?.classList.add("primary-party");
@@ -20660,14 +20660,14 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     let localizedType;
     if ( typeData.value === "custom" ) {
       localizedType = typeData.custom;
-    } else if ( typeData.value in CONFIG.DND5E.creatureTypes ) {
-      const code = CONFIG.DND5E.creatureTypes[typeData.value];
+    } else if ( typeData.value in CONFIG.SKJAALD.creatureTypes ) {
+      const code = CONFIG.SKJAALD.creatureTypes[typeData.value];
       localizedType = game.i18n.localize(typeData.swarm ? code.plural : code.label);
     }
     let type = localizedType;
     if ( typeData.swarm ) {
-      type = game.i18n.format("DND5E.CreatureSwarmPhrase", {
-        size: game.i18n.localize(CONFIG.DND5E.actorSizes[typeData.swarm].label),
+      type = game.i18n.format("SKJAALD.CreatureSwarmPhrase", {
+        size: game.i18n.localize(CONFIG.SKJAALD.actorSizes[typeData.swarm].label),
         type: localizedType
       });
     }
@@ -20687,7 +20687,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
       this._onUpdateExhaustion(data, options);
     }
 
-    const hp = options.dnd5e?.hp;
+    const hp = options.skjaald?.hp;
     if ( hp && !options.isRest && !options.isAdvancement ) {
       const curr = this.system.attributes.hp;
       const changes = {
@@ -20698,21 +20698,21 @@ class Actor5e extends SystemDocumentMixin(Actor) {
 
       if ( Number.isInteger(changes.total) && (changes.total !== 0) ) {
         this._displayTokenEffect(changes);
-        if ( !game.settings.get("dnd5e", "disableConcentration") && (userId === game.userId) && (changes.total < 0) ) {
+        if ( !game.settings.get("skjaald", "disableConcentration") && (userId === game.userId) && (changes.total < 0) ) {
           this.challengeConcentration({ dc: this.getConcentrationDC(-changes.total) });
         }
 
         /**
          * A hook event that fires when an actor is damaged or healed by any means. The actual name
          * of the hook will depend on the change in hit points.
-         * @function dnd5e.damageActor
+         * @function skjaald.damageActor
          * @memberof hookEvents
          * @param {Actor5e} actor                                       The actor that had their hit points reduced.
          * @param {{hp: number, temp: number, total: number}} changes   The changes to hit points.
          * @param {object} update                                       The original update delta.
          * @param {string} userId                                       Id of the user that performed the update.
          */
-        Hooks.callAll(`dnd5e.${changes.total > 0 ? "heal" : "damage"}Actor`, this, changes, data, userId);
+        Hooks.callAll(`skjaald.${changes.total > 0 ? "heal" : "damage"}Actor`, this, changes, data, userId);
       }
     }
   }
@@ -20723,7 +20723,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
   _onDelete(options, userId) {
     super._onDelete(options, userId);
 
-    const origin = this.getFlag("dnd5e", "summon.origin");
+    const origin = this.getFlag("skjaald", "summon.origin");
     // TODO: Replace with parseUuid once V11 support is dropped
     if ( origin ) SummonsData.untrackSummon(origin.split(".Item.")[0], this.uuid);
   }
@@ -20784,7 +20784,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     if ( !tokens.length ) return;
 
     const pct = Math.clamp(Math.abs(value) / this.system.attributes.hp.max, 0, 1);
-    const fill = CONFIG.DND5E.tokenHPColors[key];
+    const fill = CONFIG.SKJAALD.tokenHPColors[key];
 
     for ( const token of tokens ) {
       if ( !token.object?.visible || token.isSecret ) continue;
@@ -20818,11 +20818,11 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     let effect = this.effects.get(ActiveEffect5e.ID.EXHAUSTION);
     if ( level < 1 ) return effect?.delete();
     else if ( effect ) {
-      const originalExhaustion = foundry.utils.getProperty(options, "dnd5e.originalExhaustion");
-      return effect.update({ "flags.dnd5e.exhaustionLevel": level }, { dnd5e: { originalExhaustion } });
+      const originalExhaustion = foundry.utils.getProperty(options, "skjaald.originalExhaustion");
+      return effect.update({ "flags.skjaald.exhaustionLevel": level }, { skjaald: { originalExhaustion } });
     } else {
       effect = await ActiveEffect.implementation.fromStatusEffect("exhaustion", { parent: this });
-      effect.updateSource({ "flags.dnd5e.exhaustionLevel": level });
+      effect.updateSource({ "flags.skjaald.exhaustionLevel": level });
       return ActiveEffect.implementation.create(effect, { parent: this, keepId: true });
     }
   }
@@ -20836,9 +20836,9 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    */
   updateEncumbrance(options) {
     const encumbrance = this.system.attributes?.encumbrance;
-    if ( !encumbrance || (game.settings.get("dnd5e", "encumbrance") === "none") ) return;
+    if ( !encumbrance || (game.settings.get("skjaald", "encumbrance") === "none") ) return;
     const statuses = [];
-    const variant = game.settings.get("dnd5e", "encumbrance") === "variant";
+    const variant = game.settings.get("skjaald", "encumbrance") === "variant";
     if ( encumbrance.value > encumbrance.thresholds.maximum ) statuses.push("exceedingCarryingCapacity");
     if ( (encumbrance.value > encumbrance.thresholds.heavilyEncumbered) && variant ) statuses.push("heavilyEncumbered");
     if ( (encumbrance.value > encumbrance.thresholds.encumbered) && variant ) statuses.push("encumbered");
@@ -20846,10 +20846,10 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     const effect = this.effects.get(ActiveEffect5e.ID.ENCUMBERED);
     if ( !statuses.length ) return effect?.delete();
 
-    const effectData = { ...CONFIG.DND5E.encumbrance.effects[statuses[0]], statuses };
+    const effectData = { ...CONFIG.SKJAALD.encumbrance.effects[statuses[0]], statuses };
     if ( effect ) {
       const originalEncumbrance = effect.statuses.first();
-      return effect.update(effectData, { dnd5e: { originalEncumbrance } });
+      return effect.update(effectData, { skjaald: { originalEncumbrance } });
     }
 
     return ActiveEffect.implementation.create(
@@ -20882,7 +20882,7 @@ class ItemGrantFlow extends AdvancementFlow {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/advancement/item-grant-flow.hbs"
+      template: "systems/skjaald/templates/advancement/item-grant-flow.hbs"
     });
   }
 
@@ -20894,7 +20894,7 @@ class ItemGrantFlow extends AdvancementFlow {
    */
   async getContext() {
     const config = this.advancement.configuration;
-    const added = this.retainedData?.items.map(i => foundry.utils.getProperty(i, "flags.dnd5e.sourceId"))
+    const added = this.retainedData?.items.map(i => foundry.utils.getProperty(i, "flags.skjaald.sourceId"))
       ?? this.advancement.value.added;
     const checked = new Set(Object.values(added ?? {}));
     return {
@@ -20927,7 +20927,7 @@ class ItemGrantFlow extends AdvancementFlow {
     const config = this.advancement.configuration;
     return {
       options: config.spell?.ability.size > 1 ? config.spell.ability.reduce((obj, k) => {
-        obj[k] = CONFIG.DND5E.abilities[k]?.label;
+        obj[k] = CONFIG.SKJAALD.abilities[k]?.label;
         return obj;
       }, {}) : null,
       selected: this.ability ?? this.retainedData?.ability ?? this.advancement.value.ability
@@ -20962,7 +20962,7 @@ class ItemGrantFlow extends AdvancementFlow {
   /** @inheritdoc */
   async _updateObject(event, formData) {
     const retainedData = this.retainedData?.items.reduce((obj, i) => {
-      obj[foundry.utils.getProperty(i, "flags.dnd5e.sourceId")] = i;
+      obj[foundry.utils.getProperty(i, "flags.skjaald.sourceId")] = i;
       return obj;
     }, {});
     await this.advancement.apply(this.level, formData, retainedData);
@@ -21010,7 +21010,7 @@ class ItemChoiceFlow extends ItemGrantFlow {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       dragDrop: [{ dropSelector: ".drop-target" }],
-      template: "systems/dnd5e/templates/advancement/item-choice-flow.hbs"
+      template: "systems/skjaald/templates/advancement/item-choice-flow.hbs"
     });
   }
 
@@ -21020,7 +21020,7 @@ class ItemChoiceFlow extends ItemGrantFlow {
   async retainData(data) {
     await super.retainData(data);
     this.replacement = data.replaced?.original;
-    this.selected = new Set(data.items.map(i => foundry.utils.getProperty(i, "flags.dnd5e.sourceId")));
+    this.selected = new Set(data.items.map(i => foundry.utils.getProperty(i, "flags.skjaald.sourceId")));
   }
 
   /* -------------------------------------------- */
@@ -21033,7 +21033,7 @@ class ItemChoiceFlow extends ItemGrantFlow {
     if ( !this.dropped ) {
       this.dropped = [];
       for ( const data of this.retainedData?.items ?? [] ) {
-        const uuid = foundry.utils.getProperty(data, "flags.dnd5e.sourceId");
+        const uuid = foundry.utils.getProperty(data, "flags.skjaald.sourceId");
         if ( this.pool.find(i => uuid === i.uuid) ) continue;
         const item = await fromUuid(uuid);
         item.dropped = true;
@@ -21168,14 +21168,14 @@ class ItemChoiceFlow extends ItemGrantFlow {
     for ( const [level, data] of Object.entries(this.advancement.value.added ?? {}) ) {
       if ( level >= this.level ) continue;
       if ( Object.values(data).includes(item.uuid) ) {
-        ui.notifications.error("DND5E.AdvancementItemChoicePreviouslyChosenWarning", {localize: true});
+        ui.notifications.error("SKJAALD.AdvancementItemChoicePreviouslyChosenWarning", {localize: true});
         return null;
       }
     }
 
     // If a feature has a level pre-requisite, make sure it is less than or equal to current level
     if ( (item.system.prerequisites?.level ?? -Infinity) > this.level ) {
-      ui.notifications.error(game.i18n.format("DND5E.AdvancementItemChoiceFeatureLevelWarning", {
+      ui.notifications.error(game.i18n.format("SKJAALD.AdvancementItemChoiceFeatureLevelWarning", {
         level: item.system.prerequisites.level
       }));
       return null;
@@ -21186,8 +21186,8 @@ class ItemChoiceFlow extends ItemGrantFlow {
     if ( (this.advancement.configuration.type === "spell") && spellLevel === "available" ) {
       const maxSlot = this._maxSpellSlotLevel();
       if ( item.system.level > maxSlot ) {
-        ui.notifications.error(game.i18n.format("DND5E.AdvancementItemChoiceSpellLevelAvailableWarning", {
-          level: CONFIG.DND5E.spellLevels[maxSlot]
+        ui.notifications.error(game.i18n.format("SKJAALD.AdvancementItemChoiceSpellLevelAvailableWarning", {
+          level: CONFIG.SKJAALD.spellLevels[maxSlot]
         }));
         return null;
       }
@@ -21218,7 +21218,7 @@ class ItemChoiceFlow extends ItemGrantFlow {
     // For advancements on classes or subclasses, use the largest slot available for that class
     if ( spellcasting ) {
       const progression = { slot: 0, pact: {} };
-      const maxSpellLevel = CONFIG.DND5E.SPELL_SLOT_TABLE[CONFIG.DND5E.SPELL_SLOT_TABLE.length - 1].length;
+      const maxSpellLevel = CONFIG.SKJAALD.SPELL_SLOT_TABLE[CONFIG.SKJAALD.SPELL_SLOT_TABLE.length - 1].length;
       spells = Object.fromEntries(Array.fromRange(maxSpellLevel, 1).map(l => [`spell${l}`, {}]));
       Actor5e.computeClassProgression(progression, this.advancement.item, { spellcasting });
       Actor5e.prepareSpellcastingSlots(spells, spellcasting.type, progression);
@@ -21241,11 +21241,11 @@ class SpellConfigurationData extends foundry.abstract.DataModel {
   static defineSchema() {
     return {
       ability: new SetField$6(new StringField$c()),
-      preparation: new StringField$c({label: "DND5E.SpellPreparationMode"}),
+      preparation: new StringField$c({label: "SKJAALD.SpellPreparationMode"}),
       uses: new SchemaField$a({
-        max: new FormulaField({deterministic: true, label: "DND5E.UsesMax"}),
-        per: new StringField$c({label: "DND5E.UsesPeriod"})
-      }, {label: "DND5E.LimitedUses"})
+        max: new FormulaField({deterministic: true, label: "SKJAALD.UsesMax"}),
+        per: new StringField$c({label: "SKJAALD.UsesPeriod"})
+      }, {label: "SKJAALD.LimitedUses"})
     };
   }
 
@@ -21328,29 +21328,29 @@ class ItemChoiceConfigurationData extends foundry.abstract.DataModel {
   /** @inheritDoc */
   static defineSchema() {
     return {
-      hint: new StringField$b({label: "DND5E.AdvancementHint"}),
+      hint: new StringField$b({label: "SKJAALD.AdvancementHint"}),
       choices: new MappingField(new SchemaField$9({
         count: new NumberField$9({integer: true, min: 0}),
-        replacement: new BooleanField$7({label: "DND5E.AdvancementItemChoiceReplacement"})
+        replacement: new BooleanField$7({label: "SKJAALD.AdvancementItemChoiceReplacement"})
       }), {
-        hint: "DND5E.AdvancementItemChoiceLevelsHint"
+        hint: "SKJAALD.AdvancementItemChoiceLevelsHint"
       }),
       allowDrops: new BooleanField$7({
-        initial: true, label: "DND5E.AdvancementConfigureAllowDrops",
-        hint: "DND5E.AdvancementConfigureAllowDropsHint"
+        initial: true, label: "SKJAALD.AdvancementConfigureAllowDrops",
+        hint: "SKJAALD.AdvancementConfigureAllowDropsHint"
       }),
       type: new StringField$b({
         blank: false, nullable: true, initial: null,
-        label: "DND5E.AdvancementItemChoiceType", hint: "DND5E.AdvancementItemChoiceTypeHint"
+        label: "SKJAALD.AdvancementItemChoiceType", hint: "SKJAALD.AdvancementItemChoiceTypeHint"
       }),
       pool: new ArrayField$3(new SchemaField$9({
         uuid: new StringField$b()
       }), {label: "DOCUMENT.Items"}),
       spell: new EmbeddedDataField$1(SpellConfigurationData, {nullable: true, initial: null}),
       restriction: new SchemaField$9({
-        type: new StringField$b({label: "DND5E.Type"}),
-        subtype: new StringField$b({label: "DND5E.Subtype"}),
-        level: new StringField$b({label: "DND5E.SpellLevel"})
+        type: new StringField$b({label: "SKJAALD.Type"}),
+        subtype: new StringField$b({label: "SKJAALD.Subtype"}),
+        level: new StringField$b({label: "SKJAALD.SpellLevel"})
       })
     };
   }
@@ -21410,10 +21410,10 @@ class ItemGrantConfig extends AdvancementConfig {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "advancement", "item-grant"],
+      classes: ["skjaald", "advancement", "item-grant"],
       dragDrop: [{ dropSelector: ".drop-target" }],
       dropKeyPath: "items",
-      template: "systems/dnd5e/templates/advancement/item-grant-config.hbs"
+      template: "systems/skjaald/templates/advancement/item-grant-config.hbs"
     });
   }
 
@@ -21423,7 +21423,7 @@ class ItemGrantConfig extends AdvancementConfig {
   getData(options={}) {
     const context = super.getData(options);
     const indexes = context.configuration.items.map(i => fromUuidSync(i.uuid));
-    context.abilities = Object.entries(CONFIG.DND5E.abilities).reduce((obj, [k, c]) => {
+    context.abilities = Object.entries(CONFIG.SKJAALD.abilities).reduce((obj, [k, c]) => {
       obj[k] = { label: c.label, selected: context.configuration.spell?.ability.has(k) ? "selected" : "" };
       return obj;
     }, {});
@@ -21471,10 +21471,10 @@ class ItemGrantConfigurationData extends foundry.abstract.DataModel {
     return {
       items: new ArrayField$2(new SchemaField$8({
         uuid: new StringField$a(),
-        optional: new BooleanField$6({label: "DND5E.AdvancementItemGrantOptional"})
+        optional: new BooleanField$6({label: "SKJAALD.AdvancementItemGrantOptional"})
       }), {required: true, label: "DOCUMENT.Items"}),
       optional: new BooleanField$6({
-        required: true, label: "DND5E.AdvancementItemGrantOptional", hint: "DND5E.AdvancementItemGrantOptionalHint"
+        required: true, label: "SKJAALD.AdvancementItemGrantOptional", hint: "SKJAALD.AdvancementItemGrantOptionalHint"
       }),
       spell: new EmbeddedDataField(SpellConfigurationData, {
         required: true, nullable: true, initial: null
@@ -21508,9 +21508,9 @@ class ItemGrantAdvancement extends Advancement {
         configuration: ItemGrantConfigurationData
       },
       order: 40,
-      icon: "systems/dnd5e/icons/svg/item-grant.svg",
-      title: game.i18n.localize("DND5E.AdvancementItemGrantTitle"),
-      hint: game.i18n.localize("DND5E.AdvancementItemGrantHint"),
+      icon: "systems/skjaald/icons/svg/item-grant.svg",
+      title: game.i18n.localize("SKJAALD.AdvancementItemGrantTitle"),
+      hint: game.i18n.localize("SKJAALD.AdvancementItemGrantHint"),
       apps: {
         config: ItemGrantConfig,
         flow: ItemGrantFlow
@@ -21541,7 +21541,7 @@ class ItemGrantAdvancement extends Advancement {
   summaryForLevel(level, { configMode=false }={}) {
     // Link to compendium items
     if ( !this.value.added || configMode ) return this.configuration.items.filter(i => fromUuidSync(i.uuid))
-      .reduce((html, i) => html + dnd5e.utils.linkForUuid(i.uuid), "");
+      .reduce((html, i) => html + skjaald.utils.linkForUuid(i.uuid), "");
 
     // Link to items on the actor
     else {
@@ -21609,7 +21609,7 @@ class ItemGrantAdvancement extends Advancement {
     const updates = {};
     for ( const item of data.items ) {
       this.actor.updateSource({items: [item]});
-      updates[item._id] = item.flags.dnd5e.sourceId;
+      updates[item._id] = item.flags.skjaald.sourceId;
     }
     this.updateSource({
       "value.ability": data.ability,
@@ -21645,7 +21645,7 @@ class ItemGrantAdvancement extends Advancement {
   _validateItemType(item, { strict=true }={}) {
     if ( this.constructor.VALID_TYPES.has(item.type) ) return true;
     const type = game.i18n.localize(CONFIG.Item.typeLabels[item.type]);
-    if ( strict ) throw new Error(game.i18n.format("DND5E.AdvancementItemTypeInvalidWarning", {type}));
+    if ( strict ) throw new Error(game.i18n.format("SKJAALD.AdvancementItemTypeInvalidWarning", {type}));
     return false;
   }
 }
@@ -21664,9 +21664,9 @@ class ItemChoiceAdvancement extends ItemGrantAdvancement {
         value: ItemChoiceValueData
       },
       order: 50,
-      icon: "systems/dnd5e/icons/svg/item-choice.svg",
-      title: game.i18n.localize("DND5E.AdvancementItemChoiceTitle"),
-      hint: game.i18n.localize("DND5E.AdvancementItemChoiceHint"),
+      icon: "systems/skjaald/icons/svg/item-choice.svg",
+      title: game.i18n.localize("SKJAALD.AdvancementItemChoiceTitle"),
+      hint: game.i18n.localize("SKJAALD.AdvancementItemChoiceHint"),
       multiLevel: true,
       apps: {
         config: ItemChoiceConfig,
@@ -21699,8 +21699,8 @@ class ItemChoiceAdvancement extends ItemGrantAdvancement {
   titleForLevel(level, { configMode=false }={}) {
     const data = this.configuration.choices[level] ?? {};
     let tag;
-    if ( data.count ) tag = game.i18n.format("DND5E.AdvancementItemChoiceChoose", { count: data.count });
-    else if ( data.replacement ) tag = game.i18n.localize("DND5E.AdvancementItemChoiceReplacementTitle");
+    if ( data.count ) tag = game.i18n.format("SKJAALD.AdvancementItemChoiceChoose", { count: data.count });
+    else if ( data.replacement ) tag = game.i18n.localize("SKJAALD.AdvancementItemChoiceReplacementTitle");
     else return this.title;
     return `${this.title} <em>(${tag})</em>`;
   }
@@ -21711,7 +21711,7 @@ class ItemChoiceAdvancement extends ItemGrantAdvancement {
   summaryForLevel(level, { configMode=false }={}) {
     const items = this.value.added?.[level];
     if ( !items || configMode ) return "";
-    return Object.values(items).reduce((html, uuid) => html + game.dnd5e.utils.linkForUuid(uuid), "");
+    return Object.values(items).reduce((html, uuid) => html + game.skjaald.utils.linkForUuid(uuid), "");
   }
 
   /* -------------------------------------------- */
@@ -21756,7 +21756,7 @@ class ItemChoiceAdvancement extends ItemGrantAdvancement {
 
     if ( data.replaced ) {
       if ( !original ) {
-        throw new ItemChoiceAdvancement.ERROR(game.i18n.localize("DND5E.AdvancementItemChoiceNoOriginalError"));
+        throw new ItemChoiceAdvancement.ERROR(game.i18n.localize("SKJAALD.AdvancementItemChoiceNoOriginalError"));
       }
       this.actor.items.delete(data.replaced.original);
       this.updateSource({ [`value.replaced.${level}`]: data.replaced });
@@ -21805,19 +21805,19 @@ class ItemChoiceAdvancement extends ItemGrantAdvancement {
     // Type restriction is set and the item type does not match the selected type
     if ( type && (type !== item.type) ) {
       const typeLabel = game.i18n.localize(CONFIG.Item.typeLabels[restriction]);
-      if ( strict ) throw new Error(game.i18n.format("DND5E.AdvancementItemChoiceTypeWarning", {type: typeLabel}));
+      if ( strict ) throw new Error(game.i18n.format("SKJAALD.AdvancementItemChoiceTypeWarning", {type: typeLabel}));
       return false;
     }
 
     // If additional type restrictions applied, make sure they are valid
     if ( (type === "feat") && restriction.type ) {
-      const typeConfig = CONFIG.DND5E.featureTypes[restriction.type];
+      const typeConfig = CONFIG.SKJAALD.featureTypes[restriction.type];
       const subtype = typeConfig.subtypes?.[restriction.subtype];
       let errorLabel;
       if ( restriction.type !== item.system.type.value ) errorLabel = typeConfig.label;
       else if ( subtype && (restriction.subtype !== item.system.type.subtype) ) errorLabel = subtype;
       if ( errorLabel ) {
-        if ( strict ) throw new Error(game.i18n.format("DND5E.AdvancementItemChoiceTypeWarning", {type: errorLabel}));
+        if ( strict ) throw new Error(game.i18n.format("SKJAALD.AdvancementItemChoiceTypeWarning", {type: errorLabel}));
         return false;
       }
     }
@@ -21825,8 +21825,8 @@ class ItemChoiceAdvancement extends ItemGrantAdvancement {
     // If spell level is restricted, ensure the spell is of the appropriate level
     const l = parseInt(restriction.level);
     if ( (type === "spell") && !Number.isNaN(l) && (item.system.level !== l) ) {
-      const level = CONFIG.DND5E.spellLevels[l];
-      if ( strict ) throw new Error(game.i18n.format("DND5E.AdvancementItemChoiceSpellLevelSpecificWarning", {level}));
+      const level = CONFIG.SKJAALD.spellLevels[l];
+      if ( strict ) throw new Error(game.i18n.format("SKJAALD.AdvancementItemChoiceSpellLevelSpecificWarning", {level}));
       return false;
     }
 
@@ -21847,12 +21847,12 @@ class ScaleValueConfigurationData extends foundry.abstract.DataModel {
   /** @inheritdoc */
   static defineSchema() {
     return {
-      identifier: new IdentifierField({required: true, label: "DND5E.Identifier"}),
+      identifier: new IdentifierField({required: true, label: "SKJAALD.Identifier"}),
       type: new foundry.data.fields.StringField({
-        required: true, initial: "string", choices: TYPES, label: "DND5E.AdvancementScaleValueTypeLabel"
+        required: true, initial: "string", choices: TYPES, label: "SKJAALD.AdvancementScaleValueTypeLabel"
       }),
       distance: new foundry.data.fields.SchemaField({
-        units: new foundry.data.fields.StringField({required: true, label: "DND5E.MovementUnits"})
+        units: new foundry.data.fields.StringField({required: true, label: "SKJAALD.MovementUnits"})
       }),
       scale: new MappingField(new ScaleValueEntryField(), {required: true})
     };
@@ -21932,8 +21932,8 @@ class ScaleValueType extends foundry.abstract.DataModel {
    */
   static get metadata() {
     return {
-      label: "DND5E.AdvancementScaleValueTypeString",
-      hint: "DND5E.AdvancementScaleValueTypeHintString",
+      label: "SKJAALD.AdvancementScaleValueTypeString",
+      hint: "SKJAALD.AdvancementScaleValueTypeHintString",
       isNumeric: false
     };
   }
@@ -21996,8 +21996,8 @@ class ScaleValueTypeNumber extends ScaleValueType {
   /** @inheritdoc */
   static get metadata() {
     return foundry.utils.mergeObject(super.metadata, {
-      label: "DND5E.AdvancementScaleValueTypeNumber",
-      hint: "DND5E.AdvancementScaleValueTypeHintNumber",
+      label: "SKJAALD.AdvancementScaleValueTypeNumber",
+      hint: "SKJAALD.AdvancementScaleValueTypeHintNumber",
       isNumeric: true
     });
   }
@@ -22032,8 +22032,8 @@ class ScaleValueTypeCR extends ScaleValueTypeNumber {
   /** @inheritdoc */
   static get metadata() {
     return foundry.utils.mergeObject(super.metadata, {
-      label: "DND5E.AdvancementScaleValueTypeCR",
-      hint: "DND5E.AdvancementScaleValueTypeHintCR"
+      label: "SKJAALD.AdvancementScaleValueTypeCR",
+      hint: "SKJAALD.AdvancementScaleValueTypeHintCR"
     });
   }
 
@@ -22073,8 +22073,8 @@ class ScaleValueTypeDice extends ScaleValueType {
   /** @inheritdoc */
   static get metadata() {
     return foundry.utils.mergeObject(super.metadata, {
-      label: "DND5E.AdvancementScaleValueTypeDice",
-      hint: "DND5E.AdvancementScaleValueTypeHintDice"
+      label: "SKJAALD.AdvancementScaleValueTypeDice",
+      hint: "SKJAALD.AdvancementScaleValueTypeHintDice"
     });
   }
 
@@ -22123,7 +22123,7 @@ class ScaleValueTypeDice extends ScaleValueType {
   get mods() {
     if ( !this.modifiers ) return "";
     return this.modifiers.reduce((acc, mod) => {
-      return acc + (dnd5e.utils.isValidDieModifier(mod) ? mod : "");
+      return acc + (skjaald.utils.isValidDieModifier(mod) ? mod : "");
     }, "");
   }
 
@@ -22157,8 +22157,8 @@ class ScaleValueTypeDistance extends ScaleValueTypeNumber {
   /** @inheritdoc */
   static get metadata() {
     return foundry.utils.mergeObject(super.metadata, {
-      label: "DND5E.AdvancementScaleValueTypeDistance",
-      hint: "DND5E.AdvancementScaleValueTypeHintDistance"
+      label: "SKJAALD.AdvancementScaleValueTypeDistance",
+      hint: "SKJAALD.AdvancementScaleValueTypeHintDistance"
     });
   }
 
@@ -22166,7 +22166,7 @@ class ScaleValueTypeDistance extends ScaleValueTypeNumber {
 
   /** @inheritdoc */
   get display() {
-    return `${this.value} ${CONFIG.DND5E.movementUnits[this.parent.configuration.distance?.units ?? "ft"]}`;
+    return `${this.value} ${CONFIG.SKJAALD.movementUnits[this.parent.configuration.distance?.units ?? "ft"]}`;
   }
 }
 
@@ -22203,8 +22203,8 @@ class ScaleValueConfig extends AdvancementConfig {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "advancement", "scale-value", "two-column"],
-      template: "systems/dnd5e/templates/advancement/scale-value-config.hbs",
+      classes: ["skjaald", "advancement", "scale-value", "two-column"],
+      template: "systems/skjaald/templates/advancement/scale-value-config.hbs",
       width: 540
     });
   }
@@ -22225,7 +22225,7 @@ class ScaleValueConfig extends AdvancementConfig {
       ),
       faces: Object.fromEntries(TYPES.dice.FACES.map(die => [die, `d${die}`])),
       levels: this._prepareLevelData(),
-      movementUnits: CONFIG.DND5E.movementUnits
+      movementUnits: CONFIG.SKJAALD.movementUnits
     });
   }
 
@@ -22238,7 +22238,7 @@ class ScaleValueConfig extends AdvancementConfig {
    */
   _prepareLevelData() {
     let lastValue = null;
-    let levels = Array.fromRange(CONFIG.DND5E.maxLevel + 1);
+    let levels = Array.fromRange(CONFIG.SKJAALD.maxLevel + 1);
     if ( ["class", "subclass"].includes(this.advancement.item.type) ) levels = levels.slice(1);
     return levels.reduce((obj, level) => {
       obj[level] = { placeholder: this._formatPlaceholder(lastValue), value: null };
@@ -22328,7 +22328,7 @@ class ScaleValueConfig extends AdvancementConfig {
   _onIdentifierHintCopy(event) {
     const data = this.getData();
     game.clipboard.copyPlainText(`@scale.${data.classIdentifier}.${data.previewIdentifier}`);
-    game.tooltip.activate(event.target, {text: game.i18n.localize("DND5E.IdentifierCopied"), direction: "UP"});
+    game.tooltip.activate(event.target, {text: game.i18n.localize("SKJAALD.IdentifierCopied"), direction: "UP"});
   }
 
   /* -------------------------------------------- */
@@ -22350,7 +22350,7 @@ class ScaleValueConfig extends AdvancementConfig {
     const typeChange = "configuration.type" in formData;
     if ( typeChange && (updates.configuration.type !== this.advancement.configuration.type) ) {
       // Clear existing scale value data to prevent error during type update
-      await this.advancement.update(Array.fromRange(CONFIG.DND5E.maxLevel, 1).reduce((obj, lvl) => {
+      await this.advancement.update(Array.fromRange(CONFIG.SKJAALD.maxLevel, 1).reduce((obj, lvl) => {
         obj[`configuration.scale.-=${lvl}`] = null;
         return obj;
       }, {}));
@@ -22374,7 +22374,7 @@ class ScaleValueFlow extends AdvancementFlow {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/advancement/scale-value-flow.hbs"
+      template: "systems/skjaald/templates/advancement/scale-value-flow.hbs"
     });
   }
 
@@ -22401,9 +22401,9 @@ class ScaleValueAdvancement extends Advancement {
         configuration: ScaleValueConfigurationData
       },
       order: 60,
-      icon: "systems/dnd5e/icons/svg/scale-value.svg",
-      title: game.i18n.localize("DND5E.AdvancementScaleValueTitle"),
-      hint: game.i18n.localize("DND5E.AdvancementScaleValueHint"),
+      icon: "systems/skjaald/icons/svg/scale-value.svg",
+      title: game.i18n.localize("SKJAALD.AdvancementScaleValueTitle"),
+      hint: game.i18n.localize("SKJAALD.AdvancementScaleValueHint"),
       multiLevel: true,
       apps: {
         config: ScaleValueConfig,
@@ -22493,8 +22493,8 @@ class SizeConfig extends AdvancementConfig {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "advancement", "size"],
-      template: "systems/dnd5e/templates/advancement/size-config.hbs"
+      classes: ["skjaald", "advancement", "size"],
+      template: "systems/skjaald/templates/advancement/size-config.hbs"
     });
   }
 
@@ -22507,7 +22507,7 @@ class SizeConfig extends AdvancementConfig {
         hint: this.advancement.automaticHint
       },
       showLevelSelector: false,
-      sizes: Object.entries(CONFIG.DND5E.actorSizes).reduce((obj, [key, { label }]) => {
+      sizes: Object.entries(CONFIG.SKJAALD.actorSizes).reduce((obj, [key, { label }]) => {
         obj[key] = { label, chosen: this.advancement.configuration.sizes.has(key) };
         return obj;
       }, {})
@@ -22531,7 +22531,7 @@ class SizeFlow extends AdvancementFlow {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/advancement/size-flow.hbs"
+      template: "systems/skjaald/templates/advancement/size-flow.hbs"
     });
   }
 
@@ -22545,7 +22545,7 @@ class SizeFlow extends AdvancementFlow {
       hint: this.advancement.configuration.hint || this.advancement.automaticHint,
       selectedSize: this.retainedData?.size ?? this.advancement.value.size,
       sizes: Array.from(sizes).reduce((obj, key) => {
-        obj[key] = CONFIG.DND5E.actorSizes[key].label;
+        obj[key] = CONFIG.SKJAALD.actorSizes[key].label;
         return obj;
       }, {})
     });
@@ -22559,9 +22559,9 @@ class SizeConfigurationData extends foundry.abstract.DataModel {
   /** @inheritdoc */
   static defineSchema() {
     return {
-      hint: new foundry.data.fields.StringField({label: "DND5E.AdvancementHint"}),
+      hint: new foundry.data.fields.StringField({label: "SKJAALD.AdvancementHint"}),
       sizes: new foundry.data.fields.SetField(
-        new foundry.data.fields.StringField(), {required: false, initial: ["med"], label: "DND5E.Size"}
+        new foundry.data.fields.StringField(), {required: false, initial: ["med"], label: "SKJAALD.Size"}
       )
     };
   }
@@ -22574,7 +22574,7 @@ class SizeValueData extends foundry.abstract.DataModel {
   /** @inheritdoc */
   static defineSchema() {
     return {
-      size: new foundry.data.fields.StringField({required: false, label: "DND5E.Size"})
+      size: new foundry.data.fields.StringField({required: false, label: "SKJAALD.Size"})
     };
   }
 }
@@ -22592,9 +22592,9 @@ class SizeAdvancement extends Advancement {
         value: SizeValueData
       },
       order: 25,
-      icon: "systems/dnd5e/icons/svg/size.svg",
-      title: game.i18n.localize("DND5E.AdvancementSizeTitle"),
-      hint: game.i18n.localize("DND5E.AdvancementSizeHint"),
+      icon: "systems/skjaald/icons/svg/size.svg",
+      title: game.i18n.localize("SKJAALD.AdvancementSizeTitle"),
+      hint: game.i18n.localize("SKJAALD.AdvancementSizeHint"),
       apps: {
         config: SizeConfig,
         flow: SizeFlow
@@ -22612,13 +22612,13 @@ class SizeAdvancement extends Advancement {
    */
   get automaticHint() {
     if ( !this.configuration.sizes.size ) return "";
-    if ( this.configuration.sizes.size === 1 ) return game.i18n.format("DND5E.AdvancementSizeFlowHintSingle", {
-      size: CONFIG.DND5E.actorSizes[this.configuration.sizes.first()].label
+    if ( this.configuration.sizes.size === 1 ) return game.i18n.format("SKJAALD.AdvancementSizeFlowHintSingle", {
+      size: CONFIG.SKJAALD.actorSizes[this.configuration.sizes.first()].label
     });
 
     const listFormatter = new Intl.ListFormat(game.i18n.lang, { type: "disjunction" });
-    return game.i18n.format("DND5E.AdvancementSizeflowHintMultiple", {
-      sizes: listFormatter.format(this.configuration.sizes.map(s => CONFIG.DND5E.actorSizes[s].label))
+    return game.i18n.format("SKJAALD.AdvancementSizeflowHintMultiple", {
+      sizes: listFormatter.format(this.configuration.sizes.map(s => CONFIG.SKJAALD.actorSizes[s].label))
     });
   }
 
@@ -22636,7 +22636,7 @@ class SizeAdvancement extends Advancement {
   /** @inheritdoc */
   summaryForLevel(level, { configMode=false }={}) {
     const sizes = configMode ? Array.from(this.configuration.sizes) : this.value.size ? [this.value.size] : [];
-    return sizes.map(s => `<span class="tag">${CONFIG.DND5E.actorSizes[s].label}</span>`).join("");
+    return sizes.map(s => `<span class="tag">${CONFIG.SKJAALD.actorSizes[s].label}</span>`).join("");
   }
 
   /* -------------------------------------------- */
@@ -22687,10 +22687,10 @@ var _module$g = /*#__PURE__*/Object.freeze({
 });
 
 // Namespace Configuration Values
-const DND5E = {};
+const SKJAALD = {};
 
 // ASCII Artwork
-DND5E.ASCII = `_______________________________
+SKJAALD.ASCII = `_______________________________
 ______      ______ _____ _____
 |  _  \\___  |  _  \\  ___|  ___|
 | | | ( _ ) | | | |___ \\| |__
@@ -22717,63 +22717,63 @@ _______________________________`;
  * The set of Ability Scores used within the system.
  * @enum {AbilityConfiguration}
  */
-DND5E.abilities = {
+SKJAALD.abilities = {
   str: {
-    label: "DND5E.AbilityStr",
-    abbreviation: "DND5E.AbilityStrAbbr",
+    label: "SKJAALD.AbilityStr",
+    abbreviation: "SKJAALD.AbilityStrAbbr",
     type: "physical",
     fullKey: "strength",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.nUPv6C66Ur64BIUH"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.nUPv6C66Ur64BIUH"
   },
   dex: {
-    label: "DND5E.AbilityDex",
-    abbreviation: "DND5E.AbilityDexAbbr",
+    label: "SKJAALD.AbilityDex",
+    abbreviation: "SKJAALD.AbilityDexAbbr",
     type: "physical",
     fullKey: "dexterity",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ER8CKDUWLsFXuARJ"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ER8CKDUWLsFXuARJ"
   },
   con: {
-    label: "DND5E.AbilityCon",
-    abbreviation: "DND5E.AbilityConAbbr",
+    label: "SKJAALD.AbilityCon",
+    abbreviation: "SKJAALD.AbilityConAbbr",
     type: "physical",
     fullKey: "constitution",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MpA4jnwD17Q0RPg7"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MpA4jnwD17Q0RPg7"
   },
   int: {
-    label: "DND5E.AbilityInt",
-    abbreviation: "DND5E.AbilityIntAbbr",
+    label: "SKJAALD.AbilityInt",
+    abbreviation: "SKJAALD.AbilityIntAbbr",
     type: "mental",
     fullKey: "intelligence",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.WzWWcTIppki35YvF",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.WzWWcTIppki35YvF",
     defaults: { vehicle: 0 }
   },
   wis: {
-    label: "DND5E.AbilityWis",
-    abbreviation: "DND5E.AbilityWisAbbr",
+    label: "SKJAALD.AbilityWis",
+    abbreviation: "SKJAALD.AbilityWisAbbr",
     type: "mental",
     fullKey: "wisdom",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v3IPyTtqvXqN934s",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v3IPyTtqvXqN934s",
     defaults: { vehicle: 0 }
   },
   cha: {
-    label: "DND5E.AbilityCha",
-    abbreviation: "DND5E.AbilityChaAbbr",
+    label: "SKJAALD.AbilityCha",
+    abbreviation: "SKJAALD.AbilityChaAbbr",
     type: "mental",
     fullKey: "charisma",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9FyghudYFV5QJOuG",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9FyghudYFV5QJOuG",
     defaults: { vehicle: 0 }
   },
   hon: {
-    label: "DND5E.AbilityHon",
-    abbreviation: "DND5E.AbilityHonAbbr",
+    label: "SKJAALD.AbilityHon",
+    abbreviation: "SKJAALD.AbilityHonAbbr",
     type: "mental",
     fullKey: "honor",
     defaults: { npc: "cha", vehicle: 0 },
     improvement: false
   },
   san: {
-    label: "DND5E.AbilitySan",
-    abbreviation: "DND5E.AbilitySanAbbr",
+    label: "SKJAALD.AbilitySan",
+    abbreviation: "SKJAALD.AbilitySanAbbr",
     type: "mental",
     fullKey: "sanity",
     defaults: { npc: "wis", vehicle: 0 },
@@ -22788,43 +22788,43 @@ preLocalize("abilities", { keys: ["label", "abbreviation"] });
  * saving throws to maintain concentration.
  * @enum {string}
  */
-DND5E.defaultAbilities = {
+SKJAALD.defaultAbilities = {
   initiative: "dex",
   hitPoints: "con",
   concentration: "con"
 };
 
-Object.defineProperties(DND5E, {
+Object.defineProperties(SKJAALD, {
   hitPointsAbility: {
     get: function() {
       foundry.utils.logCompatibilityWarning(
-        "DND5E.hitPointsAbility has been deprecated and is now accessible through DND5E.defaultAbilities.hitPoints.",
-        { since: "DnD5e 3.1", until: "DnD5e 3.3" }
+        "SKJAALD.hitPointsAbility has been deprecated and is now accessible through SKJAALD.defaultAbilities.hitPoints.",
+        { since: "Skjaald 3.1", until: "Skjaald 3.3" }
       );
-      return DND5E.defaultAbilities.hitPoints;
+      return SKJAALD.defaultAbilities.hitPoints;
     },
     set: function(value) {
       foundry.utils.logCompatibilityWarning(
-        "DND5E.hitPointsAbility has been deprecated and is now accessible through DND5E.defaultAbilities.hitPoints.",
-        { since: "DnD5e 3.1", until: "DnD5e 3.3" }
+        "SKJAALD.hitPointsAbility has been deprecated and is now accessible through SKJAALD.defaultAbilities.hitPoints.",
+        { since: "Skjaald 3.1", until: "Skjaald 3.3" }
       );
-      DND5E.defaultAbilities.hitPoints = value;
+      SKJAALD.defaultAbilities.hitPoints = value;
     }
   },
   initiativeAbility: {
     get: function() {
       foundry.utils.logCompatibilityWarning(
-        "DND5E.initiativeAbility has been deprecated and is now accessible through DND5E.defaultAbilities.initiative.",
-        { since: "DnD5e 3.1", until: "DnD5e 3.3" }
+        "SKJAALD.initiativeAbility has been deprecated and is now accessible through SKJAALD.defaultAbilities.initiative.",
+        { since: "Skjaald 3.1", until: "Skjaald 3.3" }
       );
-      return DND5E.defaultAbilities.initiative;
+      return SKJAALD.defaultAbilities.initiative;
     },
     set: function(value) {
       foundry.utils.logCompatibilityWarning(
-        "DND5E.initiativeAbility has been deprecated and is now accessible through DND5E.defaultAbilities.initiative.",
-        { since: "DnD5e 3.1", until: "DnD5e 3.3" }
+        "SKJAALD.initiativeAbility has been deprecated and is now accessible through SKJAALD.defaultAbilities.initiative.",
+        { since: "Skjaald 3.1", until: "Skjaald 3.3" }
       );
-      DND5E.defaultAbilities.initiative = value;
+      SKJAALD.defaultAbilities.initiative = value;
     }
   }
 });
@@ -22845,131 +22845,131 @@ Object.defineProperties(DND5E, {
  * The set of skill which can be trained with their default ability scores.
  * @enum {SkillConfiguration}
  */
-DND5E.skills = {
+SKJAALD.skills = {
   acr: {
-    label: "DND5E.SkillAcr",
+    label: "SKJAALD.SkillAcr",
     ability: "dex",
     fullKey: "acrobatics",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AvvBLEHNl7kuwPkN",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AvvBLEHNl7kuwPkN",
     icon: "icons/equipment/feet/shoes-simple-leaf-green.webp"
   },
   ani: {
-    label: "DND5E.SkillAni",
+    label: "SKJAALD.SkillAni",
     ability: "wis",
     fullKey: "animalHandling",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xb3MCjUvopOU4viE",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xb3MCjUvopOU4viE",
     icon: "icons/environment/creatures/horse-brown.webp"
   },
   arc: {
-    label: "DND5E.SkillArc",
+    label: "SKJAALD.SkillArc",
     ability: "int",
     fullKey: "arcana",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.h3bYSPge8IOqne1N",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.h3bYSPge8IOqne1N",
     icon: "icons/sundries/books/book-embossed-jewel-silver-green.webp"
   },
   ath: {
-    label: "DND5E.SkillAth",
+    label: "SKJAALD.SkillAth",
     ability: "str",
     fullKey: "athletics",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
     icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
   },
   dec: {
-    label: "DND5E.SkillDec",
+    label: "SKJAALD.SkillDec",
     ability: "cha",
     fullKey: "deception",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.mqVZ2fz0L7a9VeKJ",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.mqVZ2fz0L7a9VeKJ",
     icon: "icons/magic/control/mouth-smile-deception-purple.webp"
   },
   his: {
-    label: "DND5E.SkillHis",
+    label: "SKJAALD.SkillHis",
     ability: "int",
     fullKey: "history",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kRBZbdWMGW9K3wdY",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kRBZbdWMGW9K3wdY",
     icon: "icons/sundries/books/book-embossed-bound-brown.webp"
   },
   ins: {
-    label: "DND5E.SkillIns",
+    label: "SKJAALD.SkillIns",
     ability: "wis",
     fullKey: "insight",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8R5SMbAGbECNgO8z",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8R5SMbAGbECNgO8z",
     icon: "icons/magic/perception/orb-crystal-ball-scrying-blue.webp"
   },
   itm: {
-    label: "DND5E.SkillItm",
+    label: "SKJAALD.SkillItm",
     ability: "cha",
     fullKey: "intimidation",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4VHHI2gJ1jEsppfg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4VHHI2gJ1jEsppfg",
     icon: "icons/skills/social/intimidation-impressing.webp"
   },
   inv: {
-    label: "DND5E.SkillInv",
+    label: "SKJAALD.SkillInv",
     ability: "int",
     fullKey: "investigation",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Y7nmbQAruWOs7WRM",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Y7nmbQAruWOs7WRM",
     icon: "icons/tools/scribal/magnifying-glass.webp"
   },
   med: {
-    label: "DND5E.SkillMed",
+    label: "SKJAALD.SkillMed",
     ability: "wis",
     fullKey: "medicine",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GeYmM7BVfSCAga4o",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GeYmM7BVfSCAga4o",
     icon: "icons/tools/cooking/mortar-herbs-yellow.webp"
   },
   nat: {
-    label: "DND5E.SkillNat",
+    label: "SKJAALD.SkillNat",
     ability: "int",
     fullKey: "nature",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ueMx3uF2PQlcye31",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ueMx3uF2PQlcye31",
     icon: "icons/magic/nature/plant-sprout-snow-green.webp"
   },
   prc: {
-    label: "DND5E.SkillPrc",
+    label: "SKJAALD.SkillPrc",
     ability: "wis",
     fullKey: "perception",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zjEeHCUqfuprfzhY",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zjEeHCUqfuprfzhY",
     icon: "icons/magic/perception/eye-ringed-green.webp"
   },
   prf: {
-    label: "DND5E.SkillPrf",
+    label: "SKJAALD.SkillPrf",
     ability: "cha",
     fullKey: "performance",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hYT7Z06yDNBcMtGe",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hYT7Z06yDNBcMtGe",
     icon: "icons/tools/instruments/lute-gold-brown.webp"
   },
   per: {
-    label: "DND5E.SkillPer",
+    label: "SKJAALD.SkillPer",
     ability: "cha",
     fullKey: "persuasion",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
     icon: "icons/skills/social/diplomacy-handshake.webp"
   },
   rel: {
-    label: "DND5E.SkillRel",
+    label: "SKJAALD.SkillRel",
     ability: "int",
     fullKey: "religion",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.CXVzERHdP4qLhJXM",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.CXVzERHdP4qLhJXM",
     icon: "icons/magic/holy/saint-glass-portrait-halo.webp"
   },
   slt: {
-    label: "DND5E.SkillSlt",
+    label: "SKJAALD.SkillSlt",
     ability: "dex",
     fullKey: "sleightOfHand",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.yg6SRpGNVz9nDW0A",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.yg6SRpGNVz9nDW0A",
     icon: "icons/sundries/gaming/playing-cards.webp"
   },
   ste: {
-    label: "DND5E.SkillSte",
+    label: "SKJAALD.SkillSte",
     ability: "dex",
     fullKey: "stealth",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4MfrpERNiQXmvgCI",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4MfrpERNiQXmvgCI",
     icon: "icons/magic/perception/shadow-stealth-eyes-purple.webp"
   },
   sur: {
-    label: "DND5E.SkillSur",
+    label: "SKJAALD.SkillSur",
     ability: "wis",
     fullKey: "survival",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
     icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
   }
 };
@@ -22981,16 +22981,16 @@ preLocalize("skills", { key: "label", sort: true });
  * Character alignment options.
  * @enum {string}
  */
-DND5E.alignments = {
-  lg: "DND5E.AlignmentLG",
-  ng: "DND5E.AlignmentNG",
-  cg: "DND5E.AlignmentCG",
-  ln: "DND5E.AlignmentLN",
-  tn: "DND5E.AlignmentTN",
-  cn: "DND5E.AlignmentCN",
-  le: "DND5E.AlignmentLE",
-  ne: "DND5E.AlignmentNE",
-  ce: "DND5E.AlignmentCE"
+SKJAALD.alignments = {
+  lg: "SKJAALD.AlignmentLG",
+  ng: "SKJAALD.AlignmentNG",
+  cg: "SKJAALD.AlignmentCG",
+  ln: "SKJAALD.AlignmentLN",
+  tn: "SKJAALD.AlignmentTN",
+  cn: "SKJAALD.AlignmentCN",
+  le: "SKJAALD.AlignmentLE",
+  ne: "SKJAALD.AlignmentNE",
+  ce: "SKJAALD.AlignmentCE"
 };
 preLocalize("alignments");
 
@@ -23000,9 +23000,9 @@ preLocalize("alignments");
  * An enumeration of item attunement types.
  * @enum {string}
  */
-DND5E.attunementTypes = {
-  required: "DND5E.AttunementRequired",
-  optional: "DND5E.AttunementOptional"
+SKJAALD.attunementTypes = {
+  required: "SKJAALD.AttunementRequired",
+  optional: "SKJAALD.AttunementOptional"
 };
 preLocalize("attunementTypes");
 
@@ -23011,10 +23011,10 @@ preLocalize("attunementTypes");
  * @type {{"0": string, "1": string, "2": string}}
  * @deprecated since 3.2, available until 3.4
  */
-DND5E.attunements = {
-  0: "DND5E.AttunementNone",
-  1: "DND5E.AttunementRequired",
-  2: "DND5E.AttunementAttuned"
+SKJAALD.attunements = {
+  0: "SKJAALD.AttunementNone",
+  1: "SKJAALD.AttunementRequired",
+  2: "SKJAALD.AttunementAttuned"
 };
 preLocalize("attunements");
 
@@ -23024,18 +23024,18 @@ preLocalize("attunements");
  * General weapon categories.
  * @enum {string}
  */
-DND5E.weaponProficiencies = {
-  sim: "DND5E.WeaponSimpleProficiency",
-  mar: "DND5E.WeaponMartialProficiency"
+SKJAALD.weaponProficiencies = {
+  sim: "SKJAALD.WeaponSimpleProficiency",
+  mar: "SKJAALD.WeaponMartialProficiency"
 };
 preLocalize("weaponProficiencies");
 
 /**
- * A mapping between `DND5E.weaponTypes` and `DND5E.weaponProficiencies` that
+ * A mapping between `SKJAALD.weaponTypes` and `SKJAALD.weaponProficiencies` that
  * is used to determine if character has proficiency when adding an item.
  * @enum {(boolean|string)}
  */
-DND5E.weaponProficienciesMap = {
+SKJAALD.weaponProficienciesMap = {
   simpleM: "sim",
   simpleR: "sim",
   martialM: "mar",
@@ -23047,7 +23047,7 @@ DND5E.weaponProficienciesMap = {
  * starting equipment provided by classes and backgrounds.
  * @enum {string}
  */
-DND5E.weaponIds = {
+SKJAALD.weaponIds = {
   battleaxe: "I0WocDSuNpGJayPb",
   blowgun: "wNWK6yJMHG9ANqQV",
   club: "nfIRTECQIG81CvM4",
@@ -23093,7 +23093,7 @@ DND5E.weaponIds = {
  * The basic ammunition types.
  * @enum {string}
  */
-DND5E.ammoIds = {
+SKJAALD.ammoIds = {
   arrow: "3c7JXOzsv55gqJS5",
   blowgunNeedle: "gBQ8xqTA5f8wP5iu",
   crossbowBolt: "SItCnYBqhzqBoaWG",
@@ -23107,10 +23107,10 @@ DND5E.ammoIds = {
  *
  * @enum {string}
  */
-DND5E.toolTypes = {
-  art: "DND5E.ToolArtisans",
-  game: "DND5E.ToolGamingSet",
-  music: "DND5E.ToolMusicalInstrument"
+SKJAALD.toolTypes = {
+  art: "SKJAALD.ToolArtisans",
+  game: "SKJAALD.ToolGamingSet",
+  music: "SKJAALD.ToolMusicalInstrument"
 };
 preLocalize("toolTypes", { sort: true });
 
@@ -23119,9 +23119,9 @@ preLocalize("toolTypes", { sort: true });
  *
  * @enum {string}
  */
-DND5E.toolProficiencies = {
-  ...DND5E.toolTypes,
-  vehicle: "DND5E.ToolVehicle"
+SKJAALD.toolProficiencies = {
+  ...SKJAALD.toolTypes,
+  vehicle: "SKJAALD.ToolVehicle"
 };
 preLocalize("toolProficiencies", { sort: true });
 
@@ -23130,7 +23130,7 @@ preLocalize("toolProficiencies", { sort: true });
  * starting equipment provided by classes and backgrounds.
  * @enum {string}
  */
-DND5E.toolIds = {
+SKJAALD.toolIds = {
   alchemist: "SztwZhbhZeCqyAes",
   bagpipes: "yxHi57T5mmVt0oDr",
   brewer: "Y9S75go1hLMXUD48",
@@ -23175,14 +23175,14 @@ DND5E.toolIds = {
  * Time periods that accept a numeric value.
  * @enum {string}
  */
-DND5E.scalarTimePeriods = {
-  turn: "DND5E.TimeTurn",
-  round: "DND5E.TimeRound",
-  minute: "DND5E.TimeMinute",
-  hour: "DND5E.TimeHour",
-  day: "DND5E.TimeDay",
-  month: "DND5E.TimeMonth",
-  year: "DND5E.TimeYear"
+SKJAALD.scalarTimePeriods = {
+  turn: "SKJAALD.TimeTurn",
+  round: "SKJAALD.TimeRound",
+  minute: "SKJAALD.TimeMinute",
+  hour: "SKJAALD.TimeHour",
+  day: "SKJAALD.TimeDay",
+  month: "SKJAALD.TimeMonth",
+  year: "SKJAALD.TimeYear"
 };
 preLocalize("scalarTimePeriods");
 
@@ -23192,10 +23192,10 @@ preLocalize("scalarTimePeriods");
  * Time periods for spells that don't have a defined ending.
  * @enum {string}
  */
-DND5E.permanentTimePeriods = {
-  disp: "DND5E.TimeDisp",
-  dstr: "DND5E.TimeDispTrig",
-  perm: "DND5E.TimePerm"
+SKJAALD.permanentTimePeriods = {
+  disp: "SKJAALD.TimeDisp",
+  dstr: "SKJAALD.TimeDispTrig",
+  perm: "SKJAALD.TimePerm"
 };
 preLocalize("permanentTimePeriods");
 
@@ -23205,9 +23205,9 @@ preLocalize("permanentTimePeriods");
  * Time periods that don't accept a numeric value.
  * @enum {string}
  */
-DND5E.specialTimePeriods = {
-  inst: "DND5E.TimeInst",
-  spec: "DND5E.Special"
+SKJAALD.specialTimePeriods = {
+  inst: "SKJAALD.TimeInst",
+  spec: "SKJAALD.Special"
 };
 preLocalize("specialTimePeriods");
 
@@ -23217,10 +23217,10 @@ preLocalize("specialTimePeriods");
  * The various lengths of time over which effects can occur.
  * @enum {string}
  */
-DND5E.timePeriods = {
-  ...DND5E.specialTimePeriods,
-  ...DND5E.permanentTimePeriods,
-  ...DND5E.scalarTimePeriods
+SKJAALD.timePeriods = {
+  ...SKJAALD.specialTimePeriods,
+  ...SKJAALD.permanentTimePeriods,
+  ...SKJAALD.scalarTimePeriods
 };
 preLocalize("timePeriods");
 
@@ -23230,27 +23230,27 @@ preLocalize("timePeriods");
  * Ways in which to activate an item that cannot be labeled with a cost.
  * @enum {string}
  */
-DND5E.staticAbilityActivationTypes = {
-  none: "DND5E.NoneActionLabel",
-  special: DND5E.timePeriods.spec
+SKJAALD.staticAbilityActivationTypes = {
+  none: "SKJAALD.NoneActionLabel",
+  special: SKJAALD.timePeriods.spec
 };
 
 /**
  * Various ways in which an item or ability can be activated.
  * @enum {string}
  */
-DND5E.abilityActivationTypes = {
-  ...DND5E.staticAbilityActivationTypes,
-  action: "DND5E.Action",
-  bonus: "DND5E.BonusAction",
-  reaction: "DND5E.Reaction",
-  minute: DND5E.timePeriods.minute,
-  hour: DND5E.timePeriods.hour,
-  day: DND5E.timePeriods.day,
-  legendary: "DND5E.LegendaryActionLabel",
-  mythic: "DND5E.MythicActionLabel",
-  lair: "DND5E.LairActionLabel",
-  crew: "DND5E.VehicleCrewAction"
+SKJAALD.abilityActivationTypes = {
+  ...SKJAALD.staticAbilityActivationTypes,
+  action: "SKJAALD.Action",
+  bonus: "SKJAALD.BonusAction",
+  reaction: "SKJAALD.Reaction",
+  minute: SKJAALD.timePeriods.minute,
+  hour: SKJAALD.timePeriods.hour,
+  day: SKJAALD.timePeriods.day,
+  legendary: "SKJAALD.LegendaryActionLabel",
+  mythic: "SKJAALD.MythicActionLabel",
+  lair: "SKJAALD.LairActionLabel",
+  crew: "SKJAALD.VehicleCrewAction"
 };
 preLocalize("abilityActivationTypes");
 
@@ -23260,12 +23260,12 @@ preLocalize("abilityActivationTypes");
  * Different things that an ability can consume upon use.
  * @enum {string}
  */
-DND5E.abilityConsumptionTypes = {
-  ammo: "DND5E.ConsumeAmmunition",
-  attribute: "DND5E.ConsumeAttribute",
-  hitDice: "DND5E.ConsumeHitDice",
-  material: "DND5E.ConsumeMaterial",
-  charges: "DND5E.ConsumeCharges"
+SKJAALD.abilityConsumptionTypes = {
+  ammo: "SKJAALD.ConsumeAmmunition",
+  attribute: "SKJAALD.ConsumeAttribute",
+  hitDice: "SKJAALD.ConsumeHitDice",
+  material: "SKJAALD.ConsumeMaterial",
+  charges: "SKJAALD.ConsumeCharges"
 };
 preLocalize("abilityConsumptionTypes", { sort: true });
 
@@ -23286,42 +23286,42 @@ preLocalize("abilityConsumptionTypes", { sort: true });
  * Creature sizes ordered from smallest to largest.
  * @enum {ActorSizeConfiguration}
  */
-DND5E.actorSizes = {
+SKJAALD.actorSizes = {
   tiny: {
-    label: "DND5E.SizeTiny",
-    abbreviation: "DND5E.SizeTinyAbbr",
+    label: "SKJAALD.SizeTiny",
+    abbreviation: "SKJAALD.SizeTinyAbbr",
     hitDie: 4,
     token: 0.5,
     capacityMultiplier: 0.5
   },
   sm: {
-    label: "DND5E.SizeSmall",
-    abbreviation: "DND5E.SizeSmallAbbr",
+    label: "SKJAALD.SizeSmall",
+    abbreviation: "SKJAALD.SizeSmallAbbr",
     hitDie: 6,
     dynamicTokenScale: 0.8
   },
   med: {
-    label: "DND5E.SizeMedium",
-    abbreviation: "DND5E.SizeMediumAbbr",
+    label: "SKJAALD.SizeMedium",
+    abbreviation: "SKJAALD.SizeMediumAbbr",
     hitDie: 8
   },
   lg: {
-    label: "DND5E.SizeLarge",
-    abbreviation: "DND5E.SizeLargeAbbr",
+    label: "SKJAALD.SizeLarge",
+    abbreviation: "SKJAALD.SizeLargeAbbr",
     hitDie: 10,
     token: 2,
     capacityMultiplier: 2
   },
   huge: {
-    label: "DND5E.SizeHuge",
-    abbreviation: "DND5E.SizeHugeAbbr",
+    label: "SKJAALD.SizeHuge",
+    abbreviation: "SKJAALD.SizeHugeAbbr",
     hitDie: 12,
     token: 3,
     capacityMultiplier: 4
   },
   grg: {
-    label: "DND5E.SizeGargantuan",
-    abbreviation: "DND5E.SizeGargantuanAbbr",
+    label: "SKJAALD.SizeGargantuan",
+    abbreviation: "SKJAALD.SizeGargantuanAbbr",
     hitDie: 20,
     token: 4,
     capacityMultiplier: 8
@@ -23337,7 +23337,7 @@ preLocalize("actorSizes", { keys: ["label", "abbreviation"] });
  * Colors used to visualize temporary and temporary maximum HP in token health bars.
  * @enum {number}
  */
-DND5E.tokenHPColors = {
+SKJAALD.tokenHPColors = {
   damage: 0xFF0000,
   healing: 0x00FF00,
   temp: 0x66CCFF,
@@ -23351,7 +23351,7 @@ DND5E.tokenHPColors = {
  * Colors used when a dynamic token ring effects.
  * @enum {number}
  */
-DND5E.tokenRingColors = {
+SKJAALD.tokenRingColors = {
   damage: 0xFF0000,
   defeated: 0x000000,
   healing: 0x00FF00,
@@ -23376,7 +23376,7 @@ DND5E.tokenRingColors = {
  * Settings used to render map location markers on the canvas.
  * @enum {MapLocationMarkerStyle}
  */
-DND5E.mapLocationMarker = {
+SKJAALD.mapLocationMarker = {
   default: {
     backgroundColor: 0xFBF8F5,
     borderColor: 0x000000,
@@ -23403,95 +23403,95 @@ DND5E.mapLocationMarker = {
  * Default types of creatures.
  * @enum {CreatureTypeConfiguration}
  */
-DND5E.creatureTypes = {
+SKJAALD.creatureTypes = {
   aberration: {
-    label: "DND5E.CreatureAberration",
-    plural: "DND5E.CreatureAberrationPl",
+    label: "SKJAALD.CreatureAberration",
+    plural: "SKJAALD.CreatureAberrationPl",
     icon: "icons/creatures/tentacles/tentacle-eyes-yellow-pink.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.yy50qVC1JhPHt4LC",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.yy50qVC1JhPHt4LC",
     detectAlignment: true
   },
   beast: {
-    label: "DND5E.CreatureBeast",
-    plural: "DND5E.CreatureBeastPl",
+    label: "SKJAALD.CreatureBeast",
+    plural: "SKJAALD.CreatureBeastPl",
     icon: "icons/creatures/claws/claw-bear-paw-swipe-red.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6bTHn7pZek9YX2tv"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6bTHn7pZek9YX2tv"
   },
   celestial: {
-    label: "DND5E.CreatureCelestial",
-    plural: "DND5E.CreatureCelestialPl",
+    label: "SKJAALD.CreatureCelestial",
+    plural: "SKJAALD.CreatureCelestialPl",
     icon: "icons/creatures/abilities/wings-birdlike-blue.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.T5CJwxjhBbi6oqaM",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.T5CJwxjhBbi6oqaM",
     detectAlignment: true
   },
   construct: {
-    label: "DND5E.CreatureConstruct",
-    plural: "DND5E.CreatureConstructPl",
+    label: "SKJAALD.CreatureConstruct",
+    plural: "SKJAALD.CreatureConstructPl",
     icon: "icons/creatures/magical/construct-stone-earth-gray.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jQGAJZBZTqDFod8d"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jQGAJZBZTqDFod8d"
   },
   dragon: {
-    label: "DND5E.CreatureDragon",
-    plural: "DND5E.CreatureDragonPl",
+    label: "SKJAALD.CreatureDragon",
+    plural: "SKJAALD.CreatureDragonPl",
     icon: "icons/creatures/abilities/dragon-fire-breath-orange.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.k2IRXZwGk9W0PM2S"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.k2IRXZwGk9W0PM2S"
   },
   elemental: {
-    label: "DND5E.CreatureElemental",
-    plural: "DND5E.CreatureElementalPl",
+    label: "SKJAALD.CreatureElemental",
+    plural: "SKJAALD.CreatureElementalPl",
     icon: "icons/creatures/magical/spirit-fire-orange.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.7z1LXGGkXpHuzkFh",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.7z1LXGGkXpHuzkFh",
     detectAlignment: true
   },
   fey: {
-    label: "DND5E.CreatureFey",
-    plural: "DND5E.CreatureFeyPl",
+    label: "SKJAALD.CreatureFey",
+    plural: "SKJAALD.CreatureFeyPl",
     icon: "icons/creatures/magical/fae-fairy-winged-glowing-green.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.OFsRUt3pWljgm8VC",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.OFsRUt3pWljgm8VC",
     detectAlignment: true
   },
   fiend: {
-    label: "DND5E.CreatureFiend",
-    plural: "DND5E.CreatureFiendPl",
+    label: "SKJAALD.CreatureFiend",
+    plural: "SKJAALD.CreatureFiendPl",
     icon: "icons/magic/death/skull-horned-goat-pentagram-red.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ElHKBJeiJPC7gj6k",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ElHKBJeiJPC7gj6k",
     detectAlignment: true
   },
   giant: {
-    label: "DND5E.CreatureGiant",
-    plural: "DND5E.CreatureGiantPl",
+    label: "SKJAALD.CreatureGiant",
+    plural: "SKJAALD.CreatureGiantPl",
     icon: "icons/creatures/magical/humanoid-giant-forest-blue.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AOXn3Mv5vPZwo0Uf"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AOXn3Mv5vPZwo0Uf"
   },
   humanoid: {
-    label: "DND5E.CreatureHumanoid",
-    plural: "DND5E.CreatureHumanoidPl",
+    label: "SKJAALD.CreatureHumanoid",
+    plural: "SKJAALD.CreatureHumanoidPl",
     icon: "icons/magic/unholy/strike-body-explode-disintegrate.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iFzQs4AenN8ALRvw"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iFzQs4AenN8ALRvw"
   },
   monstrosity: {
-    label: "DND5E.CreatureMonstrosity",
-    plural: "DND5E.CreatureMonstrosityPl",
+    label: "SKJAALD.CreatureMonstrosity",
+    plural: "SKJAALD.CreatureMonstrosityPl",
     icon: "icons/creatures/abilities/mouth-teeth-rows-red.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TX0yPEFTn79AMZ8P"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TX0yPEFTn79AMZ8P"
   },
   ooze: {
-    label: "DND5E.CreatureOoze",
-    plural: "DND5E.CreatureOozePl",
+    label: "SKJAALD.CreatureOoze",
+    plural: "SKJAALD.CreatureOozePl",
     icon: "icons/creatures/slimes/slime-movement-pseudopods-green.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.cgzIC1ecG03D97Fg"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.cgzIC1ecG03D97Fg"
   },
   plant: {
-    label: "DND5E.CreaturePlant",
-    plural: "DND5E.CreaturePlantPl",
+    label: "SKJAALD.CreaturePlant",
+    plural: "SKJAALD.CreaturePlantPl",
     icon: "icons/magic/nature/tree-animated-strike.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1oT7t6tHE4kZuSN1"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1oT7t6tHE4kZuSN1"
   },
   undead: {
-    label: "DND5E.CreatureUndead",
-    plural: "DND5E.CreatureUndeadPl",
+    label: "SKJAALD.CreatureUndead",
+    plural: "SKJAALD.CreatureUndeadPl",
     icon: "icons/magic/death/skull-horned-worn-fire-blue.webp",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.D2BdqS1GeD5rcZ6q",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.D2BdqS1GeD5rcZ6q",
     detectAlignment: true
   }
 };
@@ -23503,18 +23503,18 @@ preLocalize("creatureTypes", { keys: ["label", "plural"], sort: true });
  * Classification types for item action types.
  * @enum {string}
  */
-DND5E.itemActionTypes = {
-  mwak: "DND5E.ActionMWAK",
-  rwak: "DND5E.ActionRWAK",
-  msak: "DND5E.ActionMSAK",
-  rsak: "DND5E.ActionRSAK",
-  abil: "DND5E.ActionAbil",
-  save: "DND5E.ActionSave",
-  ench: "DND5E.ActionEnch",
-  summ: "DND5E.ActionSumm",
-  heal: "DND5E.ActionHeal",
-  util: "DND5E.ActionUtil",
-  other: "DND5E.ActionOther"
+SKJAALD.itemActionTypes = {
+  mwak: "SKJAALD.ActionMWAK",
+  rwak: "SKJAALD.ActionRWAK",
+  msak: "SKJAALD.ActionMSAK",
+  rsak: "SKJAALD.ActionRSAK",
+  abil: "SKJAALD.ActionAbil",
+  save: "SKJAALD.ActionSave",
+  ench: "SKJAALD.ActionEnch",
+  summ: "SKJAALD.ActionSumm",
+  heal: "SKJAALD.ActionHeal",
+  util: "SKJAALD.ActionUtil",
+  other: "SKJAALD.ActionOther"
 };
 preLocalize("itemActionTypes");
 
@@ -23524,9 +23524,9 @@ preLocalize("itemActionTypes");
  * Different ways in which item capacity can be limited.
  * @enum {string}
  */
-DND5E.itemCapacityTypes = {
-  items: "DND5E.ItemContainerCapacityItems",
-  weight: "DND5E.ItemContainerCapacityWeight"
+SKJAALD.itemCapacityTypes = {
+  items: "SKJAALD.ItemContainerCapacityItems",
+  weight: "SKJAALD.ItemContainerCapacityWeight"
 };
 preLocalize("itemCapacityTypes", { sort: true });
 
@@ -23536,13 +23536,13 @@ preLocalize("itemCapacityTypes", { sort: true });
  * List of various item rarities.
  * @enum {string}
  */
-DND5E.itemRarity = {
-  common: "DND5E.ItemRarityCommon",
-  uncommon: "DND5E.ItemRarityUncommon",
-  rare: "DND5E.ItemRarityRare",
-  veryRare: "DND5E.ItemRarityVeryRare",
-  legendary: "DND5E.ItemRarityLegendary",
-  artifact: "DND5E.ItemRarityArtifact"
+SKJAALD.itemRarity = {
+  common: "SKJAALD.ItemRarityCommon",
+  uncommon: "SKJAALD.ItemRarityUncommon",
+  rare: "SKJAALD.ItemRarityRare",
+  veryRare: "SKJAALD.ItemRarityVeryRare",
+  legendary: "SKJAALD.ItemRarityLegendary",
+  artifact: "SKJAALD.ItemRarityArtifact"
 };
 preLocalize("itemRarity");
 
@@ -23550,13 +23550,13 @@ preLocalize("itemRarity");
 
 /**
  * The limited use periods that support a recovery formula.
- * @deprecated since DnD5e 3.1, available until DnD5e 3.3
+ * @deprecated since Skjaald 3.1, available until Skjaald 3.3
  * @enum {string}
  */
-DND5E.limitedUseFormulaPeriods = {
-  charges: "DND5E.Charges",
-  dawn: "DND5E.Dawn",
-  dusk: "DND5E.Dusk"
+SKJAALD.limitedUseFormulaPeriods = {
+  charges: "SKJAALD.Charges",
+  dawn: "SKJAALD.Dawn",
+  dusk: "SKJAALD.Dusk"
 };
 
 /* -------------------------------------------- */
@@ -23574,37 +23574,37 @@ DND5E.limitedUseFormulaPeriods = {
  * Enumerate the lengths of time over which an item can have limited use ability.
  * @enum {LimitedUsePeriodConfiguration}
  */
-DND5E.limitedUsePeriods = {
+SKJAALD.limitedUsePeriods = {
   sr: {
-    label: "DND5E.UsesPeriods.Sr",
-    abbreviation: "DND5E.UsesPeriods.SrAbbreviation"
+    label: "SKJAALD.UsesPeriods.Sr",
+    abbreviation: "SKJAALD.UsesPeriods.SrAbbreviation"
   },
   lr: {
-    label: "DND5E.UsesPeriods.Lr",
-    abbreviation: "DND5E.UsesPeriods.LrAbbreviation"
+    label: "SKJAALD.UsesPeriods.Lr",
+    abbreviation: "SKJAALD.UsesPeriods.LrAbbreviation"
   },
   day: {
-    label: "DND5E.UsesPeriods.Day",
-    abbreviation: "DND5E.UsesPeriods.DayAbbreviation"
+    label: "SKJAALD.UsesPeriods.Day",
+    abbreviation: "SKJAALD.UsesPeriods.DayAbbreviation"
   },
   charges: {
-    label: "DND5E.UsesPeriods.Charges",
-    abbreviation: "DND5E.UsesPeriods.ChargesAbbreviation",
+    label: "SKJAALD.UsesPeriods.Charges",
+    abbreviation: "SKJAALD.UsesPeriods.ChargesAbbreviation",
     formula: true
   },
   dawn: {
-    label: "DND5E.UsesPeriods.Dawn",
-    abbreviation: "DND5E.UsesPeriods.DawnAbbreviation",
+    label: "SKJAALD.UsesPeriods.Dawn",
+    abbreviation: "SKJAALD.UsesPeriods.DawnAbbreviation",
     formula: true
   },
   dusk: {
-    label: "DND5E.UsesPeriods.Dusk",
-    abbreviation: "DND5E.UsesPeriods.DuskAbbreviation",
+    label: "SKJAALD.UsesPeriods.Dusk",
+    abbreviation: "SKJAALD.UsesPeriods.DuskAbbreviation",
     formula: true
   }
 };
 preLocalize("limitedUsePeriods", { keys: ["label", "abbreviation"] });
-patchConfig("limitedUsePeriods", "label", { since: "DnD5e 3.1", until: "DnD5e 3.3" });
+patchConfig("limitedUsePeriods", "label", { since: "Skjaald 3.1", until: "Skjaald 3.3" });
 
 /* -------------------------------------------- */
 
@@ -23612,15 +23612,15 @@ patchConfig("limitedUsePeriods", "label", { since: "DnD5e 3.1", until: "DnD5e 3.
  * Periods at which enchantments can be re-bound to new items.
  * @enum {{ label: string }}
  */
-DND5E.enchantmentPeriods = {
+SKJAALD.enchantmentPeriods = {
   sr: {
-    label: "DND5E.UsesPeriods.Sr"
+    label: "SKJAALD.UsesPeriods.Sr"
   },
   lr: {
-    label: "DND5E.UsesPeriods.Lr"
+    label: "SKJAALD.UsesPeriods.Lr"
   },
   atwill: {
-    label: "DND5E.UsesPeriods.AtWill"
+    label: "SKJAALD.UsesPeriods.AtWill"
   }
 };
 preLocalize("enchantmentPeriods", { key: "label" });
@@ -23631,12 +23631,12 @@ preLocalize("enchantmentPeriods", { key: "label" });
  * Specific equipment types that modify base AC.
  * @enum {string}
  */
-DND5E.armorTypes = {
-  light: "DND5E.EquipmentLight",
-  medium: "DND5E.EquipmentMedium",
-  heavy: "DND5E.EquipmentHeavy",
-  natural: "DND5E.EquipmentNatural",
-  shield: "DND5E.EquipmentShield"
+SKJAALD.armorTypes = {
+  light: "SKJAALD.EquipmentLight",
+  medium: "SKJAALD.EquipmentMedium",
+  heavy: "SKJAALD.EquipmentHeavy",
+  natural: "SKJAALD.EquipmentNatural",
+  shield: "SKJAALD.EquipmentShield"
 };
 preLocalize("armorTypes");
 
@@ -23646,10 +23646,10 @@ preLocalize("armorTypes");
  * Equipment types that aren't armor.
  * @enum {string}
  */
-DND5E.miscEquipmentTypes = {
-  clothing: "DND5E.EquipmentClothing",
-  trinket: "DND5E.EquipmentTrinket",
-  vehicle: "DND5E.EquipmentVehicle"
+SKJAALD.miscEquipmentTypes = {
+  clothing: "SKJAALD.EquipmentClothing",
+  trinket: "SKJAALD.EquipmentTrinket",
+  vehicle: "SKJAALD.EquipmentVehicle"
 };
 preLocalize("miscEquipmentTypes", { sort: true });
 
@@ -23659,9 +23659,9 @@ preLocalize("miscEquipmentTypes", { sort: true });
  * The set of equipment types for armor, clothing, and other objects which can be worn by the character.
  * @enum {string}
  */
-DND5E.equipmentTypes = {
-  ...DND5E.miscEquipmentTypes,
-  ...DND5E.armorTypes
+SKJAALD.equipmentTypes = {
+  ...SKJAALD.miscEquipmentTypes,
+  ...SKJAALD.armorTypes
 };
 preLocalize("equipmentTypes", { sort: true });
 
@@ -23671,11 +23671,11 @@ preLocalize("equipmentTypes", { sort: true });
  * The various types of vehicles in which characters can be proficient.
  * @enum {string}
  */
-DND5E.vehicleTypes = {
-  air: "DND5E.VehicleTypeAir",
-  land: "DND5E.VehicleTypeLand",
-  space: "DND5E.VehicleTypeSpace",
-  water: "DND5E.VehicleTypeWater"
+SKJAALD.vehicleTypes = {
+  air: "SKJAALD.VehicleTypeAir",
+  land: "SKJAALD.VehicleTypeLand",
+  space: "SKJAALD.VehicleTypeSpace",
+  water: "SKJAALD.VehicleTypeWater"
 };
 preLocalize("vehicleTypes", { sort: true });
 
@@ -23685,20 +23685,20 @@ preLocalize("vehicleTypes", { sort: true });
  * The set of Armor Proficiencies which a character may have.
  * @type {object}
  */
-DND5E.armorProficiencies = {
-  lgt: "DND5E.ArmorLightProficiency",
-  med: "DND5E.ArmorMediumProficiency",
-  hvy: "DND5E.ArmorHeavyProficiency",
-  shl: "DND5E.EquipmentShieldProficiency"
+SKJAALD.armorProficiencies = {
+  lgt: "SKJAALD.ArmorLightProficiency",
+  med: "SKJAALD.ArmorMediumProficiency",
+  hvy: "SKJAALD.ArmorHeavyProficiency",
+  shl: "SKJAALD.EquipmentShieldProficiency"
 };
 preLocalize("armorProficiencies");
 
 /**
- * A mapping between `DND5E.equipmentTypes` and `DND5E.armorProficiencies` that
+ * A mapping between `SKJAALD.equipmentTypes` and `SKJAALD.armorProficiencies` that
  * is used to determine if character has proficiency when adding an item.
  * @enum {(boolean|string)}
  */
-DND5E.armorProficienciesMap = {
+SKJAALD.armorProficienciesMap = {
   natural: true,
   clothing: true,
   light: "lgt",
@@ -23712,7 +23712,7 @@ DND5E.armorProficienciesMap = {
  * automated AC calculation in NPCs, and starting equipment.
  * @enum {string}
  */
-DND5E.armorIds = {
+SKJAALD.armorIds = {
   breastplate: "SK2HATQ4abKUlV8i",
   chainmail: "rLMflzmxpe8JGTOA",
   chainshirt: "p2zChy24ZJdVqMSH",
@@ -23731,7 +23731,7 @@ DND5E.armorIds = {
  * The basic shield in 5e.
  * @enum {string}
  */
-DND5E.shieldIds = {
+SKJAALD.shieldIds = {
   shield: "sSs3hSzkKBMNBgTs"
 };
 
@@ -23739,37 +23739,37 @@ DND5E.shieldIds = {
  * Common armor class calculations.
  * @enum {{ label: string, [formula]: string }}
  */
-DND5E.armorClasses = {
+SKJAALD.armorClasses = {
   flat: {
-    label: "DND5E.ArmorClassFlat",
+    label: "SKJAALD.ArmorClassFlat",
     formula: "@attributes.ac.flat"
   },
   natural: {
-    label: "DND5E.ArmorClassNatural",
+    label: "SKJAALD.ArmorClassNatural",
     formula: "@attributes.ac.flat"
   },
   default: {
-    label: "DND5E.ArmorClassEquipment",
+    label: "SKJAALD.ArmorClassEquipment",
     formula: "@attributes.ac.armor + @attributes.ac.dex"
   },
   mage: {
-    label: "DND5E.ArmorClassMage",
+    label: "SKJAALD.ArmorClassMage",
     formula: "13 + @abilities.dex.mod"
   },
   draconic: {
-    label: "DND5E.ArmorClassDraconic",
+    label: "SKJAALD.ArmorClassDraconic",
     formula: "13 + @abilities.dex.mod"
   },
   unarmoredMonk: {
-    label: "DND5E.ArmorClassUnarmoredMonk",
+    label: "SKJAALD.ArmorClassUnarmoredMonk",
     formula: "10 + @abilities.dex.mod + @abilities.wis.mod"
   },
   unarmoredBarb: {
-    label: "DND5E.ArmorClassUnarmoredBarbarian",
+    label: "SKJAALD.ArmorClassUnarmoredBarbarian",
     formula: "10 + @abilities.dex.mod + @abilities.con.mod"
   },
   custom: {
-    label: "DND5E.ArmorClassCustom"
+    label: "SKJAALD.ArmorClassCustom"
   }
 };
 preLocalize("armorClasses", { key: "label" });
@@ -23788,42 +23788,42 @@ preLocalize("armorClasses", { key: "label" });
  * Enumerate the valid consumable types which are recognized by the system.
  * @enum {SubtypeTypeConfiguration}
  */
-DND5E.consumableTypes = {
+SKJAALD.consumableTypes = {
   ammo: {
-    label: "DND5E.ConsumableAmmo",
+    label: "SKJAALD.ConsumableAmmo",
     subtypes: {
-      arrow: "DND5E.ConsumableAmmoArrow",
-      blowgunNeedle: "DND5E.ConsumableAmmoBlowgunNeedle",
-      crossbowBolt: "DND5E.ConsumableAmmoCrossbowBolt",
-      slingBullet: "DND5E.ConsumableAmmoSlingBullet"
+      arrow: "SKJAALD.ConsumableAmmoArrow",
+      blowgunNeedle: "SKJAALD.ConsumableAmmoBlowgunNeedle",
+      crossbowBolt: "SKJAALD.ConsumableAmmoCrossbowBolt",
+      slingBullet: "SKJAALD.ConsumableAmmoSlingBullet"
     }
   },
   potion: {
-    label: "DND5E.ConsumablePotion"
+    label: "SKJAALD.ConsumablePotion"
   },
   poison: {
-    label: "DND5E.ConsumablePoison",
+    label: "SKJAALD.ConsumablePoison",
     subtypes: {
-      contact: "DND5E.ConsumablePoisonContact",
-      ingested: "DND5E.ConsumablePoisonIngested",
-      inhaled: "DND5E.ConsumablePoisonInhaled",
-      injury: "DND5E.ConsumablePoisonInjury"
+      contact: "SKJAALD.ConsumablePoisonContact",
+      ingested: "SKJAALD.ConsumablePoisonIngested",
+      inhaled: "SKJAALD.ConsumablePoisonInhaled",
+      injury: "SKJAALD.ConsumablePoisonInjury"
     }
   },
   food: {
-    label: "DND5E.ConsumableFood"
+    label: "SKJAALD.ConsumableFood"
   },
   scroll: {
-    label: "DND5E.ConsumableScroll"
+    label: "SKJAALD.ConsumableScroll"
   },
   wand: {
-    label: "DND5E.ConsumableWand"
+    label: "SKJAALD.ConsumableWand"
   },
   rod: {
-    label: "DND5E.ConsumableRod"
+    label: "SKJAALD.ConsumableRod"
   },
   trinket: {
-    label: "DND5E.ConsumableTrinket"
+    label: "SKJAALD.ConsumableTrinket"
   }
 };
 preLocalize("consumableTypes", { key: "label", sort: true });
@@ -23836,7 +23836,7 @@ preLocalize("consumableTypes.poison.subtypes", { sort: true });
  * Types of containers.
  * @enum {string}
  */
-DND5E.containerTypes = {
+SKJAALD.containerTypes = {
   backpack: "H8YCd689ezlD26aT",
   barrel: "7Yqbqg5EtVW16wfT",
   basket: "Wv7HzD6dv1P0q78N",
@@ -23871,9 +23871,9 @@ DND5E.containerTypes = {
  * Type of spellcasting foci.
  * @enum {SpellcastingFocusConfiguration}
  */
-DND5E.focusTypes = {
+SKJAALD.focusTypes = {
   arcane: {
-    label: "DND5E.Focus.Arcane",
+    label: "SKJAALD.Focus.Arcane",
     itemIds: {
       crystal: "uXOT4fYbgPY8DGdd",
       orb: "tH5Rn0JVRG1zdmPa",
@@ -23883,7 +23883,7 @@ DND5E.focusTypes = {
     }
   },
   druidic: {
-    label: "DND5E.Focus.Druidic",
+    label: "SKJAALD.Focus.Druidic",
     itemIds: {
       mistletoe: "xDK9GQd2iqOGH8Sd",
       totem: "PGL6aaM0wE5h0VN5",
@@ -23892,7 +23892,7 @@ DND5E.focusTypes = {
     }
   },
   holy: {
-    label: "DND5E.Focus.Holy",
+    label: "SKJAALD.Focus.Holy",
     itemIds: {
       amulet: "paqlMjggWkBIAeCe",
       emblem: "laVqttkGMW4B9654",
@@ -23908,53 +23908,53 @@ preLocalize("focusTypes", { key: "label" });
  * Types of "features" items.
  * @enum {SubtypeTypeConfiguration}
  */
-DND5E.featureTypes = {
+SKJAALD.featureTypes = {
   background: {
-    label: "DND5E.Feature.Background"
+    label: "SKJAALD.Feature.Background"
   },
   class: {
-    label: "DND5E.Feature.Class.Label",
+    label: "SKJAALD.Feature.Class.Label",
     subtypes: {
-      arcaneShot: "DND5E.Feature.Class.ArcaneShot",
-      artificerInfusion: "DND5E.Feature.Class.ArtificerInfusion",
-      channelDivinity: "DND5E.Feature.Class.ChannelDivinity",
-      defensiveTactic: "DND5E.Feature.Class.DefensiveTactic",
-      eldritchInvocation: "DND5E.Feature.Class.EldritchInvocation",
-      elementalDiscipline: "DND5E.Feature.Class.ElementalDiscipline",
-      fightingStyle: "DND5E.Feature.Class.FightingStyle",
-      huntersPrey: "DND5E.Feature.Class.HuntersPrey",
-      ki: "DND5E.Feature.Class.Ki",
-      maneuver: "DND5E.Feature.Class.Maneuver",
-      metamagic: "DND5E.Feature.Class.Metamagic",
-      multiattack: "DND5E.Feature.Class.Multiattack",
-      pact: "DND5E.Feature.Class.PactBoon",
-      psionicPower: "DND5E.Feature.Class.PsionicPower",
-      rune: "DND5E.Feature.Class.Rune",
-      superiorHuntersDefense: "DND5E.Feature.Class.SuperiorHuntersDefense"
+      arcaneShot: "SKJAALD.Feature.Class.ArcaneShot",
+      artificerInfusion: "SKJAALD.Feature.Class.ArtificerInfusion",
+      channelDivinity: "SKJAALD.Feature.Class.ChannelDivinity",
+      defensiveTactic: "SKJAALD.Feature.Class.DefensiveTactic",
+      eldritchInvocation: "SKJAALD.Feature.Class.EldritchInvocation",
+      elementalDiscipline: "SKJAALD.Feature.Class.ElementalDiscipline",
+      fightingStyle: "SKJAALD.Feature.Class.FightingStyle",
+      huntersPrey: "SKJAALD.Feature.Class.HuntersPrey",
+      ki: "SKJAALD.Feature.Class.Ki",
+      maneuver: "SKJAALD.Feature.Class.Maneuver",
+      metamagic: "SKJAALD.Feature.Class.Metamagic",
+      multiattack: "SKJAALD.Feature.Class.Multiattack",
+      pact: "SKJAALD.Feature.Class.PactBoon",
+      psionicPower: "SKJAALD.Feature.Class.PsionicPower",
+      rune: "SKJAALD.Feature.Class.Rune",
+      superiorHuntersDefense: "SKJAALD.Feature.Class.SuperiorHuntersDefense"
     }
   },
   monster: {
-    label: "DND5E.Feature.Monster"
+    label: "SKJAALD.Feature.Monster"
   },
   race: {
-    label: "DND5E.Feature.Race"
+    label: "SKJAALD.Feature.Race"
   },
   enchantment: {
-    label: "DND5E.Enchantment.Label",
+    label: "SKJAALD.Enchantment.Label",
     subtypes: {
-      artificerInfusion: "DND5E.Feature.Class.ArtificerInfusion",
-      rune: "DND5E.Feature.Class.Rune"
+      artificerInfusion: "SKJAALD.Feature.Class.ArtificerInfusion",
+      rune: "SKJAALD.Feature.Class.Rune"
     }
   },
   feat: {
-    label: "DND5E.Feature.Feat"
+    label: "SKJAALD.Feature.Feat"
   },
   supernaturalGift: {
-    label: "DND5E.Feature.SupernaturalGift.Label",
+    label: "SKJAALD.Feature.SupernaturalGift.Label",
     subtypes: {
-      blessing: "DND5E.Feature.SupernaturalGift.Blessing",
-      charm: "DND5E.Feature.SupernaturalGift.Charm",
-      epicBoon: "DND5E.Feature.SupernaturalGift.EpicBoon"
+      blessing: "SKJAALD.Feature.SupernaturalGift.Blessing",
+      charm: "SKJAALD.Feature.SupernaturalGift.Charm",
+      epicBoon: "SKJAALD.Feature.SupernaturalGift.EpicBoon"
     }
   }
 };
@@ -23981,96 +23981,96 @@ preLocalize("featureTypes.supernaturalGift.subtypes", { sort: true });
  * The various properties of all item types.
  * @enum {ItemPropertyConfiguration}
  */
-DND5E.itemProperties = {
+SKJAALD.itemProperties = {
   ada: {
-    label: "DND5E.Item.Property.Adamantine",
+    label: "SKJAALD.Item.Property.Adamantine",
     isPhysical: true
   },
   amm: {
-    label: "DND5E.Item.Property.Ammunition"
+    label: "SKJAALD.Item.Property.Ammunition"
   },
   concentration: {
-    label: "DND5E.Item.Property.Concentration",
-    abbreviation: "DND5E.ConcentrationAbbr",
-    icon: "systems/dnd5e/icons/svg/statuses/concentrating.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH",
+    label: "SKJAALD.Item.Property.Concentration",
+    abbreviation: "SKJAALD.ConcentrationAbbr",
+    icon: "systems/skjaald/icons/svg/statuses/concentrating.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH",
     isTag: true
   },
   fin: {
-    label: "DND5E.Item.Property.Finesse"
+    label: "SKJAALD.Item.Property.Finesse"
   },
   fir: {
-    label: "DND5E.Item.Property.Firearm"
+    label: "SKJAALD.Item.Property.Firearm"
   },
   foc: {
-    label: "DND5E.Item.Property.Focus"
+    label: "SKJAALD.Item.Property.Focus"
   },
   hvy: {
-    label: "DND5E.Item.Property.Heavy"
+    label: "SKJAALD.Item.Property.Heavy"
   },
   lgt: {
-    label: "DND5E.Item.Property.Light"
+    label: "SKJAALD.Item.Property.Light"
   },
   lod: {
-    label: "DND5E.Item.Property.Loading"
+    label: "SKJAALD.Item.Property.Loading"
   },
   material: {
-    label: "DND5E.Item.Property.Material",
-    abbreviation: "DND5E.ComponentMaterialAbbr",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AeH5eDS4YeM9RETC"
+    label: "SKJAALD.Item.Property.Material",
+    abbreviation: "SKJAALD.ComponentMaterialAbbr",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AeH5eDS4YeM9RETC"
   },
   mgc: {
-    label: "DND5E.Item.Property.Magical",
-    icon: "systems/dnd5e/icons/svg/properties/magical.svg",
+    label: "SKJAALD.Item.Property.Magical",
+    icon: "systems/skjaald/icons/svg/properties/magical.svg",
     isPhysical: true
   },
   rch: {
-    label: "DND5E.Item.Property.Reach"
+    label: "SKJAALD.Item.Property.Reach"
   },
   rel: {
-    label: "DND5E.Item.Property.Reload"
+    label: "SKJAALD.Item.Property.Reload"
   },
   ret: {
-    label: "DND5E.Item.Property.Returning"
+    label: "SKJAALD.Item.Property.Returning"
   },
   ritual: {
-    label: "DND5E.Item.Property.Ritual",
-    abbreviation: "DND5E.RitualAbbr",
-    icon: "systems/dnd5e/icons/svg/items/spell.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA",
+    label: "SKJAALD.Item.Property.Ritual",
+    abbreviation: "SKJAALD.RitualAbbr",
+    icon: "systems/skjaald/icons/svg/items/spell.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA",
     isTag: true
   },
   sil: {
-    label: "DND5E.Item.Property.Silvered",
+    label: "SKJAALD.Item.Property.Silvered",
     isPhysical: true
   },
   somatic: {
-    label: "DND5E.Item.Property.Somatic",
-    abbreviation: "DND5E.ComponentSomaticAbbr",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qwUNgUNilEmZkSC9"
+    label: "SKJAALD.Item.Property.Somatic",
+    abbreviation: "SKJAALD.ComponentSomaticAbbr",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qwUNgUNilEmZkSC9"
   },
   spc: {
-    label: "DND5E.Item.Property.Special"
+    label: "SKJAALD.Item.Property.Special"
   },
   stealthDisadvantage: {
-    label: "DND5E.Item.Property.StealthDisadvantage"
+    label: "SKJAALD.Item.Property.StealthDisadvantage"
   },
   thr: {
-    label: "DND5E.Item.Property.Thrown"
+    label: "SKJAALD.Item.Property.Thrown"
   },
   two: {
-    label: "DND5E.Item.Property.TwoHanded"
+    label: "SKJAALD.Item.Property.TwoHanded"
   },
   ver: {
-    label: "DND5E.Item.Property.Versatile"
+    label: "SKJAALD.Item.Property.Versatile"
   },
   vocal: {
-    label: "DND5E.Item.Property.Verbal",
-    abbreviation: "DND5E.ComponentVerbalAbbr",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx"
+    label: "SKJAALD.Item.Property.Verbal",
+    abbreviation: "SKJAALD.ComponentVerbalAbbr",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx"
   },
   weightlessContents: {
-    label: "DND5E.Item.Property.WeightlessContents"
+    label: "SKJAALD.Item.Property.WeightlessContents"
   }
 };
 preLocalize("itemProperties", { keys: ["label", "abbreviation"], sort: true });
@@ -24081,7 +24081,7 @@ preLocalize("itemProperties", { keys: ["label", "abbreviation"], sort: true });
  * The various properties of an item per item type.
  * @enum {object}
  */
-DND5E.validProperties = {
+SKJAALD.validProperties = {
   consumable: new Set([
     "mgc"
   ]),
@@ -24146,27 +24146,27 @@ DND5E.validProperties = {
  * Types of "loot" items.
  * @enum {LootTypeConfiguration}
  */
-DND5E.lootTypes = {
+SKJAALD.lootTypes = {
   art: {
-    label: "DND5E.Loot.Art"
+    label: "SKJAALD.Loot.Art"
   },
   gear: {
-    label: "DND5E.Loot.Gear"
+    label: "SKJAALD.Loot.Gear"
   },
   gem: {
-    label: "DND5E.Loot.Gem"
+    label: "SKJAALD.Loot.Gem"
   },
   junk: {
-    label: "DND5E.Loot.Junk"
+    label: "SKJAALD.Loot.Junk"
   },
   material: {
-    label: "DND5E.Loot.Material"
+    label: "SKJAALD.Loot.Material"
   },
   resource: {
-    label: "DND5E.Loot.Resource"
+    label: "SKJAALD.Loot.Resource"
   },
   treasure: {
-    label: "DND5E.Loot.Treasure"
+    label: "SKJAALD.Loot.Treasure"
   }
 };
 preLocalize("lootTypes", { key: "label" });
@@ -24185,30 +24185,30 @@ preLocalize("lootTypes", { key: "label" });
  * The conversion number defines how many of that currency are equal to one GP.
  * @enum {CurrencyConfiguration}
  */
-DND5E.currencies = {
+SKJAALD.currencies = {
   pp: {
-    label: "DND5E.CurrencyPP",
-    abbreviation: "DND5E.CurrencyAbbrPP",
+    label: "SKJAALD.CurrencyPP",
+    abbreviation: "SKJAALD.CurrencyAbbrPP",
     conversion: 0.1
   },
   gp: {
-    label: "DND5E.CurrencyGP",
-    abbreviation: "DND5E.CurrencyAbbrGP",
+    label: "SKJAALD.CurrencyGP",
+    abbreviation: "SKJAALD.CurrencyAbbrGP",
     conversion: 1
   },
   ep: {
-    label: "DND5E.CurrencyEP",
-    abbreviation: "DND5E.CurrencyAbbrEP",
+    label: "SKJAALD.CurrencyEP",
+    abbreviation: "SKJAALD.CurrencyAbbrEP",
     conversion: 2
   },
   sp: {
-    label: "DND5E.CurrencySP",
-    abbreviation: "DND5E.CurrencyAbbrSP",
+    label: "SKJAALD.CurrencySP",
+    abbreviation: "SKJAALD.CurrencyAbbrSP",
     conversion: 10
   },
   cp: {
-    label: "DND5E.CurrencyCP",
-    abbreviation: "DND5E.CurrencyAbbrCP",
+    label: "SKJAALD.CurrencyCP",
+    abbreviation: "SKJAALD.CurrencyAbbrCP",
     conversion: 100
   }
 };
@@ -24233,86 +24233,86 @@ preLocalize("currencies", { keys: ["label", "abbreviation"] });
  * Types of damage the can be caused by abilities.
  * @enum {DamageTypeConfiguration}
  */
-DND5E.damageTypes = {
+SKJAALD.damageTypes = {
   acid: {
-    label: "DND5E.DamageAcid",
-    icon: "systems/dnd5e/icons/svg/damage/acid.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.IQhbKRPe1vCPdh8v",
+    label: "SKJAALD.DamageAcid",
+    icon: "systems/skjaald/icons/svg/damage/acid.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.IQhbKRPe1vCPdh8v",
     color: new Color(0x839D50)
   },
   bludgeoning: {
-    label: "DND5E.DamageBludgeoning",
-    icon: "systems/dnd5e/icons/svg/damage/bludgeoning.svg",
+    label: "SKJAALD.DamageBludgeoning",
+    icon: "systems/skjaald/icons/svg/damage/bludgeoning.svg",
     isPhysical: true,
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.39LFrlef94JIYO8m",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.39LFrlef94JIYO8m",
     color: new Color(0x0000A0)
   },
   cold: {
-    label: "DND5E.DamageCold",
-    icon: "systems/dnd5e/icons/svg/damage/cold.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4xsFUooHDEdfhw6g",
+    label: "SKJAALD.DamageCold",
+    icon: "systems/skjaald/icons/svg/damage/cold.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4xsFUooHDEdfhw6g",
     color: new Color(0xADD8E6)
   },
   fire: {
-    label: "DND5E.DamageFire",
-    icon: "systems/dnd5e/icons/svg/damage/fire.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.f1S66aQJi4PmOng6",
+    label: "SKJAALD.DamageFire",
+    icon: "systems/skjaald/icons/svg/damage/fire.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.f1S66aQJi4PmOng6",
     color: new Color(0xFF4500)
   },
   force: {
-    label: "DND5E.DamageForce",
-    icon: "systems/dnd5e/icons/svg/damage/force.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eFTWzngD8dKWQuUR",
+    label: "SKJAALD.DamageForce",
+    icon: "systems/skjaald/icons/svg/damage/force.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eFTWzngD8dKWQuUR",
     color: new Color(0x800080)
   },
   lightning: {
-    label: "DND5E.DamageLightning",
-    icon: "systems/dnd5e/icons/svg/damage/lightning.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9SaxFJ9bM3SutaMC",
+    label: "SKJAALD.DamageLightning",
+    icon: "systems/skjaald/icons/svg/damage/lightning.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9SaxFJ9bM3SutaMC",
     color: new Color(0x1E90FF)
   },
   necrotic: {
-    label: "DND5E.DamageNecrotic",
-    icon: "systems/dnd5e/icons/svg/damage/necrotic.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.klOVUV5G1U7iaKoG",
+    label: "SKJAALD.DamageNecrotic",
+    icon: "systems/skjaald/icons/svg/damage/necrotic.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.klOVUV5G1U7iaKoG",
     color: new Color(0x006400)
   },
   piercing: {
-    label: "DND5E.DamagePiercing",
-    icon: "systems/dnd5e/icons/svg/damage/piercing.svg",
+    label: "SKJAALD.DamagePiercing",
+    icon: "systems/skjaald/icons/svg/damage/piercing.svg",
     isPhysical: true,
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.95agSnEGTdAmKhyC",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.95agSnEGTdAmKhyC",
     color: new Color(0xC0C0C0)
   },
   poison: {
-    label: "DND5E.DamagePoison",
-    icon: "systems/dnd5e/icons/svg/damage/poison.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.k5wOYXdWPzcWwds1",
+    label: "SKJAALD.DamagePoison",
+    icon: "systems/skjaald/icons/svg/damage/poison.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.k5wOYXdWPzcWwds1",
     color: new Color(0x8A2BE2)
   },
   psychic: {
-    label: "DND5E.DamagePsychic",
-    icon: "systems/dnd5e/icons/svg/damage/psychic.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.YIKbDv4zYqbE5teJ",
+    label: "SKJAALD.DamagePsychic",
+    icon: "systems/skjaald/icons/svg/damage/psychic.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.YIKbDv4zYqbE5teJ",
     color: new Color(0xFF1493)
   },
   radiant: {
-    label: "DND5E.DamageRadiant",
-    icon: "systems/dnd5e/icons/svg/damage/radiant.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5tcK9buXWDOw8yHH",
+    label: "SKJAALD.DamageRadiant",
+    icon: "systems/skjaald/icons/svg/damage/radiant.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5tcK9buXWDOw8yHH",
     color: new Color(0xFFD700)
   },
   slashing: {
-    label: "DND5E.DamageSlashing",
-    icon: "systems/dnd5e/icons/svg/damage/slashing.svg",
+    label: "SKJAALD.DamageSlashing",
+    icon: "systems/skjaald/icons/svg/damage/slashing.svg",
     isPhysical: true,
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.sz2XKQ5lgsdPEJOa",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.sz2XKQ5lgsdPEJOa",
     color: new Color(0x8B0000)
   },
   thunder: {
-    label: "DND5E.DamageThunder",
-    icon: "systems/dnd5e/icons/svg/damage/thunder.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iqsmMHk7FSpiNkQy",
+    label: "SKJAALD.DamageThunder",
+    icon: "systems/skjaald/icons/svg/damage/thunder.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iqsmMHk7FSpiNkQy",
     color: new Color(0x708090)
   }
 };
@@ -24326,15 +24326,15 @@ preLocalize("damageTypes", { keys: ["label"], sort: true });
  * Different types of healing that can be applied using abilities.
  * @enum {string}
  */
-DND5E.healingTypes = {
+SKJAALD.healingTypes = {
   healing: {
-    label: "DND5E.Healing",
-    icon: "systems/dnd5e/icons/svg/damage/healing.svg",
+    label: "SKJAALD.Healing",
+    icon: "systems/skjaald/icons/svg/damage/healing.svg",
     color: new Color(0x46C252)
   },
   temphp: {
-    label: "DND5E.HealingTemp",
-    icon: "systems/dnd5e/icons/svg/damage/temphp.svg",
+    label: "SKJAALD.HealingTemp",
+    icon: "systems/skjaald/icons/svg/damage/temphp.svg",
     color: new Color(0x4B66DE)
   }
 };
@@ -24347,12 +24347,12 @@ preLocalize("healingTypes", { keys: ["label"] });
  * By default this uses the imperial units of feet and miles.
  * @enum {string}
  */
-DND5E.movementTypes = {
-  burrow: "DND5E.MovementBurrow",
-  climb: "DND5E.MovementClimb",
-  fly: "DND5E.MovementFly",
-  swim: "DND5E.MovementSwim",
-  walk: "DND5E.MovementWalk"
+SKJAALD.movementTypes = {
+  burrow: "SKJAALD.MovementBurrow",
+  climb: "SKJAALD.MovementClimb",
+  fly: "SKJAALD.MovementFly",
+  swim: "SKJAALD.MovementSwim",
+  walk: "SKJAALD.MovementWalk"
 };
 preLocalize("movementTypes", { sort: true });
 
@@ -24365,11 +24365,11 @@ preLocalize("movementTypes", { sort: true });
  * By default this uses the imperial units of feet and miles.
  * @enum {string}
  */
-DND5E.movementUnits = {
-  ft: "DND5E.DistFt",
-  mi: "DND5E.DistMi",
-  m: "DND5E.DistM",
-  km: "DND5E.DistKm"
+SKJAALD.movementUnits = {
+  ft: "SKJAALD.DistFt",
+  mi: "SKJAALD.DistMi",
+  m: "SKJAALD.DistM",
+  km: "SKJAALD.DistKm"
 };
 preLocalize("movementUnits");
 
@@ -24379,24 +24379,24 @@ preLocalize("movementUnits");
  * The types of range that are used for measuring actions and effects.
  * @enum {string}
  */
-DND5E.rangeTypes = {
-  self: "DND5E.DistSelf",
-  touch: "DND5E.DistTouch",
-  spec: "DND5E.Special",
-  any: "DND5E.DistAny"
+SKJAALD.rangeTypes = {
+  self: "SKJAALD.DistSelf",
+  touch: "SKJAALD.DistTouch",
+  spec: "SKJAALD.Special",
+  any: "SKJAALD.DistAny"
 };
 preLocalize("rangeTypes");
 
 /* -------------------------------------------- */
 
 /**
- * The valid units of measure for the range of an action or effect. A combination of `DND5E.movementUnits` and
- * `DND5E.rangeUnits`.
+ * The valid units of measure for the range of an action or effect. A combination of `SKJAALD.movementUnits` and
+ * `SKJAALD.rangeUnits`.
  * @enum {string}
  */
-DND5E.distanceUnits = {
-  ...DND5E.movementUnits,
-  ...DND5E.rangeTypes
+SKJAALD.distanceUnits = {
+  ...SKJAALD.movementUnits,
+  ...SKJAALD.rangeTypes
 };
 preLocalize("distanceUnits");
 
@@ -24416,28 +24416,28 @@ preLocalize("distanceUnits");
  * The valid units for measurement of weight.
  * @enum {WeightUnitConfiguration}
  */
-DND5E.weightUnits = {
+SKJAALD.weightUnits = {
   lb: {
-    label: "DND5E.WeightUnit.Pounds.Label",
-    abbreviation: "DND5E.WeightUnit.Pounds.Abbreviation",
+    label: "SKJAALD.WeightUnit.Pounds.Label",
+    abbreviation: "SKJAALD.WeightUnit.Pounds.Abbreviation",
     conversion: 1,
     type: "imperial"
   },
   tn: {
-    label: "DND5E.WeightUnit.Tons.Label",
-    abbreviation: "DND5E.WeightUnit.Tons.Abbreviation",
+    label: "SKJAALD.WeightUnit.Tons.Label",
+    abbreviation: "SKJAALD.WeightUnit.Tons.Abbreviation",
     conversion: 2000,
     type: "imperial"
   },
   kg: {
-    label: "DND5E.WeightUnit.Kilograms.Label",
-    abbreviation: "DND5E.WeightUnit.Kilograms.Abbreviation",
+    label: "SKJAALD.WeightUnit.Kilograms.Label",
+    abbreviation: "SKJAALD.WeightUnit.Kilograms.Abbreviation",
     conversion: 2.5,
     type: "metric"
   },
   Mg: {
-    label: "DND5E.WeightUnit.Megagrams.Label",
-    abbreviation: "DND5E.WeightUnit.Megagrams.Abbreviation",
+    label: "SKJAALD.WeightUnit.Megagrams.Label",
+    abbreviation: "SKJAALD.WeightUnit.Megagrams.Abbreviation",
     conversion: 2500,
     type: "metric"
   }
@@ -24465,23 +24465,23 @@ preLocalize("weightUnits", { keys: ["label", "abbreviation"] });
  * Configure aspects of encumbrance calculation so that it could be configured by modules.
  * @type {EncumbranceConfiguration}
  */
-DND5E.encumbrance = {
+SKJAALD.encumbrance = {
   currencyPerWeight: {
     imperial: 50,
     metric: 110
   },
   effects: {
     encumbered: {
-      name: "EFFECT.DND5E.StatusEncumbered",
-      icon: "systems/dnd5e/icons/svg/statuses/encumbered.svg"
+      name: "EFFECT.SKJAALD.StatusEncumbered",
+      icon: "systems/skjaald/icons/svg/statuses/encumbered.svg"
     },
     heavilyEncumbered: {
-      name: "EFFECT.DND5E.StatusHeavilyEncumbered",
-      icon: "systems/dnd5e/icons/svg/statuses/heavily-encumbered.svg"
+      name: "EFFECT.SKJAALD.StatusHeavilyEncumbered",
+      icon: "systems/skjaald/icons/svg/statuses/heavily-encumbered.svg"
     },
     exceedingCarryingCapacity: {
-      name: "EFFECT.DND5E.StatusExceedingCarryingCapacity",
-      icon: "systems/dnd5e/icons/svg/statuses/exceeding-carrying-capacity.svg"
+      name: "EFFECT.SKJAALD.StatusExceedingCarryingCapacity",
+      icon: "systems/skjaald/icons/svg/statuses/exceeding-carrying-capacity.svg"
     }
   },
   threshold: {
@@ -24533,16 +24533,16 @@ preLocalize("encumbrance.effects", { key: "name" });
  * Targeting types that apply to one or more distinct targets.
  * @enum {string}
  */
-DND5E.individualTargetTypes = {
-  self: "DND5E.TargetSelf",
-  ally: "DND5E.TargetAlly",
-  enemy: "DND5E.TargetEnemy",
-  creature: "DND5E.TargetCreature",
-  object: "DND5E.TargetObject",
-  space: "DND5E.TargetSpace",
-  creatureOrObject: "DND5E.TargetCreatureOrObject",
-  any: "DND5E.TargetAny",
-  willing: "DND5E.TargetWilling"
+SKJAALD.individualTargetTypes = {
+  self: "SKJAALD.TargetSelf",
+  ally: "SKJAALD.TargetAlly",
+  enemy: "SKJAALD.TargetEnemy",
+  creature: "SKJAALD.TargetCreature",
+  object: "SKJAALD.TargetObject",
+  space: "SKJAALD.TargetSpace",
+  creatureOrObject: "SKJAALD.TargetCreatureOrObject",
+  any: "SKJAALD.TargetAny",
+  willing: "SKJAALD.TargetWilling"
 };
 preLocalize("individualTargetTypes");
 
@@ -24561,42 +24561,42 @@ preLocalize("individualTargetTypes");
  * Targeting types that cover an area.
  * @enum {AreaTargetDefinition}
  */
-DND5E.areaTargetTypes = {
+SKJAALD.areaTargetTypes = {
   radius: {
-    label: "DND5E.TargetRadius",
+    label: "SKJAALD.TargetRadius",
     template: "circle"
   },
   sphere: {
-    label: "DND5E.TargetSphere",
+    label: "SKJAALD.TargetSphere",
     template: "circle",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.npdEWb2egUPnB5Fa"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.npdEWb2egUPnB5Fa"
   },
   cylinder: {
-    label: "DND5E.TargetCylinder",
+    label: "SKJAALD.TargetCylinder",
     template: "circle",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jZFp4R7tXsIqkiG3"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jZFp4R7tXsIqkiG3"
   },
   cone: {
-    label: "DND5E.TargetCone",
+    label: "SKJAALD.TargetCone",
     template: "cone",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DqqAOr5JnX71OCOw"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DqqAOr5JnX71OCOw"
   },
   square: {
-    label: "DND5E.TargetSquare",
+    label: "SKJAALD.TargetSquare",
     template: "rect"
   },
   cube: {
-    label: "DND5E.TargetCube",
+    label: "SKJAALD.TargetCube",
     template: "rect",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.dRfDIwuaHmUQ06uA"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.dRfDIwuaHmUQ06uA"
   },
   line: {
-    label: "DND5E.TargetLine",
+    label: "SKJAALD.TargetLine",
     template: "ray",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6DOoBgg7okm9gBc6"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6DOoBgg7okm9gBc6"
   },
   wall: {
-    label: "DND5E.TargetWall",
+    label: "SKJAALD.TargetWall",
     template: "ray"
   }
 };
@@ -24608,9 +24608,9 @@ preLocalize("areaTargetTypes", { key: "label", sort: true });
  * The types of single or area targets which can be applied to abilities.
  * @enum {string}
  */
-DND5E.targetTypes = {
-  ...DND5E.individualTargetTypes,
-  ...Object.fromEntries(Object.entries(DND5E.areaTargetTypes).map(([k, v]) => [k, v.label]))
+SKJAALD.targetTypes = {
+  ...SKJAALD.individualTargetTypes,
+  ...Object.fromEntries(Object.entries(SKJAALD.areaTargetTypes).map(([k, v]) => [k, v.label]))
 };
 preLocalize("targetTypes", { sort: true });
 
@@ -24620,7 +24620,7 @@ preLocalize("targetTypes", { sort: true });
  * Denominations of hit dice which can apply to classes.
  * @type {string[]}
  */
-DND5E.hitDieTypes = ["d4", "d6", "d8", "d10", "d12"];
+SKJAALD.hitDieTypes = ["d4", "d6", "d8", "d10", "d12"];
 
 /* -------------------------------------------- */
 
@@ -24635,7 +24635,7 @@ DND5E.hitDieTypes = ["d4", "d6", "d8", "d10", "d12"];
  * Types of rests.
  * @enum {RestConfiguration}
  */
-DND5E.restTypes = {
+SKJAALD.restTypes = {
   short: {
     duration: {
       normal: 60,
@@ -24658,11 +24658,11 @@ DND5E.restTypes = {
  * The set of possible sensory perception types which an Actor may have.
  * @enum {string}
  */
-DND5E.senses = {
-  blindsight: "DND5E.SenseBlindsight",
-  darkvision: "DND5E.SenseDarkvision",
-  tremorsense: "DND5E.SenseTremorsense",
-  truesight: "DND5E.SenseTruesight"
+SKJAALD.senses = {
+  blindsight: "SKJAALD.SenseBlindsight",
+  darkvision: "SKJAALD.SenseDarkvision",
+  tremorsense: "SKJAALD.SenseTremorsense",
+  truesight: "SKJAALD.SenseTruesight"
 };
 preLocalize("senses", { sort: true });
 
@@ -24675,7 +24675,7 @@ preLocalize("senses", { sort: true });
  * The entries of this array represent the spell slot progression for a full spell-caster.
  * @type {number[][]}
  */
-DND5E.SPELL_SLOT_TABLE = [
+SKJAALD.SPELL_SLOT_TABLE = [
   [2],
   [3],
   [4, 2],
@@ -24712,7 +24712,7 @@ DND5E.SPELL_SLOT_TABLE = [
  * Define the pact slot & level progression by pact caster level.
  * @enum {PactProgressionConfig}
  */
-DND5E.pactCastingProgression = {
+SKJAALD.pactCastingProgression = {
   1: { slots: 1, level: 1 },
   2: { slots: 2, level: 1 },
   3: { slots: 2, level: 2 },
@@ -24740,47 +24740,47 @@ DND5E.pactCastingProgression = {
  * Various different ways a spell can be prepared.
  * @enum {SpellPreparationModeConfiguration}
  */
-DND5E.spellPreparationModes = {
+SKJAALD.spellPreparationModes = {
   prepared: {
-    label: "DND5E.SpellPrepPrepared",
+    label: "SKJAALD.SpellPrepPrepared",
     upcast: true,
     prepares: true
   },
   pact: {
-    label: "DND5E.PactMagic",
+    label: "SKJAALD.PactMagic",
     upcast: true,
     cantrips: true,
     order: 0.5
   },
   always: {
-    label: "DND5E.SpellPrepAlways",
+    label: "SKJAALD.SpellPrepAlways",
     upcast: true,
     prepares: true
   },
   atwill: {
-    label: "DND5E.SpellPrepAtWill",
+    label: "SKJAALD.SpellPrepAtWill",
     order: -30
   },
   innate: {
-    label: "DND5E.SpellPrepInnate",
+    label: "SKJAALD.SpellPrepInnate",
     order: -20
   },
   ritual: {
-    label: "DND5E.SpellPrepRitual",
+    label: "SKJAALD.SpellPrepRitual",
     order: -10
   }
 };
 preLocalize("spellPreparationModes", { key: "label" });
-patchConfig("spellPreparationModes", "label", { since: "DnD5e 3.1", until: "DnD5e 3.3" });
+patchConfig("spellPreparationModes", "label", { since: "Skjaald 3.1", until: "Skjaald 3.3" });
 
 /* -------------------------------------------- */
 
 /**
- * Subset of `DND5E.spellPreparationModes` that consume spell slots.
- * @deprecated since DnD5e 3.1, available until DnD5e 3.3
+ * Subset of `SKJAALD.spellPreparationModes` that consume spell slots.
+ * @deprecated since Skjaald 3.1, available until Skjaald 3.3
  * @type {string[]}
  */
-DND5E.spellUpcastModes = ["always", "pact", "prepared"];
+SKJAALD.spellUpcastModes = ["always", "pact", "prepared"];
 
 /* -------------------------------------------- */
 
@@ -24807,32 +24807,32 @@ DND5E.spellUpcastModes = ["always", "pact", "prepared"];
  * Different spellcasting types and their progression.
  * @type {SpellcastingTypeConfiguration}
  */
-DND5E.spellcastingTypes = {
+SKJAALD.spellcastingTypes = {
   leveled: {
-    label: "DND5E.SpellProgLeveled",
-    img: "systems/dnd5e/icons/spell-tiers/{id}.webp",
+    label: "SKJAALD.SpellProgLeveled",
+    img: "systems/skjaald/icons/spell-tiers/{id}.webp",
     progression: {
       full: {
-        label: "DND5E.SpellProgFull",
+        label: "SKJAALD.SpellProgFull",
         divisor: 1
       },
       half: {
-        label: "DND5E.SpellProgHalf",
+        label: "SKJAALD.SpellProgHalf",
         divisor: 2
       },
       third: {
-        label: "DND5E.SpellProgThird",
+        label: "SKJAALD.SpellProgThird",
         divisor: 3
       },
       artificer: {
-        label: "DND5E.SpellProgArt",
+        label: "SKJAALD.SpellProgArt",
         divisor: 2,
         roundUp: true
       }
     }
   },
   pact: {
-    label: "DND5E.SpellProgPact",
+    label: "SKJAALD.SpellProgPact",
     img: "icons/magic/unholy/silhouette-robe-evil-power.webp",
     shortRest: true
   }
@@ -24846,13 +24846,13 @@ preLocalize("spellcastingTypes.leveled.progression", { key: "label" });
  * Ways in which a class can contribute to spellcasting levels.
  * @enum {string}
  */
-DND5E.spellProgression = {
-  none: "DND5E.SpellNone",
-  full: "DND5E.SpellProgFull",
-  half: "DND5E.SpellProgHalf",
-  third: "DND5E.SpellProgThird",
-  pact: "DND5E.SpellProgPact",
-  artificer: "DND5E.SpellProgArt"
+SKJAALD.spellProgression = {
+  none: "SKJAALD.SpellNone",
+  full: "SKJAALD.SpellProgFull",
+  half: "SKJAALD.SpellProgHalf",
+  third: "SKJAALD.SpellProgThird",
+  pact: "SKJAALD.SpellProgPact",
+  artificer: "SKJAALD.SpellProgArt"
 };
 preLocalize("spellProgression", { key: "label" });
 
@@ -24862,17 +24862,17 @@ preLocalize("spellProgression", { key: "label" });
  * Valid spell levels.
  * @enum {string}
  */
-DND5E.spellLevels = {
-  0: "DND5E.SpellLevel0",
-  1: "DND5E.SpellLevel1",
-  2: "DND5E.SpellLevel2",
-  3: "DND5E.SpellLevel3",
-  4: "DND5E.SpellLevel4",
-  5: "DND5E.SpellLevel5",
-  6: "DND5E.SpellLevel6",
-  7: "DND5E.SpellLevel7",
-  8: "DND5E.SpellLevel8",
-  9: "DND5E.SpellLevel9"
+SKJAALD.spellLevels = {
+  0: "SKJAALD.SpellLevel0",
+  1: "SKJAALD.SpellLevel1",
+  2: "SKJAALD.SpellLevel2",
+  3: "SKJAALD.SpellLevel3",
+  4: "SKJAALD.SpellLevel4",
+  5: "SKJAALD.SpellLevel5",
+  6: "SKJAALD.SpellLevel6",
+  7: "SKJAALD.SpellLevel7",
+  8: "SKJAALD.SpellLevel8",
+  9: "SKJAALD.SpellLevel9"
 };
 preLocalize("spellLevels");
 
@@ -24882,10 +24882,10 @@ preLocalize("spellLevels");
  * The available choices for how spell damage scaling may be computed.
  * @enum {string}
  */
-DND5E.spellScalingModes = {
-  none: "DND5E.SpellNone",
-  cantrip: "DND5E.SpellCantrip",
-  level: "DND5E.SpellLevel"
+SKJAALD.spellScalingModes = {
+  none: "SKJAALD.SpellNone",
+  cantrip: "SKJAALD.SpellCantrip",
+  level: "SKJAALD.SpellLevel"
 };
 preLocalize("spellScalingModes", { sort: true });
 
@@ -24902,24 +24902,24 @@ preLocalize("spellScalingModes", { sort: true });
 
 /**
  * Types of components that can be required when casting a spell.
- * @deprecated since DnD5e 3.0, available until DnD5e 3.3
+ * @deprecated since Skjaald 3.0, available until Skjaald 3.3
  * @enum {SpellComponentConfiguration}
  */
-DND5E.spellComponents = {
+SKJAALD.spellComponents = {
   vocal: {
-    label: "DND5E.ComponentVerbal",
-    abbr: "DND5E.ComponentVerbalAbbr",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx"
+    label: "SKJAALD.ComponentVerbal",
+    abbr: "SKJAALD.ComponentVerbalAbbr",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx"
   },
   somatic: {
-    label: "DND5E.ComponentSomatic",
-    abbr: "DND5E.ComponentSomaticAbbr",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qwUNgUNilEmZkSC9"
+    label: "SKJAALD.ComponentSomatic",
+    abbr: "SKJAALD.ComponentSomaticAbbr",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qwUNgUNilEmZkSC9"
   },
   material: {
-    label: "DND5E.ComponentMaterial",
-    abbr: "DND5E.ComponentMaterialAbbr",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AeH5eDS4YeM9RETC"
+    label: "SKJAALD.ComponentMaterial",
+    abbr: "SKJAALD.ComponentMaterialAbbr",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AeH5eDS4YeM9RETC"
   }
 };
 preLocalize("spellComponents", { keys: ["label", "abbr"] });
@@ -24938,21 +24938,21 @@ preLocalize("spellComponents", { keys: ["label", "abbr"] });
 
 /**
  * Supplementary rules keywords that inform a spell's use.
- * @deprecated since DnD5e 3.0, available until DnD5e 3.3
+ * @deprecated since Skjaald 3.0, available until Skjaald 3.3
  * @enum {SpellTagConfiguration}
  */
-DND5E.spellTags = {
+SKJAALD.spellTags = {
   concentration: {
-    label: "DND5E.Concentration",
-    abbr: "DND5E.ConcentrationAbbr",
-    icon: "systems/dnd5e/icons/svg/statuses/concentrating.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH"
+    label: "SKJAALD.Concentration",
+    abbr: "SKJAALD.ConcentrationAbbr",
+    icon: "systems/skjaald/icons/svg/statuses/concentrating.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH"
   },
   ritual: {
-    label: "DND5E.Ritual",
-    abbr: "DND5E.RitualAbbr",
-    icon: "systems/dnd5e/icons/svg/items/spell.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA"
+    label: "SKJAALD.Ritual",
+    abbr: "SKJAALD.RitualAbbr",
+    icon: "systems/skjaald/icons/svg/items/spell.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA"
   }
 };
 preLocalize("spellTags", { keys: ["label", "abbr"] });
@@ -24973,54 +24973,54 @@ preLocalize("spellTags", { keys: ["label", "abbr"] });
  * Schools to which a spell can belong.
  * @enum {SpellSchoolConfiguration}
  */
-DND5E.spellSchools = {
+SKJAALD.spellSchools = {
   abj: {
-    label: "DND5E.SchoolAbj",
-    icon: "systems/dnd5e/icons/svg/schools/abjuration.svg",
+    label: "SKJAALD.SchoolAbj",
+    icon: "systems/skjaald/icons/svg/schools/abjuration.svg",
     fullKey: "abjuration",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.849AYEWw9FHD6JNz"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.849AYEWw9FHD6JNz"
   },
   con: {
-    label: "DND5E.SchoolCon",
-    icon: "systems/dnd5e/icons/svg/schools/conjuration.svg",
+    label: "SKJAALD.SchoolCon",
+    icon: "systems/skjaald/icons/svg/schools/conjuration.svg",
     fullKey: "conjuration",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TWyKMhZJZGqQ6uls"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TWyKMhZJZGqQ6uls"
   },
   div: {
-    label: "DND5E.SchoolDiv",
-    icon: "systems/dnd5e/icons/svg/schools/divination.svg",
+    label: "SKJAALD.SchoolDiv",
+    icon: "systems/skjaald/icons/svg/schools/divination.svg",
     fullKey: "divination",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HoD2MwzmVbMqj9se"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HoD2MwzmVbMqj9se"
   },
   enc: {
-    label: "DND5E.SchoolEnc",
-    icon: "systems/dnd5e/icons/svg/schools/enchantment.svg",
+    label: "SKJAALD.SchoolEnc",
+    icon: "systems/skjaald/icons/svg/schools/enchantment.svg",
     fullKey: "enchantment",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.SehPXk24ySBVOwCZ"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.SehPXk24ySBVOwCZ"
   },
   evo: {
-    label: "DND5E.SchoolEvo",
-    icon: "systems/dnd5e/icons/svg/schools/evocation.svg",
+    label: "SKJAALD.SchoolEvo",
+    icon: "systems/skjaald/icons/svg/schools/evocation.svg",
     fullKey: "evocation",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kGp1RNuxL2SELLRC"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kGp1RNuxL2SELLRC"
   },
   ill: {
-    label: "DND5E.SchoolIll",
-    icon: "systems/dnd5e/icons/svg/schools/illusion.svg",
+    label: "SKJAALD.SchoolIll",
+    icon: "systems/skjaald/icons/svg/schools/illusion.svg",
     fullKey: "illusion",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.smEk7kvVyslFozrB"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.smEk7kvVyslFozrB"
   },
   nec: {
-    label: "DND5E.SchoolNec",
-    icon: "systems/dnd5e/icons/svg/schools/necromancy.svg",
+    label: "SKJAALD.SchoolNec",
+    icon: "systems/skjaald/icons/svg/schools/necromancy.svg",
     fullKey: "necromancy",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.W0eyiV1FBmngb6Qh"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.W0eyiV1FBmngb6Qh"
   },
   trs: {
-    label: "DND5E.SchoolTrs",
-    icon: "systems/dnd5e/icons/svg/schools/transmutation.svg",
+    label: "SKJAALD.SchoolTrs",
+    icon: "systems/skjaald/icons/svg/schools/transmutation.svg",
     fullKey: "transmutation",
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.IYWewSailtmv6qEb"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.IYWewSailtmv6qEb"
   }
 };
 preLocalize("spellSchools", { key: "label", sort: true });
@@ -25031,22 +25031,22 @@ preLocalize("spellSchools", { key: "label", sort: true });
  * Types of spell lists.
  * @enum {string}
  */
-DND5E.spellListTypes = {
+SKJAALD.spellListTypes = {
   class: "ITEM.TypeClass",
   subclass: "ITEM.TypeSubclass",
   background: "ITEM.TypeBackground",
   race: "ITEM.TypeRace",
-  other: "JOURNALENTRYPAGE.DND5E.SpellList.Type.Other"
+  other: "JOURNALENTRYPAGE.SKJAALD.SpellList.Type.Other"
 };
 preLocalize("spellListTypes");
 
 /* -------------------------------------------- */
 
 /**
- * Spell scroll item ID within the `DND5E.sourcePacks` compendium or a full UUID for each spell level.
+ * Spell scroll item ID within the `SKJAALD.sourcePacks` compendium or a full UUID for each spell level.
  * @enum {string}
  */
-DND5E.spellScrollIds = {
+SKJAALD.spellScrollIds = {
   0: "rQ6sO7HDWzqMhSI3",
   1: "9GSfMg0VOA2b4uFN",
   2: "XdDp6CKh9qEvPTuS",
@@ -25067,14 +25067,14 @@ DND5E.spellScrollIds = {
  * The set of types which a weapon item can take.
  * @enum {string}
  */
-DND5E.weaponTypes = {
-  simpleM: "DND5E.WeaponSimpleM",
-  simpleR: "DND5E.WeaponSimpleR",
-  martialM: "DND5E.WeaponMartialM",
-  martialR: "DND5E.WeaponMartialR",
-  natural: "DND5E.WeaponNatural",
-  improv: "DND5E.WeaponImprov",
-  siege: "DND5E.WeaponSiege"
+SKJAALD.weaponTypes = {
+  simpleM: "SKJAALD.WeaponSimpleM",
+  simpleR: "SKJAALD.WeaponSimpleR",
+  martialM: "SKJAALD.WeaponMartialM",
+  martialR: "SKJAALD.WeaponMartialR",
+  natural: "SKJAALD.WeaponNatural",
+  improv: "SKJAALD.WeaponImprov",
+  siege: "SKJAALD.WeaponSiege"
 };
 preLocalize("weaponTypes");
 
@@ -25084,11 +25084,11 @@ preLocalize("weaponTypes");
  * Compendium packs used for localized items.
  * @enum {string}
  */
-DND5E.sourcePacks = {
-  BACKGROUNDS: "dnd5e.backgrounds",
-  CLASSES: "dnd5e.classes",
-  ITEMS: "dnd5e.items",
-  RACES: "dnd5e.races"
+SKJAALD.sourcePacks = {
+  BACKGROUNDS: "skjaald.backgrounds",
+  CLASSES: "skjaald.classes",
+  ITEMS: "skjaald.items",
+  RACES: "skjaald.races"
 };
 
 /* -------------------------------------------- */
@@ -25097,20 +25097,20 @@ DND5E.sourcePacks = {
  * Settings to configure how actors are merged when polymorphing is applied.
  * @enum {string}
  */
-DND5E.polymorphSettings = {
-  keepPhysical: "DND5E.PolymorphKeepPhysical",
-  keepMental: "DND5E.PolymorphKeepMental",
-  keepSaves: "DND5E.PolymorphKeepSaves",
-  keepSkills: "DND5E.PolymorphKeepSkills",
-  mergeSaves: "DND5E.PolymorphMergeSaves",
-  mergeSkills: "DND5E.PolymorphMergeSkills",
-  keepClass: "DND5E.PolymorphKeepClass",
-  keepFeats: "DND5E.PolymorphKeepFeats",
-  keepSpells: "DND5E.PolymorphKeepSpells",
-  keepItems: "DND5E.PolymorphKeepItems",
-  keepBio: "DND5E.PolymorphKeepBio",
-  keepVision: "DND5E.PolymorphKeepVision",
-  keepSelf: "DND5E.PolymorphKeepSelf"
+SKJAALD.polymorphSettings = {
+  keepPhysical: "SKJAALD.PolymorphKeepPhysical",
+  keepMental: "SKJAALD.PolymorphKeepMental",
+  keepSaves: "SKJAALD.PolymorphKeepSaves",
+  keepSkills: "SKJAALD.PolymorphKeepSkills",
+  mergeSaves: "SKJAALD.PolymorphMergeSaves",
+  mergeSkills: "SKJAALD.PolymorphMergeSkills",
+  keepClass: "SKJAALD.PolymorphKeepClass",
+  keepFeats: "SKJAALD.PolymorphKeepFeats",
+  keepSpells: "SKJAALD.PolymorphKeepSpells",
+  keepItems: "SKJAALD.PolymorphKeepItems",
+  keepBio: "SKJAALD.PolymorphKeepBio",
+  keepVision: "SKJAALD.PolymorphKeepVision",
+  keepSelf: "SKJAALD.PolymorphKeepSelf"
 };
 preLocalize("polymorphSettings", { sort: true });
 
@@ -25118,15 +25118,15 @@ preLocalize("polymorphSettings", { sort: true });
  * Settings to configure how actors are effects are merged when polymorphing is applied.
  * @enum {string}
  */
-DND5E.polymorphEffectSettings = {
-  keepAE: "DND5E.PolymorphKeepAE",
-  keepOtherOriginAE: "DND5E.PolymorphKeepOtherOriginAE",
-  keepOriginAE: "DND5E.PolymorphKeepOriginAE",
-  keepEquipmentAE: "DND5E.PolymorphKeepEquipmentAE",
-  keepFeatAE: "DND5E.PolymorphKeepFeatureAE",
-  keepSpellAE: "DND5E.PolymorphKeepSpellAE",
-  keepClassAE: "DND5E.PolymorphKeepClassAE",
-  keepBackgroundAE: "DND5E.PolymorphKeepBackgroundAE"
+SKJAALD.polymorphEffectSettings = {
+  keepAE: "SKJAALD.PolymorphKeepAE",
+  keepOtherOriginAE: "SKJAALD.PolymorphKeepOtherOriginAE",
+  keepOriginAE: "SKJAALD.PolymorphKeepOriginAE",
+  keepEquipmentAE: "SKJAALD.PolymorphKeepEquipmentAE",
+  keepFeatAE: "SKJAALD.PolymorphKeepFeatureAE",
+  keepSpellAE: "SKJAALD.PolymorphKeepSpellAE",
+  keepClassAE: "SKJAALD.PolymorphKeepClassAE",
+  keepBackgroundAE: "SKJAALD.PolymorphKeepBackgroundAE"
 };
 preLocalize("polymorphEffectSettings", { sort: true });
 
@@ -25134,10 +25134,10 @@ preLocalize("polymorphEffectSettings", { sort: true });
  * Settings to configure how actors are merged when preset polymorphing is applied.
  * @enum {object}
  */
-DND5E.transformationPresets = {
+SKJAALD.transformationPresets = {
   wildshape: {
     icon: '<i class="fas fa-paw"></i>',
-    label: "DND5E.PolymorphWildShape",
+    label: "SKJAALD.PolymorphWildShape",
     options: {
       keepBio: true,
       keepClass: true,
@@ -25149,7 +25149,7 @@ DND5E.transformationPresets = {
   },
   polymorph: {
     icon: '<i class="fas fa-pastafarianism"></i>',
-    label: "DND5E.Polymorph",
+    label: "SKJAALD.Polymorph",
     options: {
       keepEquipmentAE: false,
       keepClassAE: false,
@@ -25159,7 +25159,7 @@ DND5E.transformationPresets = {
   },
   polymorphSelf: {
     icon: '<i class="fas fa-eye"></i>',
-    label: "DND5E.PolymorphSelf",
+    label: "SKJAALD.PolymorphSelf",
     options: {
       keepSelf: true
     }
@@ -25174,11 +25174,11 @@ preLocalize("transformationPresets", { sort: true, keys: ["label"] });
  * The key for each level represents its proficiency multiplier.
  * @enum {string}
  */
-DND5E.proficiencyLevels = {
-  0: "DND5E.NotProficient",
-  1: "DND5E.Proficient",
-  0.5: "DND5E.HalfProficient",
-  2: "DND5E.Expertise"
+SKJAALD.proficiencyLevels = {
+  0: "SKJAALD.NotProficient",
+  1: "SKJAALD.Proficient",
+  0.5: "SKJAALD.HalfProficient",
+  2: "SKJAALD.Expertise"
 };
 preLocalize("proficiencyLevels");
 
@@ -25188,9 +25188,9 @@ preLocalize("proficiencyLevels");
  * Weapon and armor item proficiency levels.
  * @enum {string}
  */
-DND5E.weaponAndArmorProficiencyLevels = {
-  0: "DND5E.NotProficient",
-  1: "DND5E.Proficient"
+SKJAALD.weaponAndArmorProficiencyLevels = {
+  0: "SKJAALD.NotProficient",
+  1: "SKJAALD.Proficient"
 };
 preLocalize("weaponAndArmorProficiencyLevels");
 
@@ -25201,11 +25201,11 @@ preLocalize("weaponAndArmorProficiencyLevels");
  * of cover are in play, we take the highest value.
  * @enum {string}
  */
-DND5E.cover = {
-  0: "DND5E.None",
-  .5: "DND5E.CoverHalf",
-  .75: "DND5E.CoverThreeQuarters",
-  1: "DND5E.CoverTotal"
+SKJAALD.cover = {
+  0: "SKJAALD.None",
+  .5: "SKJAALD.CoverHalf",
+  .75: "SKJAALD.CoverThreeQuarters",
+  1: "SKJAALD.CoverTotal"
 };
 preLocalize("cover");
 
@@ -25216,7 +25216,7 @@ preLocalize("cover");
  * @type {string[]}
  * @deprecated since v10
  */
-DND5E.trackableAttributes = [
+SKJAALD.trackableAttributes = [
   "attributes.ac.value", "attributes.init.bonus", "attributes.movement", "attributes.senses", "attributes.spelldc",
   "attributes.spellLevel", "details.cr", "details.spellLevel", "details.xp.value", "skills.*.passive",
   "abilities.*.value"
@@ -25228,7 +25228,7 @@ DND5E.trackableAttributes = [
  * A selection of actor and item attributes that are valid targets for item resource consumption.
  * @type {string[]}
  */
-DND5E.consumableResources = [
+SKJAALD.consumableResources = [
   // Configured during init.
 ];
 
@@ -25264,117 +25264,117 @@ DND5E.consumableResources = [
  * Conditions that can affect an actor.
  * @enum {ConditionConfiguration}
  */
-DND5E.conditionTypes = {
+SKJAALD.conditionTypes = {
   bleeding: {
-    label: "EFFECT.DND5E.StatusBleeding",
-    icon: "systems/dnd5e/icons/svg/statuses/bleeding.svg",
+    label: "EFFECT.SKJAALD.StatusBleeding",
+    icon: "systems/skjaald/icons/svg/statuses/bleeding.svg",
     pseudo: true
   },
   blinded: {
-    label: "DND5E.ConBlinded",
-    icon: "systems/dnd5e/icons/svg/statuses/blinded.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.0b8N4FymGGfbZGpJ",
+    label: "SKJAALD.ConBlinded",
+    icon: "systems/skjaald/icons/svg/statuses/blinded.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.0b8N4FymGGfbZGpJ",
     special: "BLIND"
   },
   charmed: {
-    label: "DND5E.ConCharmed",
-    icon: "systems/dnd5e/icons/svg/statuses/charmed.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.zZaEBrKkr66OWJvD"
+    label: "SKJAALD.ConCharmed",
+    icon: "systems/skjaald/icons/svg/statuses/charmed.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.zZaEBrKkr66OWJvD"
   },
   cursed: {
-    label: "EFFECT.DND5E.StatusCursed",
-    icon: "systems/dnd5e/icons/svg/statuses/cursed.svg",
+    label: "EFFECT.SKJAALD.StatusCursed",
+    icon: "systems/skjaald/icons/svg/statuses/cursed.svg",
     pseudo: true
   },
   deafened: {
-    label: "DND5E.ConDeafened",
-    icon: "systems/dnd5e/icons/svg/statuses/deafened.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.6G8JSjhn701cBITY"
+    label: "SKJAALD.ConDeafened",
+    icon: "systems/skjaald/icons/svg/statuses/deafened.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.6G8JSjhn701cBITY"
   },
   diseased: {
-    label: "DND5E.ConDiseased",
-    icon: "systems/dnd5e/icons/svg/statuses/diseased.svg",
+    label: "SKJAALD.ConDiseased",
+    icon: "systems/skjaald/icons/svg/statuses/diseased.svg",
     pseudo: true,
-    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oNQWvyRZkTOJ8PBq"
+    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oNQWvyRZkTOJ8PBq"
   },
   exhaustion: {
-    label: "DND5E.ConExhaustion",
-    icon: "systems/dnd5e/icons/svg/statuses/exhaustion.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cspWveykstnu3Zcv",
+    label: "SKJAALD.ConExhaustion",
+    icon: "systems/skjaald/icons/svg/statuses/exhaustion.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cspWveykstnu3Zcv",
     levels: 6
   },
   frightened: {
-    label: "DND5E.ConFrightened",
-    icon: "systems/dnd5e/icons/svg/statuses/frightened.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.oreoyaFKnvZCrgij"
+    label: "SKJAALD.ConFrightened",
+    icon: "systems/skjaald/icons/svg/statuses/frightened.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.oreoyaFKnvZCrgij"
   },
   grappled: {
-    label: "DND5E.ConGrappled",
-    icon: "systems/dnd5e/icons/svg/statuses/grappled.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.gYDAhd02ryUmtwZn"
+    label: "SKJAALD.ConGrappled",
+    icon: "systems/skjaald/icons/svg/statuses/grappled.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.gYDAhd02ryUmtwZn"
   },
   incapacitated: {
-    label: "DND5E.ConIncapacitated",
-    icon: "systems/dnd5e/icons/svg/statuses/incapacitated.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.TpkZgLfxCmSndmpb"
+    label: "SKJAALD.ConIncapacitated",
+    icon: "systems/skjaald/icons/svg/statuses/incapacitated.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.TpkZgLfxCmSndmpb"
   },
   invisible: {
-    label: "DND5E.ConInvisible",
-    icon: "systems/dnd5e/icons/svg/statuses/invisible.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.3UU5GCTVeRDbZy9u"
+    label: "SKJAALD.ConInvisible",
+    icon: "systems/skjaald/icons/svg/statuses/invisible.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.3UU5GCTVeRDbZy9u"
   },
   paralyzed: {
-    label: "DND5E.ConParalyzed",
-    icon: "systems/dnd5e/icons/svg/statuses/paralyzed.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xnSV5hLJIMaTABXP",
+    label: "SKJAALD.ConParalyzed",
+    icon: "systems/skjaald/icons/svg/statuses/paralyzed.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xnSV5hLJIMaTABXP",
     statuses: ["incapacitated"]
   },
   petrified: {
-    label: "DND5E.ConPetrified",
-    icon: "systems/dnd5e/icons/svg/statuses/petrified.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xaNDaW6NwQTgHSmi",
+    label: "SKJAALD.ConPetrified",
+    icon: "systems/skjaald/icons/svg/statuses/petrified.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xaNDaW6NwQTgHSmi",
     statuses: ["incapacitated"]
   },
   poisoned: {
-    label: "DND5E.ConPoisoned",
-    icon: "systems/dnd5e/icons/svg/statuses/poisoned.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.lq3TRI6ZlED8ABMx"
+    label: "SKJAALD.ConPoisoned",
+    icon: "systems/skjaald/icons/svg/statuses/poisoned.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.lq3TRI6ZlED8ABMx"
   },
   prone: {
-    label: "DND5E.ConProne",
-    icon: "systems/dnd5e/icons/svg/statuses/prone.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.y0TkcdyoZlOTmAFT"
+    label: "SKJAALD.ConProne",
+    icon: "systems/skjaald/icons/svg/statuses/prone.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.y0TkcdyoZlOTmAFT"
   },
   restrained: {
-    label: "DND5E.ConRestrained",
-    icon: "systems/dnd5e/icons/svg/statuses/restrained.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cSVcyZyNe2iG1fIc"
+    label: "SKJAALD.ConRestrained",
+    icon: "systems/skjaald/icons/svg/statuses/restrained.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cSVcyZyNe2iG1fIc"
   },
   silenced: {
-    label: "EFFECT.DND5E.StatusSilenced",
-    icon: "systems/dnd5e/icons/svg/statuses/silenced.svg",
+    label: "EFFECT.SKJAALD.StatusSilenced",
+    icon: "systems/skjaald/icons/svg/statuses/silenced.svg",
     pseudo: true
   },
   stunned: {
-    label: "DND5E.ConStunned",
-    icon: "systems/dnd5e/icons/svg/statuses/stunned.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.ZyZMUwA2rboh4ObS",
+    label: "SKJAALD.ConStunned",
+    icon: "systems/skjaald/icons/svg/statuses/stunned.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.ZyZMUwA2rboh4ObS",
     statuses: ["incapacitated"]
   },
   surprised: {
-    label: "EFFECT.DND5E.StatusSurprised",
-    icon: "systems/dnd5e/icons/svg/statuses/surprised.svg",
+    label: "EFFECT.SKJAALD.StatusSurprised",
+    icon: "systems/skjaald/icons/svg/statuses/surprised.svg",
     pseudo: true
   },
   transformed: {
-    label: "EFFECT.DND5E.StatusTransformed",
-    icon: "systems/dnd5e/icons/svg/statuses/transformed.svg",
+    label: "EFFECT.SKJAALD.StatusTransformed",
+    icon: "systems/skjaald/icons/svg/statuses/transformed.svg",
     pseudo: true
   },
   unconscious: {
-    label: "DND5E.ConUnconscious",
-    icon: "systems/dnd5e/icons/svg/statuses/unconscious.svg",
-    reference: "Compendium.dnd5e.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.UWw13ISmMxDzmwbd",
+    label: "SKJAALD.ConUnconscious",
+    icon: "systems/skjaald/icons/svg/statuses/unconscious.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.UWw13ISmMxDzmwbd",
     statuses: ["incapacitated"],
     riders: ["prone"]
   }
@@ -25388,7 +25388,7 @@ preLocalize("conditionTypes", { key: "label", sort: true });
  * and with a number appended for a level of exhaustion.
  * @enum {object}
  */
-DND5E.conditionEffects = {
+SKJAALD.conditionEffects = {
   noMovement: new Set(["exhaustion-5", "grappled", "paralyzed", "petrified", "restrained", "stunned", "unconscious"]),
   halfMovement: new Set(["exhaustion-2"]),
   crawl: new Set(["prone", "exceedingCarryingCapacity"]),
@@ -25403,56 +25403,56 @@ DND5E.conditionEffects = {
  * data will be merged into the core data.
  * @enum {Omit<StatusEffectConfig5e, "img"> & {icon: string}}
  */
-DND5E.statusEffects = {
+SKJAALD.statusEffects = {
   burrowing: {
-    name: "EFFECT.DND5E.StatusBurrowing",
-    icon: "systems/dnd5e/icons/svg/statuses/burrowing.svg",
+    name: "EFFECT.SKJAALD.StatusBurrowing",
+    icon: "systems/skjaald/icons/svg/statuses/burrowing.svg",
     special: "BURROW"
   },
   concentrating: {
-    name: "EFFECT.DND5E.StatusConcentrating",
-    icon: "systems/dnd5e/icons/svg/statuses/concentrating.svg",
+    name: "EFFECT.SKJAALD.StatusConcentrating",
+    icon: "systems/skjaald/icons/svg/statuses/concentrating.svg",
     special: "CONCENTRATING"
   },
   dead: {
-    name: "EFFECT.DND5E.StatusDead",
-    icon: "systems/dnd5e/icons/svg/statuses/dead.svg",
+    name: "EFFECT.SKJAALD.StatusDead",
+    icon: "systems/skjaald/icons/svg/statuses/dead.svg",
     special: "DEFEATED"
   },
   dodging: {
-    name: "EFFECT.DND5E.StatusDodging",
-    icon: "systems/dnd5e/icons/svg/statuses/dodging.svg"
+    name: "EFFECT.SKJAALD.StatusDodging",
+    icon: "systems/skjaald/icons/svg/statuses/dodging.svg"
   },
   ethereal: {
-    name: "EFFECT.DND5E.StatusEthereal",
-    icon: "systems/dnd5e/icons/svg/statuses/ethereal.svg"
+    name: "EFFECT.SKJAALD.StatusEthereal",
+    icon: "systems/skjaald/icons/svg/statuses/ethereal.svg"
   },
   flying: {
-    name: "EFFECT.DND5E.StatusFlying",
-    icon: "systems/dnd5e/icons/svg/statuses/flying.svg",
+    name: "EFFECT.SKJAALD.StatusFlying",
+    icon: "systems/skjaald/icons/svg/statuses/flying.svg",
     special: "FLY"
   },
   hiding: {
-    name: "EFFECT.DND5E.StatusHiding",
-    icon: "systems/dnd5e/icons/svg/statuses/hiding.svg"
+    name: "EFFECT.SKJAALD.StatusHiding",
+    icon: "systems/skjaald/icons/svg/statuses/hiding.svg"
   },
   hovering: {
-    name: "EFFECT.DND5E.StatusHovering",
-    icon: "systems/dnd5e/icons/svg/statuses/hovering.svg",
+    name: "EFFECT.SKJAALD.StatusHovering",
+    icon: "systems/skjaald/icons/svg/statuses/hovering.svg",
     special: "HOVER"
   },
   marked: {
-    name: "EFFECT.DND5E.StatusMarked",
-    icon: "systems/dnd5e/icons/svg/statuses/marked.svg"
+    name: "EFFECT.SKJAALD.StatusMarked",
+    icon: "systems/skjaald/icons/svg/statuses/marked.svg"
   },
   sleeping: {
-    name: "EFFECT.DND5E.StatusSleeping",
-    icon: "systems/dnd5e/icons/svg/statuses/sleeping.svg",
+    name: "EFFECT.SKJAALD.StatusSleeping",
+    icon: "systems/skjaald/icons/svg/statuses/sleeping.svg",
     statuses: ["incapacitated", "unconscious"]
   },
   stable: {
-    name: "EFFECT.DND5E.StatusStable",
-    icon: "systems/dnd5e/icons/svg/statuses/stable.svg"
+    name: "EFFECT.SKJAALD.StatusStable",
+    icon: "systems/skjaald/icons/svg/statuses/stable.svg"
   }
 };
 
@@ -25464,52 +25464,52 @@ DND5E.statusEffects = {
  * Languages a character can learn.
  * @enum {string}
  */
-DND5E.languages = {
+SKJAALD.languages = {
   standard: {
-    label: "DND5E.LanguagesStandard",
+    label: "SKJAALD.LanguagesStandard",
     children: {
-      common: "DND5E.LanguagesCommon",
-      dwarvish: "DND5E.LanguagesDwarvish",
-      elvish: "DND5E.LanguagesElvish",
-      giant: "DND5E.LanguagesGiant",
-      gnomish: "DND5E.LanguagesGnomish",
-      goblin: "DND5E.LanguagesGoblin",
-      halfling: "DND5E.LanguagesHalfling",
-      orc: "DND5E.LanguagesOrc"
+      common: "SKJAALD.LanguagesCommon",
+      dwarvish: "SKJAALD.LanguagesDwarvish",
+      elvish: "SKJAALD.LanguagesElvish",
+      giant: "SKJAALD.LanguagesGiant",
+      gnomish: "SKJAALD.LanguagesGnomish",
+      goblin: "SKJAALD.LanguagesGoblin",
+      halfling: "SKJAALD.LanguagesHalfling",
+      orc: "SKJAALD.LanguagesOrc"
     }
   },
   exotic: {
-    label: "DND5E.LanguagesExotic",
+    label: "SKJAALD.LanguagesExotic",
     children: {
-      aarakocra: "DND5E.LanguagesAarakocra",
-      abyssal: "DND5E.LanguagesAbyssal",
-      celestial: "DND5E.LanguagesCelestial",
-      deep: "DND5E.LanguagesDeepSpeech",
-      draconic: "DND5E.LanguagesDraconic",
-      gith: "DND5E.LanguagesGith",
-      gnoll: "DND5E.LanguagesGnoll",
-      infernal: "DND5E.LanguagesInfernal",
+      aarakocra: "SKJAALD.LanguagesAarakocra",
+      abyssal: "SKJAALD.LanguagesAbyssal",
+      celestial: "SKJAALD.LanguagesCelestial",
+      deep: "SKJAALD.LanguagesDeepSpeech",
+      draconic: "SKJAALD.LanguagesDraconic",
+      gith: "SKJAALD.LanguagesGith",
+      gnoll: "SKJAALD.LanguagesGnoll",
+      infernal: "SKJAALD.LanguagesInfernal",
       primordial: {
-        label: "DND5E.LanguagesPrimordial",
+        label: "SKJAALD.LanguagesPrimordial",
         children: {
-          aquan: "DND5E.LanguagesAquan",
-          auran: "DND5E.LanguagesAuran",
-          ignan: "DND5E.LanguagesIgnan",
-          terran: "DND5E.LanguagesTerran"
+          aquan: "SKJAALD.LanguagesAquan",
+          auran: "SKJAALD.LanguagesAuran",
+          ignan: "SKJAALD.LanguagesIgnan",
+          terran: "SKJAALD.LanguagesTerran"
         }
       },
-      sylvan: "DND5E.LanguagesSylvan",
-      undercommon: "DND5E.LanguagesUndercommon"
+      sylvan: "SKJAALD.LanguagesSylvan",
+      undercommon: "SKJAALD.LanguagesUndercommon"
     }
   },
-  druidic: "DND5E.LanguagesDruidic",
-  cant: "DND5E.LanguagesThievesCant"
+  druidic: "SKJAALD.LanguagesDruidic",
+  cant: "SKJAALD.LanguagesThievesCant"
 };
 preLocalize("languages", { key: "label" });
 preLocalize("languages.standard.children", { key: "label", sort: true });
 preLocalize("languages.exotic.children", { key: "label", sort: true });
 preLocalize("languages.exotic.children.primordial.children", { sort: true });
-patchConfig("languages", "label", { since: "DnD5e 2.4", until: "DnD5e 3.1" });
+patchConfig("languages", "label", { since: "Skjaald 2.4", until: "Skjaald 3.1" });
 
 /* -------------------------------------------- */
 
@@ -25517,19 +25517,19 @@ patchConfig("languages", "label", { since: "DnD5e 2.4", until: "DnD5e 3.1" });
  * Maximum allowed character level.
  * @type {number}
  */
-DND5E.maxLevel = 20;
+SKJAALD.maxLevel = 20;
 
 /**
  * Maximum ability score value allowed by default.
  * @type {number}
  */
-DND5E.maxAbilityScore = 20;
+SKJAALD.maxAbilityScore = 20;
 
 /**
  * XP required to achieve each character level.
  * @type {number[]}
  */
-DND5E.CHARACTER_EXP_LEVELS = [
+SKJAALD.CHARACTER_EXP_LEVELS = [
   0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000,
   120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000
 ];
@@ -25538,7 +25538,7 @@ DND5E.CHARACTER_EXP_LEVELS = [
  * XP granted for each challenge rating.
  * @type {number[]}
  */
-DND5E.CR_EXP_LEVELS = [
+SKJAALD.CR_EXP_LEVELS = [
   10, 200, 450, 700, 1100, 1800, 2300, 2900, 3900, 5000, 5900, 7200, 8400, 10000, 11500, 13000, 15000, 18000,
   20000, 22000, 25000, 33000, 41000, 50000, 62000, 75000, 90000, 105000, 120000, 135000, 155000
 ];
@@ -25569,12 +25569,12 @@ DND5E.CR_EXP_LEVELS = [
  * @property {string} [actorKeyPath]       If the trait doesn't directly map to an entry as `traits.[key]`, where is
  *                                         this trait's data stored on the actor?
  * @property {string} [configKey]          If the list of trait options doesn't match the name of the trait, where can
- *                                         the options be found within `CONFIG.DND5E`?
+ *                                         the options be found within `CONFIG.SKJAALD`?
  * @property {string} [labelKeyPath]       If config is an enum of objects, where can the label be found?
  * @property {object} [subtypes]           Configuration for traits that take some sort of base item.
  * @property {string} [subtypes.keyPath]   Path to subtype value on base items, should match a category key.
  *                                         Deprecated in favor of the standardized `system.type.value`.
- * @property {string[]} [subtypes.ids]     Key for base item ID objects within `CONFIG.DND5E`.
+ * @property {string[]} [subtypes.ids]     Key for base item ID objects within `CONFIG.SKJAALD`.
  * @property {object} [children]           Mapping of category key to an object defining its children.
  * @property {boolean} [sortCategories]    Whether top-level categories should be sorted.
  * @property {boolean} [expertise]         Can an actor receive expertise in this trait?
@@ -25584,60 +25584,60 @@ DND5E.CR_EXP_LEVELS = [
  * Configurable traits on actors.
  * @enum {TraitConfiguration}
  */
-DND5E.traits = {
+SKJAALD.traits = {
   saves: {
     labels: {
-      title: "DND5E.ClassSaves",
-      localization: "DND5E.TraitSavesPlural"
+      title: "SKJAALD.ClassSaves",
+      localization: "SKJAALD.TraitSavesPlural"
     },
-    icon: "systems/dnd5e/icons/svg/trait-saves.svg",
+    icon: "systems/skjaald/icons/svg/trait-saves.svg",
     actorKeyPath: "system.abilities",
     configKey: "abilities",
     labelKeyPath: "label"
   },
   skills: {
     labels: {
-      title: "DND5E.Skills",
-      localization: "DND5E.TraitSkillsPlural"
+      title: "SKJAALD.Skills",
+      localization: "SKJAALD.TraitSkillsPlural"
     },
-    icon: "systems/dnd5e/icons/svg/trait-skills.svg",
+    icon: "systems/skjaald/icons/svg/trait-skills.svg",
     actorKeyPath: "system.skills",
     labelKeyPath: "label",
     expertise: true
   },
   languages: {
     labels: {
-      title: "DND5E.Languages",
-      localization: "DND5E.TraitLanguagesPlural"
+      title: "SKJAALD.Languages",
+      localization: "SKJAALD.TraitLanguagesPlural"
     },
-    icon: "systems/dnd5e/icons/svg/trait-languages.svg"
+    icon: "systems/skjaald/icons/svg/trait-languages.svg"
   },
   armor: {
     labels: {
-      title: "DND5E.TraitArmorProf",
-      localization: "DND5E.TraitArmorPlural"
+      title: "SKJAALD.TraitArmorProf",
+      localization: "SKJAALD.TraitArmorPlural"
     },
-    icon: "systems/dnd5e/icons/svg/trait-armor-proficiencies.svg",
+    icon: "systems/skjaald/icons/svg/trait-armor-proficiencies.svg",
     actorKeyPath: "system.traits.armorProf",
     configKey: "armorProficiencies",
     subtypes: { keyPath: "armor.type", ids: ["armorIds", "shieldIds"] }
   },
   weapon: {
     labels: {
-      title: "DND5E.TraitWeaponProf",
-      localization: "DND5E.TraitWeaponPlural"
+      title: "SKJAALD.TraitWeaponProf",
+      localization: "SKJAALD.TraitWeaponPlural"
     },
-    icon: "systems/dnd5e/icons/svg/trait-weapon-proficiencies.svg",
+    icon: "systems/skjaald/icons/svg/trait-weapon-proficiencies.svg",
     actorKeyPath: "system.traits.weaponProf",
     configKey: "weaponProficiencies",
     subtypes: { keyPath: "weaponType", ids: ["weaponIds"] }
   },
   tool: {
     labels: {
-      title: "DND5E.TraitToolProf",
-      localization: "DND5E.TraitToolPlural"
+      title: "SKJAALD.TraitToolProf",
+      localization: "SKJAALD.TraitToolPlural"
     },
-    icon: "systems/dnd5e/icons/svg/trait-tool-proficiencies.svg",
+    icon: "systems/skjaald/icons/svg/trait-tool-proficiencies.svg",
     actorKeyPath: "system.tools",
     configKey: "toolProficiencies",
     subtypes: { keyPath: "toolType", ids: ["toolIds"] },
@@ -25647,34 +25647,34 @@ DND5E.traits = {
   },
   di: {
     labels: {
-      title: "DND5E.DamImm",
-      localization: "DND5E.TraitDIPlural"
+      title: "SKJAALD.DamImm",
+      localization: "SKJAALD.TraitDIPlural"
     },
-    icon: "systems/dnd5e/icons/svg/trait-damage-immunities.svg",
+    icon: "systems/skjaald/icons/svg/trait-damage-immunities.svg",
     configKey: "damageTypes"
   },
   dr: {
     labels: {
-      title: "DND5E.DamRes",
-      localization: "DND5E.TraitDRPlural"
+      title: "SKJAALD.DamRes",
+      localization: "SKJAALD.TraitDRPlural"
     },
-    icon: "systems/dnd5e/icons/svg/trait-damage-resistances.svg",
+    icon: "systems/skjaald/icons/svg/trait-damage-resistances.svg",
     configKey: "damageTypes"
   },
   dv: {
     labels: {
-      title: "DND5E.DamVuln",
-      localization: "DND5E.TraitDVPlural"
+      title: "SKJAALD.DamVuln",
+      localization: "SKJAALD.TraitDVPlural"
     },
-    icon: "systems/dnd5e/icons/svg/trait-damage-vulnerabilities.svg",
+    icon: "systems/skjaald/icons/svg/trait-damage-vulnerabilities.svg",
     configKey: "damageTypes"
   },
   ci: {
     labels: {
-      title: "DND5E.ConImm",
-      localization: "DND5E.TraitCIPlural"
+      title: "SKJAALD.ConImm",
+      localization: "SKJAALD.TraitCIPlural"
     },
-    icon: "systems/dnd5e/icons/svg/trait-condition-immunities.svg",
+    icon: "systems/skjaald/icons/svg/trait-condition-immunities.svg",
     configKey: "conditionTypes"
   }
 };
@@ -25686,22 +25686,22 @@ preLocalize("traits", { key: "labels.title" });
  * Modes used within a trait advancement.
  * @enum {object}
  */
-DND5E.traitModes = {
+SKJAALD.traitModes = {
   default: {
-    label: "DND5E.AdvancementTraitModeDefaultLabel",
-    hint: "DND5E.AdvancementTraitModeDefaultHint"
+    label: "SKJAALD.AdvancementTraitModeDefaultLabel",
+    hint: "SKJAALD.AdvancementTraitModeDefaultHint"
   },
   expertise: {
-    label: "DND5E.AdvancementTraitModeExpertiseLabel",
-    hint: "DND5E.AdvancementTraitModeExpertiseHint"
+    label: "SKJAALD.AdvancementTraitModeExpertiseLabel",
+    hint: "SKJAALD.AdvancementTraitModeExpertiseHint"
   },
   forcedExpertise: {
-    label: "DND5E.AdvancementTraitModeForceLabel",
-    hint: "DND5E.AdvancementTraitModeForceHint"
+    label: "SKJAALD.AdvancementTraitModeForceLabel",
+    hint: "SKJAALD.AdvancementTraitModeForceHint"
   },
   upgrade: {
-    label: "DND5E.AdvancementTraitModeUpgradeLabel",
-    hint: "DND5E.AdvancementTraitModeUpgradeHint"
+    label: "SKJAALD.AdvancementTraitModeUpgradeLabel",
+    hint: "SKJAALD.AdvancementTraitModeUpgradeHint"
   }
 };
 preLocalize("traitModes", { keys: ["label", "hint"] });
@@ -25712,94 +25712,94 @@ preLocalize("traitModes", { keys: ["label", "hint"] });
  * Special character flags.
  * @enum {CharacterFlagConfig}
  */
-DND5E.characterFlags = {
+SKJAALD.characterFlags = {
   diamondSoul: {
-    name: "DND5E.FlagsDiamondSoul",
-    hint: "DND5E.FlagsDiamondSoulHint",
-    section: "DND5E.Feats",
+    name: "SKJAALD.FlagsDiamondSoul",
+    hint: "SKJAALD.FlagsDiamondSoulHint",
+    section: "SKJAALD.Feats",
     type: Boolean
   },
   elvenAccuracy: {
-    name: "DND5E.FlagsElvenAccuracy",
-    hint: "DND5E.FlagsElvenAccuracyHint",
-    section: "DND5E.RacialTraits",
+    name: "SKJAALD.FlagsElvenAccuracy",
+    hint: "SKJAALD.FlagsElvenAccuracyHint",
+    section: "SKJAALD.RacialTraits",
     abilities: ["dex", "int", "wis", "cha"],
     type: Boolean
   },
   halflingLucky: {
-    name: "DND5E.FlagsHalflingLucky",
-    hint: "DND5E.FlagsHalflingLuckyHint",
-    section: "DND5E.RacialTraits",
+    name: "SKJAALD.FlagsHalflingLucky",
+    hint: "SKJAALD.FlagsHalflingLuckyHint",
+    section: "SKJAALD.RacialTraits",
     type: Boolean
   },
   initiativeAdv: {
-    name: "DND5E.FlagsInitiativeAdv",
-    hint: "DND5E.FlagsInitiativeAdvHint",
-    section: "DND5E.Feats",
+    name: "SKJAALD.FlagsInitiativeAdv",
+    hint: "SKJAALD.FlagsInitiativeAdvHint",
+    section: "SKJAALD.Feats",
     type: Boolean
   },
   initiativeAlert: {
-    name: "DND5E.FlagsAlert",
-    hint: "DND5E.FlagsAlertHint",
-    section: "DND5E.Feats",
+    name: "SKJAALD.FlagsAlert",
+    hint: "SKJAALD.FlagsAlertHint",
+    section: "SKJAALD.Feats",
     type: Boolean
   },
   jackOfAllTrades: {
-    name: "DND5E.FlagsJOAT",
-    hint: "DND5E.FlagsJOATHint",
-    section: "DND5E.Feats",
+    name: "SKJAALD.FlagsJOAT",
+    hint: "SKJAALD.FlagsJOATHint",
+    section: "SKJAALD.Feats",
     type: Boolean
   },
   observantFeat: {
-    name: "DND5E.FlagsObservant",
-    hint: "DND5E.FlagsObservantHint",
+    name: "SKJAALD.FlagsObservant",
+    hint: "SKJAALD.FlagsObservantHint",
     skills: ["prc", "inv"],
-    section: "DND5E.Feats",
+    section: "SKJAALD.Feats",
     type: Boolean
   },
   tavernBrawlerFeat: {
-    name: "DND5E.FlagsTavernBrawler",
-    hint: "DND5E.FlagsTavernBrawlerHint",
-    section: "DND5E.Feats",
+    name: "SKJAALD.FlagsTavernBrawler",
+    hint: "SKJAALD.FlagsTavernBrawlerHint",
+    section: "SKJAALD.Feats",
     type: Boolean
   },
   powerfulBuild: {
-    name: "DND5E.FlagsPowerfulBuild",
-    hint: "DND5E.FlagsPowerfulBuildHint",
-    section: "DND5E.RacialTraits",
+    name: "SKJAALD.FlagsPowerfulBuild",
+    hint: "SKJAALD.FlagsPowerfulBuildHint",
+    section: "SKJAALD.RacialTraits",
     type: Boolean
   },
   reliableTalent: {
-    name: "DND5E.FlagsReliableTalent",
-    hint: "DND5E.FlagsReliableTalentHint",
-    section: "DND5E.Feats",
+    name: "SKJAALD.FlagsReliableTalent",
+    hint: "SKJAALD.FlagsReliableTalentHint",
+    section: "SKJAALD.Feats",
     type: Boolean
   },
   remarkableAthlete: {
-    name: "DND5E.FlagsRemarkableAthlete",
-    hint: "DND5E.FlagsRemarkableAthleteHint",
+    name: "SKJAALD.FlagsRemarkableAthlete",
+    hint: "SKJAALD.FlagsRemarkableAthleteHint",
     abilities: ["str", "dex", "con"],
-    section: "DND5E.Feats",
+    section: "SKJAALD.Feats",
     type: Boolean
   },
   weaponCriticalThreshold: {
-    name: "DND5E.FlagsWeaponCritThreshold",
-    hint: "DND5E.FlagsWeaponCritThresholdHint",
-    section: "DND5E.Feats",
+    name: "SKJAALD.FlagsWeaponCritThreshold",
+    hint: "SKJAALD.FlagsWeaponCritThresholdHint",
+    section: "SKJAALD.Feats",
     type: Number,
     placeholder: 20
   },
   spellCriticalThreshold: {
-    name: "DND5E.FlagsSpellCritThreshold",
-    hint: "DND5E.FlagsSpellCritThresholdHint",
-    section: "DND5E.Feats",
+    name: "SKJAALD.FlagsSpellCritThreshold",
+    hint: "SKJAALD.FlagsSpellCritThresholdHint",
+    section: "SKJAALD.Feats",
     type: Number,
     placeholder: 20
   },
   meleeCriticalDamageDice: {
-    name: "DND5E.FlagsMeleeCriticalDice",
-    hint: "DND5E.FlagsMeleeCriticalDiceHint",
-    section: "DND5E.Feats",
+    name: "SKJAALD.FlagsMeleeCriticalDice",
+    hint: "SKJAALD.FlagsMeleeCriticalDiceHint",
+    section: "SKJAALD.Feats",
     type: Number,
     placeholder: 0
   }
@@ -25810,7 +25810,7 @@ preLocalize("characterFlags", { keys: ["name", "hint", "section"] });
  * Flags allowed on actors. Any flags not in the list may be deleted during a migration.
  * @type {string[]}
  */
-DND5E.allowedActorFlags = ["isPolymorphed", "originalActor"].concat(Object.keys(DND5E.characterFlags));
+SKJAALD.allowedActorFlags = ["isPolymorphed", "originalActor"].concat(Object.keys(SKJAALD.characterFlags));
 
 /* -------------------------------------------- */
 
@@ -25818,9 +25818,9 @@ DND5E.allowedActorFlags = ["isPolymorphed", "originalActor"].concat(Object.keys(
  * Different types of actor structures that groups can represent.
  * @enum {object}
  */
-DND5E.groupTypes = {
-  party: "DND5E.Group.TypeParty",
-  encounter: "DND5E.Group.TypeEncounter"
+SKJAALD.groupTypes = {
+  party: "SKJAALD.Group.TypeParty",
+  encounter: "SKJAALD.Group.TypeEncounter"
 };
 preLocalize("groupTypes");
 
@@ -25841,7 +25841,7 @@ const _ALL_ITEM_TYPES = ["background", "class", "race", "subclass"];
  * Advancement types that can be added to items.
  * @enum {AdvancementTypeConfiguration}
  */
-DND5E.advancementTypes = {
+SKJAALD.advancementTypes = {
   AbilityScoreImprovement: {
     documentClass: AbilityScoreImprovementAdvancement,
     validItemTypes: new Set(["background", "class", "race"])
@@ -25878,20 +25878,20 @@ DND5E.advancementTypes = {
  * Default artwork configuration for each Document type and sub-type.
  * @type {Record<string, Record<string, string>>}
  */
-DND5E.defaultArtwork = {
+SKJAALD.defaultArtwork = {
   Item: {
-    background: "systems/dnd5e/icons/svg/items/background.svg",
-    class: "systems/dnd5e/icons/svg/items/class.svg",
-    consumable: "systems/dnd5e/icons/svg/items/consumable.svg",
-    container: "systems/dnd5e/icons/svg/items/container.svg",
-    equipment: "systems/dnd5e/icons/svg/items/equipment.svg",
-    feat: "systems/dnd5e/icons/svg/items/feature.svg",
-    loot: "systems/dnd5e/icons/svg/items/loot.svg",
-    race: "systems/dnd5e/icons/svg/items/race.svg",
-    spell: "systems/dnd5e/icons/svg/items/spell.svg",
-    subclass: "systems/dnd5e/icons/svg/items/subclass.svg",
-    tool: "systems/dnd5e/icons/svg/items/tool.svg",
-    weapon: "systems/dnd5e/icons/svg/items/weapon.svg"
+    background: "systems/skjaald/icons/svg/items/background.svg",
+    class: "systems/skjaald/icons/svg/items/class.svg",
+    consumable: "systems/skjaald/icons/svg/items/consumable.svg",
+    container: "systems/skjaald/icons/svg/items/container.svg",
+    equipment: "systems/skjaald/icons/svg/items/equipment.svg",
+    feat: "systems/skjaald/icons/svg/items/feature.svg",
+    loot: "systems/skjaald/icons/svg/items/loot.svg",
+    race: "systems/skjaald/icons/svg/items/race.svg",
+    spell: "systems/skjaald/icons/svg/items/spell.svg",
+    subclass: "systems/skjaald/icons/svg/items/subclass.svg",
+    tool: "systems/skjaald/icons/svg/items/tool.svg",
+    weapon: "systems/skjaald/icons/svg/items/weapon.svg"
   }
 };
 
@@ -25911,45 +25911,45 @@ DND5E.defaultArtwork = {
  * Types of rules that can be used in rule pages and the &Reference enricher.
  * @enum {RuleTypeConfiguration}
  */
-DND5E.ruleTypes = {
+SKJAALD.ruleTypes = {
   rule: {
-    label: "DND5E.Rule.Type.Rule",
+    label: "SKJAALD.Rule.Type.Rule",
     references: "rules"
   },
   ability: {
-    label: "DND5E.Ability",
+    label: "SKJAALD.Ability",
     references: "enrichmentLookup.abilities"
   },
   areaOfEffect: {
-    label: "DND5E.AreaOfEffect",
+    label: "SKJAALD.AreaOfEffect",
     references: "areaTargetTypes"
   },
   condition: {
-    label: "DND5E.Rule.Type.Condition",
+    label: "SKJAALD.Rule.Type.Condition",
     references: "conditionTypes"
   },
   creatureType: {
-    label: "DND5E.CreatureType",
+    label: "SKJAALD.CreatureType",
     references: "creatureTypes"
   },
   damage: {
-    label: "DND5E.DamageType",
+    label: "SKJAALD.DamageType",
     references: "damageTypes"
   },
   skill: {
-    label: "DND5E.Skill",
+    label: "SKJAALD.Skill",
     references: "enrichmentLookup.skills"
   },
   spellComponent: {
-    label: "DND5E.SpellComponent",
+    label: "SKJAALD.SpellComponent",
     references: "itemProperties"
   },
   spellSchool: {
-    label: "DND5E.SpellSchool",
+    label: "SKJAALD.SpellSchool",
     references: "enrichmentLookup.spellSchools"
   },
   spellTag: {
-    label: "DND5E.SpellTag",
+    label: "SKJAALD.SpellTag",
     references: "itemProperties"
   }
 };
@@ -25961,154 +25961,154 @@ preLocalize("ruleTypes", { key: "label" });
  * List of rules that can be referenced from enrichers.
  * @enum {string}
  */
-DND5E.rules = {
-  inspiration: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.nkEPI89CiQnOaLYh",
-  carryingcapacity: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1PnjDBKbQJIVyc2t",
-  push: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
-  lift: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
-  drag: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
-  encumbrance: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JwqYf9qb6gJAWZKs",
-  hiding: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.plHuoNdS0j3umPNS",
-  passiveperception: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.988C2hQNyvqkdbND",
-  time: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eihqNjwpZ3HM4IqY",
-  speed: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HhqeIiSj8sE1v1qZ",
-  travelpace: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eFAISahBloR2X8MX",
-  forcedmarch: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uQWQpRKQ1kWhuvjZ",
-  difficultterrainpace: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hFW5BR2yHHwwgurD",
-  climbing: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KxUXbMrUCIAhv4AF",
-  swimming: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KxUXbMrUCIAhv4AF",
-  longjump: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1U0myNrOvIVBUdJV",
-  highjump: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.raPwIkqKSv60ELmy",
-  falling: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kREHL5pgNUOhay9f",
-  suffocating: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BIlnr0xYhqt4TGsi",
-  vision: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.O6hamUbI9kVASN8b",
-  light: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.O6hamUbI9kVASN8b",
-  lightlyobscured: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MAxtfJyvJV7EpzWN",
-  heavilyobscured: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wPFjfRruboxhtL4b",
-  brightlight: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RnMokVPyKGbbL8vi",
-  dimlight: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.n1Ocpbyhr6HhgbCG",
-  darkness: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4dfREIDjG5N4fvxd",
-  blindsight: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.sacjsfm9ZXnw4Tqc",
-  darkvision: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ldmA1PbnEGVkmE11",
-  tremorsense: "Compendium.dnd5e.rules.JournalEntry.eVtpEGXjA2tamEIJ.JournalEntryPage.8AIlZ95v54mL531X",
-  truesight: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kNa8rJFbtaTM3Rmk",
-  food: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jayo7XVgGnRCpTW0",
-  water: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iIEI87J7lr2sqtb5",
-  resting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.dpHJXYLigIdEseIb",
-  shortrest: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1s2swI3UsjUUgbt2",
-  longrest: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6cLtjbHn4KV2R7G9",
-  surprise: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.YmOt8HderKveA19K",
-  initiative: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RcwElV4GAcVXKWxo",
-  bonusaction: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2fu2CXsDg8gQmGGw",
-  reaction: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2VqLyxMyMxgXe2wC",
-  difficultterrain: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6tqz947qO8vPyxvD",
-  beingprone: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.bV8akkBdVUUG21CO",
-  droppingprone: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hwTLpAtSS5OqQsI1",
-  standingup: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hwTLpAtSS5OqQsI1",
-  crawling: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.VWG9qe8PUNtS28Pw",
-  movingaroundothercreatures: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9ZWCknaXCOdhyOrX",
-  flying: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.0B1fxfmw0a48tPsc",
-  size: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HWHRQVBVG7K0RVVW",
-  space: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.WIA5bs3P45PmO3OS",
-  squeezing: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wKtOwagDAiNfVoPS",
-  attack: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.u4GQCzoBig20yRLj",
-  castaspell: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GLwN36E4WXn3Cp4Z",
-  dash: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Jqn0MEvq6fduYNo6",
-  disengage: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ZOPRfI48NyjoloEF",
-  dodge: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.V1BkwK2HQrtEfa4d",
-  help: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KnrD3u2AnQfmtOWj",
-  hide: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BXlHhE4ZoiFwiXLK",
-  ready: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8xJzZVelP2AmQGfU",
-  search: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5cn1ZTLgQq95vfZx",
-  useanobject: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ljqhJx8Qxu2ivo69",
-  attackrolls: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5wkqEqhbBD5kDeE7",
-  unseenattackers: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5ZJNwEPlsGurecg5",
-  unseentargets: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5ZJNwEPlsGurecg5",
-  rangedattacks: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.S9aclVOCbusLE3kC",
-  range: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HjKXuB8ndjcqOds7",
-  rangedattacksinclosecombat: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qEZvxW0NM7ixSQP5",
-  meleeattacks: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GTk6emvzNxl8Oosl",
-  reach: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hgZ5ZN4B3y7tmFlt",
-  unarmedstrike: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xJjJ4lhymAYXAOvO",
-  opportunityattacks: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zeU0NyCyP10lkLg3",
-  twoweaponfighting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FQTS08uH74A6psL2",
-  grappling: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Sl4bniSPSbyrakM2",
-  escapingagrapple: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2TZKy9YbMN3ZY3h8",
-  movingagrappledcreature: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.x5bUdhAD7u5Bt2rg",
-  shoving: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hrdqMF8hRXJdNzJx",
-  cover: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.W7f7PcRubNUMIq2S",
-  halfcover: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hv0J61IAfofuhy3Q",
-  threequarterscover: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zAMStUjUrPV10dFm",
-  totalcover: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BKUAxXuPEzxiEOeL",
-  hitpoints: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.PFbzoMBviI2DD9QP",
-  damagerolls: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hd26AqKrCqtcQBWy",
-  criticalhits: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gFL1VhSEljL1zvje",
-  damagetypes: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jVOgf7DNEhkzYNIe",
-  damageresistance: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v0WE18nT5SJO8Ft7",
-  damagevulnerability: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v0WE18nT5SJO8Ft7",
-  healing: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ICketFqbFslqKiX9",
-  instantdeath: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8BG05mA0mEzwmrHU",
-  deathsavingthrows: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JL8LePEJQYFdNuLL",
-  deathsaves: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JL8LePEJQYFdNuLL",
-  stabilizing: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.r1CgZXLcqFop6Dlx",
-  knockingacreatureout: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uEwjgKGuCRTNADYv",
-  temporaryhitpoints: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AW6HpJZHqxfESXaq",
-  temphp: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AW6HpJZHqxfESXaq",
-  mounting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MFpyvUIdcBpC9kIE",
-  dismounting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MFpyvUIdcBpC9kIE",
-  controllingamount: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.khmR2xFk1NxoQUgZ",
-  underwatercombat: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6zVOeLyq4iMnrQT4",
-  spelllevel: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.A6k5fS0kFqPXTW3v",
-  knownspells: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oezg742GlxmEwT85",
-  preparedspells: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oezg742GlxmEwT85",
-  spellslots: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Su6wbb0O9UN4ZDIH",
-  castingatahigherlevel: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4H9SLM95OCLfFizz",
-  upcasting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4H9SLM95OCLfFizz",
-  castinginarmor: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.z4A8vHSK2pb8YA9X",
-  cantrips: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jZD5mCTnMPJ9jW67",
-  rituals: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA",
-  castingtime: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zRVW8Tvyk6BECjZD",
-  bonusactioncasting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RP1WL9FXI3aknlxZ",
-  reactioncasting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t62lCfinwU9H7Lji",
-  longercastingtimes: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gOAIRFCyPUx42axn",
-  spellrange: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RBYPyE5z5hAZSbH6",
-  components: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xeHthAF9lxfn2tII",
-  verbal: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx",
-  spellduration: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9mp0SRsptjvJcq1e",
-  instantaneous: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kdlgZOpRMB6bGCod",
-  concentrating: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH",
-  spelltargets: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.G80AIQr04sxdVpw4",
-  areaofeffect: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wvtCeGHgnUmh0cuj",
-  pointoforigin: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8HxbRceQQUAhyWRt",
-  spellsavingthrows: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8DajfNll90eeKcmB",
-  spellattackrolls: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qAFzmGZKhVvAEUF3",
-  combiningmagicaleffects: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TMIN963hG773yZzO",
-  schoolsofmagic: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TeF6CKMDRpYpsLd4",
-  detectingtraps: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DZ7AhdQ94xggG4bj",
-  disablingtraps: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DZ7AhdQ94xggG4bj",
-  curingmadness: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6Icem7G3CICdNOkM",
-  damagethreshold: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9LJZhqvCburpags3",
-  poisontypes: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.I6OMMWUaYCWR9xip",
-  contactpoison: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kXnCEqqGUWRZeZDj",
-  ingestedpoison: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Y0vsJYSWeQcFpJ27",
-  inhaledpoison: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KUyN4eK1xTBzXsjP",
-  injurypoison: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.LUL48OUq6SJeMGc7",
-  attunement: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.UQ65OwIyGK65eiOK",
-  wearingitems: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iPB8mGKuQx3X0Z2J",
-  wieldingitems: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iPB8mGKuQx3X0Z2J",
-  multipleitemsofthesamekind: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rLJdvz4Mde8GkEYQ",
-  paireditems: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rd9pCH8yFraSGN34",
-  commandword: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HiXixxLYesv6Ff3t",
-  consumables: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.UEPAcZFzQ5x196zE",
-  itemspells: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DABoaeeF6w31UCsj",
-  charges: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.NLRXcgrpRCfsA5mO",
-  spellscroll: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gi8IKhtOlBVhMJrN",
-  creaturetags: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9jV1fFF163dr68vd",
-  telepathy: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.geTidcFIYWuUvD2L",
-  legendaryactions: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.C1awOyZh78pq1xmY",
-  lairactions: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.07PtjpMxiRIhkBEp",
-  regionaleffects: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uj8W27NKFyzygPUd",
-  disease: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oNQWvyRZkTOJ8PBq"
+SKJAALD.rules = {
+  inspiration: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.nkEPI89CiQnOaLYh",
+  carryingcapacity: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1PnjDBKbQJIVyc2t",
+  push: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
+  lift: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
+  drag: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
+  encumbrance: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JwqYf9qb6gJAWZKs",
+  hiding: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.plHuoNdS0j3umPNS",
+  passiveperception: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.988C2hQNyvqkdbND",
+  time: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eihqNjwpZ3HM4IqY",
+  speed: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HhqeIiSj8sE1v1qZ",
+  travelpace: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eFAISahBloR2X8MX",
+  forcedmarch: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uQWQpRKQ1kWhuvjZ",
+  difficultterrainpace: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hFW5BR2yHHwwgurD",
+  climbing: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KxUXbMrUCIAhv4AF",
+  swimming: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KxUXbMrUCIAhv4AF",
+  longjump: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1U0myNrOvIVBUdJV",
+  highjump: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.raPwIkqKSv60ELmy",
+  falling: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kREHL5pgNUOhay9f",
+  suffocating: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BIlnr0xYhqt4TGsi",
+  vision: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.O6hamUbI9kVASN8b",
+  light: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.O6hamUbI9kVASN8b",
+  lightlyobscured: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MAxtfJyvJV7EpzWN",
+  heavilyobscured: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wPFjfRruboxhtL4b",
+  brightlight: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RnMokVPyKGbbL8vi",
+  dimlight: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.n1Ocpbyhr6HhgbCG",
+  darkness: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4dfREIDjG5N4fvxd",
+  blindsight: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.sacjsfm9ZXnw4Tqc",
+  darkvision: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ldmA1PbnEGVkmE11",
+  tremorsense: "Compendium.skjaald.rules.JournalEntry.eVtpEGXjA2tamEIJ.JournalEntryPage.8AIlZ95v54mL531X",
+  truesight: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kNa8rJFbtaTM3Rmk",
+  food: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jayo7XVgGnRCpTW0",
+  water: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iIEI87J7lr2sqtb5",
+  resting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.dpHJXYLigIdEseIb",
+  shortrest: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1s2swI3UsjUUgbt2",
+  longrest: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6cLtjbHn4KV2R7G9",
+  surprise: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.YmOt8HderKveA19K",
+  initiative: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RcwElV4GAcVXKWxo",
+  bonusaction: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2fu2CXsDg8gQmGGw",
+  reaction: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2VqLyxMyMxgXe2wC",
+  difficultterrain: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6tqz947qO8vPyxvD",
+  beingprone: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.bV8akkBdVUUG21CO",
+  droppingprone: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hwTLpAtSS5OqQsI1",
+  standingup: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hwTLpAtSS5OqQsI1",
+  crawling: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.VWG9qe8PUNtS28Pw",
+  movingaroundothercreatures: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9ZWCknaXCOdhyOrX",
+  flying: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.0B1fxfmw0a48tPsc",
+  size: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HWHRQVBVG7K0RVVW",
+  space: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.WIA5bs3P45PmO3OS",
+  squeezing: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wKtOwagDAiNfVoPS",
+  attack: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.u4GQCzoBig20yRLj",
+  castaspell: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GLwN36E4WXn3Cp4Z",
+  dash: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Jqn0MEvq6fduYNo6",
+  disengage: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ZOPRfI48NyjoloEF",
+  dodge: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.V1BkwK2HQrtEfa4d",
+  help: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KnrD3u2AnQfmtOWj",
+  hide: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BXlHhE4ZoiFwiXLK",
+  ready: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8xJzZVelP2AmQGfU",
+  search: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5cn1ZTLgQq95vfZx",
+  useanobject: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ljqhJx8Qxu2ivo69",
+  attackrolls: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5wkqEqhbBD5kDeE7",
+  unseenattackers: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5ZJNwEPlsGurecg5",
+  unseentargets: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5ZJNwEPlsGurecg5",
+  rangedattacks: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.S9aclVOCbusLE3kC",
+  range: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HjKXuB8ndjcqOds7",
+  rangedattacksinclosecombat: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qEZvxW0NM7ixSQP5",
+  meleeattacks: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GTk6emvzNxl8Oosl",
+  reach: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hgZ5ZN4B3y7tmFlt",
+  unarmedstrike: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xJjJ4lhymAYXAOvO",
+  opportunityattacks: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zeU0NyCyP10lkLg3",
+  twoweaponfighting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FQTS08uH74A6psL2",
+  grappling: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Sl4bniSPSbyrakM2",
+  escapingagrapple: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2TZKy9YbMN3ZY3h8",
+  movingagrappledcreature: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.x5bUdhAD7u5Bt2rg",
+  shoving: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hrdqMF8hRXJdNzJx",
+  cover: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.W7f7PcRubNUMIq2S",
+  halfcover: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hv0J61IAfofuhy3Q",
+  threequarterscover: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zAMStUjUrPV10dFm",
+  totalcover: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BKUAxXuPEzxiEOeL",
+  hitpoints: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.PFbzoMBviI2DD9QP",
+  damagerolls: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hd26AqKrCqtcQBWy",
+  criticalhits: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gFL1VhSEljL1zvje",
+  damagetypes: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jVOgf7DNEhkzYNIe",
+  damageresistance: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v0WE18nT5SJO8Ft7",
+  damagevulnerability: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v0WE18nT5SJO8Ft7",
+  healing: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ICketFqbFslqKiX9",
+  instantdeath: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8BG05mA0mEzwmrHU",
+  deathsavingthrows: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JL8LePEJQYFdNuLL",
+  deathsaves: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JL8LePEJQYFdNuLL",
+  stabilizing: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.r1CgZXLcqFop6Dlx",
+  knockingacreatureout: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uEwjgKGuCRTNADYv",
+  temporaryhitpoints: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AW6HpJZHqxfESXaq",
+  temphp: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AW6HpJZHqxfESXaq",
+  mounting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MFpyvUIdcBpC9kIE",
+  dismounting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MFpyvUIdcBpC9kIE",
+  controllingamount: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.khmR2xFk1NxoQUgZ",
+  underwatercombat: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6zVOeLyq4iMnrQT4",
+  spelllevel: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.A6k5fS0kFqPXTW3v",
+  knownspells: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oezg742GlxmEwT85",
+  preparedspells: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oezg742GlxmEwT85",
+  spellslots: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Su6wbb0O9UN4ZDIH",
+  castingatahigherlevel: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4H9SLM95OCLfFizz",
+  upcasting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4H9SLM95OCLfFizz",
+  castinginarmor: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.z4A8vHSK2pb8YA9X",
+  cantrips: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jZD5mCTnMPJ9jW67",
+  rituals: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA",
+  castingtime: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zRVW8Tvyk6BECjZD",
+  bonusactioncasting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RP1WL9FXI3aknlxZ",
+  reactioncasting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t62lCfinwU9H7Lji",
+  longercastingtimes: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gOAIRFCyPUx42axn",
+  spellrange: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RBYPyE5z5hAZSbH6",
+  components: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xeHthAF9lxfn2tII",
+  verbal: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx",
+  spellduration: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9mp0SRsptjvJcq1e",
+  instantaneous: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kdlgZOpRMB6bGCod",
+  concentrating: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH",
+  spelltargets: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.G80AIQr04sxdVpw4",
+  areaofeffect: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wvtCeGHgnUmh0cuj",
+  pointoforigin: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8HxbRceQQUAhyWRt",
+  spellsavingthrows: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8DajfNll90eeKcmB",
+  spellattackrolls: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qAFzmGZKhVvAEUF3",
+  combiningmagicaleffects: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TMIN963hG773yZzO",
+  schoolsofmagic: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TeF6CKMDRpYpsLd4",
+  detectingtraps: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DZ7AhdQ94xggG4bj",
+  disablingtraps: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DZ7AhdQ94xggG4bj",
+  curingmadness: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6Icem7G3CICdNOkM",
+  damagethreshold: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9LJZhqvCburpags3",
+  poisontypes: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.I6OMMWUaYCWR9xip",
+  contactpoison: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kXnCEqqGUWRZeZDj",
+  ingestedpoison: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Y0vsJYSWeQcFpJ27",
+  inhaledpoison: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KUyN4eK1xTBzXsjP",
+  injurypoison: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.LUL48OUq6SJeMGc7",
+  attunement: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.UQ65OwIyGK65eiOK",
+  wearingitems: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iPB8mGKuQx3X0Z2J",
+  wieldingitems: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iPB8mGKuQx3X0Z2J",
+  multipleitemsofthesamekind: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rLJdvz4Mde8GkEYQ",
+  paireditems: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rd9pCH8yFraSGN34",
+  commandword: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HiXixxLYesv6Ff3t",
+  consumables: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.UEPAcZFzQ5x196zE",
+  itemspells: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DABoaeeF6w31UCsj",
+  charges: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.NLRXcgrpRCfsA5mO",
+  spellscroll: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gi8IKhtOlBVhMJrN",
+  creaturetags: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9jV1fFF163dr68vd",
+  telepathy: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.geTidcFIYWuUvD2L",
+  legendaryactions: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.C1awOyZh78pq1xmY",
+  lairactions: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.07PtjpMxiRIhkBEp",
+  regionaleffects: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uj8W27NKFyzygPUd",
+  disease: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oNQWvyRZkTOJ8PBq"
 };
 
 /* -------------------------------------------- */
@@ -26127,13 +26127,13 @@ DND5E.rules = {
 /**
  * @type {TokenRingsConfiguration}
  */
-DND5E.tokenRings = {
+SKJAALD.tokenRings = {
   effects: {
-    RING_PULSE: "DND5E.TokenRings.Effects.RingPulse",
-    RING_GRADIENT: "DND5E.TokenRings.Effects.RingGradient",
-    BKG_WAVE: "DND5E.TokenRings.Effects.BackgroundWave"
+    RING_PULSE: "SKJAALD.TokenRings.Effects.RingPulse",
+    RING_GRADIENT: "SKJAALD.TokenRings.Effects.RingGradient",
+    BKG_WAVE: "SKJAALD.TokenRings.Effects.BackgroundWave"
   },
-  spriteSheet: "systems/dnd5e/tokens/composite/token-rings.json",
+  spriteSheet: "systems/skjaald/tokens/composite/token-rings.json",
   shaderClass: null
 };
 preLocalize("tokenRings.effects");
@@ -26146,7 +26146,7 @@ preLocalize("tokenRings.effects");
  * List of books available as sources.
  * @enum {string}
  */
-DND5E.sourceBooks = {
+SKJAALD.sourceBooks = {
   "SRD 5.1": "SOURCE.BOOK.SRD"
 };
 preLocalize("sourceBooks", { sort: true });
@@ -26159,9 +26159,9 @@ preLocalize("sourceBooks", { sort: true });
  * Themes that can be set for the system or on sheets.
  * @enum {string}
  */
-DND5E.themes = {
-  light: "SHEETS.DND5E.THEME.Light",
-  dark: "SHEETS.DND5E.THEME.Dark"
+SKJAALD.themes = {
+  light: "SHEETS.SKJAALD.THEME.Light",
+  dark: "SHEETS.SKJAALD.THEME.Dark"
 };
 preLocalize("themes");
 
@@ -26170,17 +26170,17 @@ preLocalize("themes");
 /* -------------------------------------------- */
 
 let _enrichmentLookup;
-Object.defineProperty(DND5E, "enrichmentLookup", {
+Object.defineProperty(SKJAALD, "enrichmentLookup", {
   get() {
     const slugify = value => value?.slugify().replaceAll("-", "");
     if ( !_enrichmentLookup ) {
       _enrichmentLookup = {
-        abilities: foundry.utils.deepClone(DND5E.abilities),
-        skills: foundry.utils.deepClone(DND5E.skills),
-        spellSchools: foundry.utils.deepClone(DND5E.spellSchools),
-        tools: foundry.utils.deepClone(DND5E.toolIds)
+        abilities: foundry.utils.deepClone(SKJAALD.abilities),
+        skills: foundry.utils.deepClone(SKJAALD.skills),
+        spellSchools: foundry.utils.deepClone(SKJAALD.spellSchools),
+        tools: foundry.utils.deepClone(SKJAALD.toolIds)
       };
-      const addFullKeys = key => Object.entries(DND5E[key]).forEach(([k, v]) =>
+      const addFullKeys = key => Object.entries(SKJAALD[key]).forEach(([k, v]) =>
         _enrichmentLookup[key][slugify(v.fullKey)] = { ...v, key: k }
       );
       addFullKeys("abilities");
@@ -26197,20 +26197,20 @@ Object.defineProperty(DND5E, "enrichmentLookup", {
 /**
  * Patch an existing config enum to allow conversion from string values to object values without
  * breaking existing modules that are expecting strings.
- * @param {string} key          Key within DND5E that has been replaced with an enum of objects.
+ * @param {string} key          Key within SKJAALD that has been replaced with an enum of objects.
  * @param {string} fallbackKey  Key within the new config object from which to get the fallback value.
  * @param {object} [options]    Additional options passed through to logCompatibilityWarning.
  */
 function patchConfig(key, fallbackKey, options) {
   /** @override */
   function toString() {
-    const message = `The value of CONFIG.DND5E.${key} has been changed to an object.`
+    const message = `The value of CONFIG.SKJAALD.${key} has been changed to an object.`
       +` The former value can be acccessed from .${fallbackKey}.`;
     foundry.utils.logCompatibilityWarning(message, options);
     return this[fallbackKey];
   }
 
-  Object.values(DND5E[key]).forEach(o => {
+  Object.values(SKJAALD[key]).forEach(o => {
     if ( foundry.utils.getType(o) !== "Object" ) return;
     Object.defineProperty(o, "toString", {value: toString});
   });
@@ -26273,7 +26273,7 @@ class ModuleArt {
    * @returns {Promise<void>}
    */
   async #parseArtMapping(moduleId, mapping, credit) {
-    let settings = game.settings.get("dnd5e", "moduleArtConfiguration")?.[moduleId];
+    let settings = game.settings.get("skjaald", "moduleArtConfiguration")?.[moduleId];
     settings ??= {portraits: true, tokens: true};
     for ( const [packName, actors] of Object.entries(mapping) ) {
       const pack = game.packs.get(packName);
@@ -26301,7 +26301,7 @@ class ModuleArt {
    */
   static getModuleArtPath(module) {
     const flags = module.flags?.[module.id];
-    const artPath = flags?.["dnd5e-art"];
+    const artPath = flags?.["skjaald-art"];
     if ( !artPath || !module.active ) return null;
     return artPath;
   }
@@ -26322,13 +26322,13 @@ class ModuleArt {
    * @returns {ModuleArtDescriptor[]}
    */
   static getArtModules() {
-    const settings = game.settings.get("dnd5e", "moduleArtConfiguration");
+    const settings = game.settings.get("skjaald", "moduleArtConfiguration");
     const unsorted = [];
     const configs = [{
       id: game.system.id,
       label: game.system.title,
-      mapping: "systems/dnd5e/json/fa-token-mapping.json",
-      priority: settings.dnd5e?.priority ?? CONST.SORT_INTEGER_DENSITY,
+      mapping: "systems/skjaald/json/fa-token-mapping.json",
+      priority: settings.skjaald?.priority ?? CONST.SORT_INTEGER_DENSITY,
       credit: `
         <em>
           Token artwork by
@@ -26341,7 +26341,7 @@ class ModuleArt {
       const flags = module.flags?.[module.id];
       const mapping = this.getModuleArtPath(module);
       if ( !mapping ) continue;
-      const config = { id: module.id, label: module.title, credit: flags?.["dnd5e-art-credit"], mapping };
+      const config = { id: module.id, label: module.title, credit: flags?.["skjaald-art-credit"], mapping };
       configs.push(config);
       const priority = settings[module.id]?.priority;
       if ( priority === undefined ) unsorted.push(config);
@@ -26361,7 +26361,7 @@ class ModuleArt {
 class ModuleArtConfig extends FormApplication {
   /** @inheritdoc */
   constructor(object={}, options={}) {
-    object = foundry.utils.mergeObject(game.settings.get("dnd5e", "moduleArtConfiguration"), object, {inplace: false});
+    object = foundry.utils.mergeObject(game.settings.get("skjaald", "moduleArtConfiguration"), object, {inplace: false});
     super(object, options);
   }
 
@@ -26370,9 +26370,9 @@ class ModuleArtConfig extends FormApplication {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      title: game.i18n.localize("DND5E.ModuleArtConfigL"),
+      title: game.i18n.localize("SKJAALD.ModuleArtConfigL"),
       id: "module-art-config",
-      template: "systems/dnd5e/templates/apps/module-art-config.hbs",
+      template: "systems/skjaald/templates/apps/module-art-config.hbs",
       popOut: true,
       width: 600,
       height: "auto"
@@ -26438,7 +26438,7 @@ class ModuleArtConfig extends FormApplication {
 
   /** @inheritdoc */
   async _updateObject(event, formData) {
-    await game.settings.set("dnd5e", "moduleArtConfiguration", foundry.utils.expandObject(formData));
+    await game.settings.set("skjaald", "moduleArtConfiguration", foundry.utils.expandObject(formData));
     return SettingsConfig.reloadConfirm({world: true});
   }
 }
@@ -26448,7 +26448,7 @@ class ModuleArtConfig extends FormApplication {
  */
 function registerSystemSettings() {
   // Internal System Migration Version
-  game.settings.register("dnd5e", "systemMigrationVersion", {
+  game.settings.register("skjaald", "systemMigrationVersion", {
     name: "System Migration Version",
     scope: "world",
     config: false,
@@ -26457,7 +26457,7 @@ function registerSystemSettings() {
   });
 
   // Challenge visibility
-  game.settings.register("dnd5e", "challengeVisibility", {
+  game.settings.register("skjaald", "challengeVisibility", {
     name: "SETTINGS.5eChallengeVisibility.Name",
     hint: "SETTINGS.5eChallengeVisibility.Hint",
     scope: "world",
@@ -26472,7 +26472,7 @@ function registerSystemSettings() {
   });
 
   // Encumbrance tracking
-  game.settings.register("dnd5e", "encumbrance", {
+  game.settings.register("skjaald", "encumbrance", {
     name: "SETTINGS.5eEncumbrance.Name",
     hint: "SETTINGS.5eEncumbrance.Hint",
     scope: "world",
@@ -26487,7 +26487,7 @@ function registerSystemSettings() {
   });
 
   // Rest Recovery Rules
-  game.settings.register("dnd5e", "restVariant", {
+  game.settings.register("skjaald", "restVariant", {
     name: "SETTINGS.5eRestN",
     hint: "SETTINGS.5eRestL",
     scope: "world",
@@ -26502,7 +26502,7 @@ function registerSystemSettings() {
   });
 
   // Diagonal Movement Rule
-  game.settings.register("dnd5e", "diagonalMovement", {
+  game.settings.register("skjaald", "diagonalMovement", {
     name: "SETTINGS.5eDiagN",
     hint: "SETTINGS.5eDiagL",
     scope: "world",
@@ -26518,7 +26518,7 @@ function registerSystemSettings() {
   });
 
   // Allow rotating square templates
-  game.settings.register("dnd5e", "gridAlignedSquareTemplates", {
+  game.settings.register("skjaald", "gridAlignedSquareTemplates", {
     name: "SETTINGS.5eGridAlignedSquareTemplatesN",
     hint: "SETTINGS.5eGridAlignedSquareTemplatesL",
     scope: "world",
@@ -26528,7 +26528,7 @@ function registerSystemSettings() {
   });
 
   // Proficiency modifier type
-  game.settings.register("dnd5e", "proficiencyModifier", {
+  game.settings.register("skjaald", "proficiencyModifier", {
     name: "SETTINGS.5eProfN",
     hint: "SETTINGS.5eProfL",
     scope: "world",
@@ -26542,7 +26542,7 @@ function registerSystemSettings() {
   });
 
   // Allow feats during Ability Score Improvements
-  game.settings.register("dnd5e", "allowFeats", {
+  game.settings.register("skjaald", "allowFeats", {
     name: "SETTINGS.5eFeatsN",
     hint: "SETTINGS.5eFeatsL",
     scope: "world",
@@ -26552,7 +26552,7 @@ function registerSystemSettings() {
   });
 
   // Use Honor ability score
-  game.settings.register("dnd5e", "honorScore", {
+  game.settings.register("skjaald", "honorScore", {
     name: "SETTINGS.5eHonorN",
     hint: "SETTINGS.5eHonorL",
     scope: "world",
@@ -26563,7 +26563,7 @@ function registerSystemSettings() {
   });
 
   // Use Sanity ability score
-  game.settings.register("dnd5e", "sanityScore", {
+  game.settings.register("skjaald", "sanityScore", {
     name: "SETTINGS.5eSanityN",
     hint: "SETTINGS.5eSanityL",
     scope: "world",
@@ -26574,7 +26574,7 @@ function registerSystemSettings() {
   });
 
   // Apply Dexterity as Initiative Tiebreaker
-  game.settings.register("dnd5e", "initiativeDexTiebreaker", {
+  game.settings.register("skjaald", "initiativeDexTiebreaker", {
     name: "SETTINGS.5eInitTBN",
     hint: "SETTINGS.5eInitTBL",
     scope: "world",
@@ -26584,7 +26584,7 @@ function registerSystemSettings() {
   });
 
   // Record Currency Weight
-  game.settings.register("dnd5e", "currencyWeight", {
+  game.settings.register("skjaald", "currencyWeight", {
     name: "SETTINGS.5eCurWtN",
     hint: "SETTINGS.5eCurWtL",
     scope: "world",
@@ -26594,7 +26594,7 @@ function registerSystemSettings() {
   });
 
   // Disable Experience Tracking
-  game.settings.register("dnd5e", "disableExperienceTracking", {
+  game.settings.register("skjaald", "disableExperienceTracking", {
     name: "SETTINGS.5eNoExpN",
     hint: "SETTINGS.5eNoExpL",
     scope: "world",
@@ -26604,7 +26604,7 @@ function registerSystemSettings() {
   });
 
   // Disable Advancements
-  game.settings.register("dnd5e", "disableAdvancements", {
+  game.settings.register("skjaald", "disableAdvancements", {
     name: "SETTINGS.5eNoAdvancementsN",
     hint: "SETTINGS.5eNoAdvancementsL",
     scope: "world",
@@ -26614,7 +26614,7 @@ function registerSystemSettings() {
   });
 
   // Disable Concentration Tracking
-  game.settings.register("dnd5e", "disableConcentration", {
+  game.settings.register("skjaald", "disableConcentration", {
     name: "SETTINGS.5eNoConcentrationN",
     hint: "SETTINGS.5eNoConcentrationL",
     scope: "world",
@@ -26624,7 +26624,7 @@ function registerSystemSettings() {
   });
 
   // Collapse Item Cards (by default)
-  game.settings.register("dnd5e", "autoCollapseItemCards", {
+  game.settings.register("skjaald", "autoCollapseItemCards", {
     name: "SETTINGS.5eAutoCollapseCardN",
     hint: "SETTINGS.5eAutoCollapseCardL",
     scope: "client",
@@ -26637,22 +26637,22 @@ function registerSystemSettings() {
   });
 
   // Collapse Chat Card Trays
-  game.settings.register("dnd5e", "autoCollapseChatTrays", {
-    name: "SETTINGS.DND5E.COLLAPSETRAYS.Name",
-    hint: "SETTINGS.DND5E.COLLAPSETRAYS.Hint",
+  game.settings.register("skjaald", "autoCollapseChatTrays", {
+    name: "SETTINGS.SKJAALD.COLLAPSETRAYS.Name",
+    hint: "SETTINGS.SKJAALD.COLLAPSETRAYS.Hint",
     scope: "client",
     config: true,
     default: "older",
     type: String,
     choices: {
-      never: "SETTINGS.DND5E.COLLAPSETRAYS.Never",
-      older: "SETTINGS.DND5E.COLLAPSETRAYS.Older",
-      always: "SETTINGS.DND5E.COLLAPSETRAYS.Always"
+      never: "SETTINGS.SKJAALD.COLLAPSETRAYS.Never",
+      older: "SETTINGS.SKJAALD.COLLAPSETRAYS.Older",
+      always: "SETTINGS.SKJAALD.COLLAPSETRAYS.Always"
     }
   });
 
   // Allow Polymorphing
-  game.settings.register("dnd5e", "allowPolymorphing", {
+  game.settings.register("skjaald", "allowPolymorphing", {
     name: "SETTINGS.5eAllowPolymorphingN",
     hint: "SETTINGS.5eAllowPolymorphingL",
     scope: "world",
@@ -26662,7 +26662,7 @@ function registerSystemSettings() {
   });
 
   // Polymorph Settings
-  game.settings.register("dnd5e", "polymorphSettings", {
+  game.settings.register("skjaald", "polymorphSettings", {
     scope: "client",
     default: {
       keepPhysical: false,
@@ -26691,9 +26691,9 @@ function registerSystemSettings() {
   });
 
   // Allow Summoning
-  game.settings.register("dnd5e", "allowSummoning", {
-    name: "SETTINGS.DND5E.ALLOWSUMMONING.Name",
-    hint: "SETTINGS.DND5E.ALLOWSUMMONING.Hint",
+  game.settings.register("skjaald", "allowSummoning", {
+    name: "SETTINGS.SKJAALD.ALLOWSUMMONING.Name",
+    hint: "SETTINGS.SKJAALD.ALLOWSUMMONING.Hint",
     scope: "world",
     config: true,
     default: false,
@@ -26701,7 +26701,7 @@ function registerSystemSettings() {
   });
 
   // Metric Unit Weights
-  game.settings.register("dnd5e", "metricWeightUnits", {
+  game.settings.register("skjaald", "metricWeightUnits", {
     name: "SETTINGS.5eMetricN",
     hint: "SETTINGS.5eMetricL",
     scope: "world",
@@ -26711,7 +26711,7 @@ function registerSystemSettings() {
   });
 
   // Critical Damage Modifiers
-  game.settings.register("dnd5e", "criticalDamageModifiers", {
+  game.settings.register("skjaald", "criticalDamageModifiers", {
     name: "SETTINGS.5eCriticalModifiersN",
     hint: "SETTINGS.5eCriticalModifiersL",
     scope: "world",
@@ -26721,7 +26721,7 @@ function registerSystemSettings() {
   });
 
   // Critical Damage Maximize
-  game.settings.register("dnd5e", "criticalDamageMaxDice", {
+  game.settings.register("skjaald", "criticalDamageMaxDice", {
     name: "SETTINGS.5eCriticalMaxDiceN",
     hint: "SETTINGS.5eCriticalMaxDiceL",
     scope: "world",
@@ -26731,7 +26731,7 @@ function registerSystemSettings() {
   });
 
   // Strict validation
-  game.settings.register("dnd5e", "strictValidation", {
+  game.settings.register("skjaald", "strictValidation", {
     scope: "world",
     config: false,
     type: Boolean,
@@ -26739,22 +26739,22 @@ function registerSystemSettings() {
   });
 
   // Dynamic art.
-  game.settings.registerMenu("dnd5e", "moduleArtConfiguration", {
-    name: "DND5E.ModuleArtConfigN",
-    label: "DND5E.ModuleArtConfigL",
-    hint: "DND5E.ModuleArtConfigH",
+  game.settings.registerMenu("skjaald", "moduleArtConfiguration", {
+    name: "SKJAALD.ModuleArtConfigN",
+    label: "SKJAALD.ModuleArtConfigL",
+    hint: "SKJAALD.ModuleArtConfigH",
     icon: "fa-solid fa-palette",
     type: ModuleArtConfig,
     restricted: true
   });
 
-  game.settings.register("dnd5e", "moduleArtConfiguration", {
+  game.settings.register("skjaald", "moduleArtConfiguration", {
     name: "Module Art Configuration",
     scope: "world",
     config: false,
     type: Object,
     default: {
-      dnd5e: {
+      skjaald: {
         portraits: true,
         tokens: true
       }
@@ -26762,7 +26762,7 @@ function registerSystemSettings() {
   });
 
   // Primary Group
-  game.settings.register("dnd5e", "primaryParty", {
+  game.settings.register("skjaald", "primaryParty", {
     name: "Primary Party",
     scope: "world",
     config: false,
@@ -26772,9 +26772,9 @@ function registerSystemSettings() {
   });
 
   // Control hints
-  game.settings.register("dnd5e", "controlHints", {
-    name: "DND5E.Controls.Name",
-    hint: "DND5E.Controls.Hint",
+  game.settings.register("skjaald", "controlHints", {
+    name: "SKJAALD.Controls.Name",
+    hint: "SKJAALD.Controls.Hint",
     scope: "client",
     config: true,
     type: Boolean,
@@ -26799,25 +26799,25 @@ class PrimaryPartyData extends foundry.abstract.DataModel {
  * Register additional settings after modules have had a chance to initialize to give them a chance to modify choices.
  */
 function registerDeferredSettings() {
-  game.settings.register("dnd5e", "theme", {
-    name: "SETTINGS.DND5E.THEME.Name",
-    hint: "SETTINGS.DND5E.THEME.Hint",
+  game.settings.register("skjaald", "theme", {
+    name: "SETTINGS.SKJAALD.THEME.Name",
+    hint: "SETTINGS.SKJAALD.THEME.Hint",
     scope: "client",
     config: game.release.generation < 12,
     default: "",
     type: String,
     choices: {
-      "": "SHEETS.DND5E.THEME.Automatic",
-      ...CONFIG.DND5E.themes
+      "": "SHEETS.SKJAALD.THEME.Automatic",
+      ...CONFIG.SKJAALD.themes
     },
     onChange: s => setTheme(document.body, s)
   });
 
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    setTheme(document.body, game.settings.get("dnd5e", "theme"));
+    setTheme(document.body, game.settings.get("skjaald", "theme"));
   });
   matchMedia("(prefers-contrast: more)").addEventListener("change", () => {
-    setTheme(document.body, game.settings.get("dnd5e", "theme"));
+    setTheme(document.body, game.settings.get("skjaald", "theme"));
   });
 
   // Hook into core color scheme setting.
@@ -26830,7 +26830,7 @@ function registerDeferredSettings() {
     };
     setTheme(document.body, game.settings.get("core", "colorScheme"));
   }
-  else setTheme(document.body, game.settings.get("dnd5e", "theme"));
+  else setTheme(document.body, game.settings.get("skjaald", "theme"));
 }
 
 /* -------------------------------------------- */
@@ -26842,7 +26842,7 @@ function registerDeferredSettings() {
  * @param {string[]} [flags=[]]  Additional theming flags to set.
  */
 function setTheme(element, theme="", flags=new Set()) {
-  element.className = element.className.replace(/\bdnd5e-(theme|flag)-[\w-]+\b/g, "");
+  element.className = element.className.replace(/\bskjaald-(theme|flag)-[\w-]+\b/g, "");
 
   // Primary Theme
   if ( !theme && (element === document.body) ) {
@@ -26850,14 +26850,14 @@ function setTheme(element, theme="", flags=new Set()) {
     if ( matchMedia("(prefers-color-scheme: light)").matches ) theme = "light";
   }
   if ( theme ) {
-    element.classList.add(`dnd5e-theme-${theme.slugify()}`);
+    element.classList.add(`skjaald-theme-${theme.slugify()}`);
     element.dataset.theme = theme;
   }
   else delete element.dataset.theme;
 
   // Additional Flags
   if ( (element === document.body) && matchMedia("(prefers-contrast: more)").matches ) flags.add("high-contrast");
-  for ( const flag of flags ) element.classList.add(`dnd5e-flag-${flag.slugify()}`);
+  for ( const flag of flags ) element.classList.add(`skjaald-flag-${flag.slugify()}`);
   element.dataset.themeFlags = Array.from(flags).join(" ");
 }
 
@@ -26876,7 +26876,7 @@ class ContextMenu5e extends ContextMenu {
     const { clientX, clientY } = window.event;
     const left = Math.min(clientX, clientWidth - width);
     this._expandUp = clientY + height > clientHeight;
-    html.classList.add("dnd5e2");
+    html.classList.add("skjaald2");
     html.classList.toggle("expand-up", this._expandUp);
     html.classList.toggle("expand-down", !this._expandUp);
     html.style.visibility = "";
@@ -26922,7 +26922,7 @@ class EffectsElement extends HTMLElement {
       const effect = this.getEffect(element.dataset);
       if ( !effect ) return;
       ui.context.menuItems = this._getContextOptions(effect);
-      Hooks.call("dnd5e.getActiveEffectContextOptions", effect, ui.context.menuItems);
+      Hooks.call("skjaald.getActiveEffectContextOptions", effect, ui.context.menuItems);
     }});
   }
 
@@ -26969,43 +26969,43 @@ class EffectsElement extends HTMLElement {
     const categories = {
       enchantment: {
         type: "enchantment",
-        label: game.i18n.localize("DND5E.Enchantment.Category.General"),
+        label: game.i18n.localize("SKJAALD.Enchantment.Category.General"),
         effects: [],
         isEnchantment: true
       },
       temporary: {
         type: "temporary",
-        label: game.i18n.localize("DND5E.EffectTemporary"),
+        label: game.i18n.localize("SKJAALD.EffectTemporary"),
         effects: []
       },
       enchantmentActive: {
         type: "activeEnchantment",
-        label: game.i18n.localize("DND5E.Enchantment.Category.Active"),
+        label: game.i18n.localize("SKJAALD.Enchantment.Category.Active"),
         effects: [],
         isEnchantment: true
       },
       passive: {
         type: "passive",
-        label: game.i18n.localize("DND5E.EffectPassive"),
+        label: game.i18n.localize("SKJAALD.EffectPassive"),
         effects: []
       },
       enchantmentInactive: {
         type: "inactiveEnchantment",
-        label: game.i18n.localize("DND5E.Enchantment.Category.Inactive"),
+        label: game.i18n.localize("SKJAALD.Enchantment.Category.Inactive"),
         effects: [],
         isEnchantment: true
       },
       inactive: {
         type: "inactive",
-        label: game.i18n.localize("DND5E.EffectInactive"),
+        label: game.i18n.localize("SKJAALD.EffectInactive"),
         effects: []
       },
       suppressed: {
         type: "suppressed",
-        label: game.i18n.localize("DND5E.EffectUnavailable"),
+        label: game.i18n.localize("SKJAALD.EffectUnavailable"),
         effects: [],
         disabled: true,
-        info: [game.i18n.localize("DND5E.EffectUnavailableInfo")]
+        info: [game.i18n.localize("SKJAALD.EffectUnavailableInfo")]
       }
     };
 
@@ -27016,7 +27016,7 @@ class EffectsElement extends HTMLElement {
         if ( e.disabled ) categories.enchantmentInactive.effects.push(e);
         else categories.enchantmentActive.effects.push(e);
       }
-      else if ( e.getFlag("dnd5e", "type") === "enchantment" ) categories.enchantment.effects.push(e);
+      else if ( e.getFlag("skjaald", "type") === "enchantment" ) categories.enchantment.effects.push(e);
       else if ( e.isSuppressed ) categories.suppressed.effects.push(e);
       else if ( e.disabled ) categories.inactive.effects.push(e);
       else if ( e.isTemporary ) categories.temporary.effects.push(e);
@@ -27028,7 +27028,7 @@ class EffectsElement extends HTMLElement {
     categories.suppressed.hidden = !categories.suppressed.effects.length;
 
     for ( const category of Object.values(categories) ) {
-      category.localizationPrefix = category.isEnchantment ? "DND5E.Enchantment.Action." : "DND5E.Effect";
+      category.localizationPrefix = category.isEnchantment ? "SKJAALD.Enchantment.Action." : "SKJAALD.Effect";
     }
 
     return categories;
@@ -27048,33 +27048,33 @@ class EffectsElement extends HTMLElement {
     const isConcentrationEffect = (this.document instanceof Actor5e) && this._app._concentration?.effects.has(effect);
     const options = [
       {
-        name: "DND5E.ContextMenuActionEdit",
+        name: "SKJAALD.ContextMenuActionEdit",
         icon: "<i class='fas fa-edit fa-fw'></i>",
         condition: () => effect.isOwner,
         callback: li => this._onAction(li[0], "edit")
       },
       {
-        name: "DND5E.ContextMenuActionDuplicate",
+        name: "SKJAALD.ContextMenuActionDuplicate",
         icon: "<i class='fas fa-copy fa-fw'></i>",
         condition: () => effect.isOwner,
         callback: li => this._onAction(li[0], "duplicate")
       },
       {
-        name: "DND5E.ContextMenuActionDelete",
+        name: "SKJAALD.ContextMenuActionDelete",
         icon: "<i class='fas fa-trash fa-fw'></i>",
         condition: () => effect.isOwner && !isConcentrationEffect,
         callback: li => this._onAction(li[0], "delete")
       },
       {
-        name: effect.disabled ? "DND5E.ContextMenuActionEnable" : "DND5E.ContextMenuActionDisable",
+        name: effect.disabled ? "SKJAALD.ContextMenuActionEnable" : "SKJAALD.ContextMenuActionDisable",
         icon: effect.disabled ? "<i class='fas fa-check fa-fw'></i>" : "<i class='fas fa-times fa-fw'></i>",
         group: "state",
         condition: () => effect.isOwner && !isConcentrationEffect,
         callback: li => this._onAction(li[0], "toggle")
       },
       {
-        name: "DND5E.ConcentrationBreak",
-        icon: '<dnd5e-icon src="systems/dnd5e/icons/svg/break-concentration.svg"></dnd5e-icon>',
+        name: "SKJAALD.ConcentrationBreak",
+        icon: '<skjaald-icon src="systems/skjaald/icons/svg/break-concentration.svg"></skjaald-icon>',
         condition: () => isConcentrationEffect,
         callback: () => this.document.endConcentration(effect),
         group: "state"
@@ -27086,7 +27086,7 @@ class EffectsElement extends HTMLElement {
       const uuid = effect.getRelativeUUID(this.document);
       const isFavorited = this.document.system.hasFavorite(uuid);
       options.push({
-        name: isFavorited ? "DND5E.FavoriteRemove" : "DND5E.Favorite",
+        name: isFavorited ? "SKJAALD.FavoriteRemove" : "SKJAALD.Favorite",
         icon: "<i class='fas fa-star fa-fw'></i>",
         condition: () => effect.isOwner,
         callback: li => this._onAction(li[0], isFavorited ? "unfavorite" : "favorite"),
@@ -27149,7 +27149,7 @@ class EffectsElement extends HTMLElement {
    * @protected
    */
   async _onToggleCondition(conditionId) {
-    const existing = this.document.effects.get(staticID(`dnd5e${conditionId}`));
+    const existing = this.document.effects.get(staticID(`skjaald${conditionId}`));
     if ( existing ) return existing.delete();
     const effect = await ActiveEffect.implementation.fromStatusEffect(conditionId);
     return ActiveEffect.implementation.create(effect, { parent: this.document, keepId: true });
@@ -27167,12 +27167,12 @@ class EffectsElement extends HTMLElement {
     const isActor = this.document instanceof Actor;
     const isEnchantment = li.dataset.effectType.startsWith("enchantment");
     return this.document.createEmbeddedDocuments("ActiveEffect", [{
-      name: isActor ? game.i18n.localize("DND5E.EffectNew") : this.document.name,
+      name: isActor ? game.i18n.localize("SKJAALD.EffectNew") : this.document.name,
       icon: isActor ? "icons/svg/aura.svg" : this.document.img,
       origin: isEnchantment ? undefined : this.document.uuid,
       "duration.rounds": li.dataset.effectType === "temporary" ? 1 : undefined,
       disabled: ["inactive", "enchantmentInactive"].includes(li.dataset.effectType),
-      "flags.dnd5e.type": isEnchantment ? "enchantment" : undefined
+      "flags.skjaald.type": isEnchantment ? "enchantment" : undefined
     }]);
   }
 
@@ -27188,7 +27188,7 @@ class EffectsElement extends HTMLElement {
     const doc = await fromUuid(uuid);
     if ( !doc ) return;
     if ( !doc.testUserPermission(game.user, "LIMITED") ) {
-      ui.notifications.warn("DND5E.DocumentViewWarn", { localize: true });
+      ui.notifications.warn("SKJAALD.DocumentViewWarn", { localize: true });
       return;
     }
     doc.sheet.render(true);
@@ -27234,7 +27234,7 @@ class BaseConfigSheet extends DocumentSheet {
       for ( const override of this._getActorOverrides() ) {
         html.find(`input[name="${override}"],select[name="${override}"]`).each((i, el) => {
           el.disabled = true;
-          el.dataset.tooltip = "DND5E.ActiveEffectOverrideWarning";
+          el.dataset.tooltip = "SKJAALD.ActiveEffectOverrideWarning";
         });
       }
     }
@@ -27270,7 +27270,7 @@ class BaseConfigSheet extends DocumentSheet {
  *
  * @param {Actor5e} actor               The Actor instance being displayed within the sheet.
  * @param {ApplicationOptions} options  Additional application configuration options.
- * @param {string} abilityId            The ability key as defined in CONFIG.DND5E.abilities.
+ * @param {string} abilityId            The ability key as defined in CONFIG.SKJAALD.abilities.
  */
 class ActorAbilityConfig extends BaseConfigSheet {
   constructor(actor, options, abilityId) {
@@ -27283,8 +27283,8 @@ class ActorAbilityConfig extends BaseConfigSheet {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e"],
-      template: "systems/dnd5e/templates/apps/ability-config.hbs",
+      classes: ["skjaald"],
+      template: "systems/skjaald/templates/apps/ability-config.hbs",
       width: 500,
       height: "auto"
     });
@@ -27294,8 +27294,8 @@ class ActorAbilityConfig extends BaseConfigSheet {
 
   /** @override */
   get title() {
-    return `${game.i18n.format("DND5E.AbilityConfigureTitle", {
-      ability: CONFIG.DND5E.abilities[this._abilityId].label})}: ${this.document.name}`;
+    return `${game.i18n.format("SKJAALD.AbilityConfigureTitle", {
+      ability: CONFIG.SKJAALD.abilities[this._abilityId].label})}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -27303,15 +27303,15 @@ class ActorAbilityConfig extends BaseConfigSheet {
   /** @override */
   getData(options) {
     const src = this.document.toObject();
-    const ability = CONFIG.DND5E.abilities[this._abilityId].label;
+    const ability = CONFIG.SKJAALD.abilities[this._abilityId].label;
     return {
       ability: src.system.abilities[this._abilityId] ?? this.document.system.abilities[this._abilityId] ?? {},
-      labelSaves: game.i18n.format("DND5E.AbilitySaveConfigure", {ability}),
-      labelChecks: game.i18n.format("DND5E.AbilityCheckConfigure", {ability}),
+      labelSaves: game.i18n.format("SKJAALD.AbilitySaveConfigure", {ability}),
+      labelChecks: game.i18n.format("SKJAALD.AbilityCheckConfigure", {ability}),
       abilityId: this._abilityId,
       proficiencyLevels: {
-        0: CONFIG.DND5E.proficiencyLevels[0],
-        1: CONFIG.DND5E.proficiencyLevels[1]
+        0: CONFIG.SKJAALD.proficiencyLevels[0],
+        1: CONFIG.SKJAALD.proficiencyLevels[1]
       },
       bonusGlobalSave: src.system.bonuses?.abilities?.save,
       bonusGlobalCheck: src.system.bonuses?.abilities?.check
@@ -27338,8 +27338,8 @@ class ActorArmorConfig extends BaseConfigSheet {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "actor-armor-config"],
-      template: "systems/dnd5e/templates/apps/actor-armor.hbs",
+      classes: ["skjaald", "actor-armor-config"],
+      template: "systems/skjaald/templates/apps/actor-armor.hbs",
       width: 320,
       height: "auto"
     });
@@ -27349,7 +27349,7 @@ class ActorArmorConfig extends BaseConfigSheet {
 
   /** @inheritdoc */
   get title() {
-    return `${game.i18n.localize("DND5E.ArmorConfig")}: ${this.document.name}`;
+    return `${game.i18n.localize("SKJAALD.ArmorConfig")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -27360,16 +27360,16 @@ class ActorArmorConfig extends BaseConfigSheet {
     const isFlat = ["flat", "natural"].includes(ac.calc);
 
     // Get configuration data for the calculation mode, reset to flat if configuration is unavailable
-    let cfg = CONFIG.DND5E.armorClasses[ac.calc];
+    let cfg = CONFIG.SKJAALD.armorClasses[ac.calc];
     if ( !cfg ) {
       ac.calc = "flat";
-      cfg = CONFIG.DND5E.armorClasses.flat;
+      cfg = CONFIG.SKJAALD.armorClasses.flat;
       this.clone.updateSource({ "system.attributes.ac.calc": "flat" });
     }
 
     return {
       ac, isFlat,
-      calculations: CONFIG.DND5E.armorClasses,
+      calculations: CONFIG.SKJAALD.armorClasses,
       valueDisabled: !isFlat,
       formula: ac.calc === "custom" ? ac.formula : cfg.formula,
       formulaDisabled: ac.calc !== "custom"
@@ -27413,8 +27413,8 @@ class ActorConcentrationConfig extends BaseConfigSheet {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e"],
-      template: "systems/dnd5e/templates/apps/concentration-config.hbs",
+      classes: ["skjaald"],
+      template: "systems/skjaald/templates/apps/concentration-config.hbs",
       width: 500,
       height: "auto"
     });
@@ -27424,8 +27424,8 @@ class ActorConcentrationConfig extends BaseConfigSheet {
 
   /** @override */
   get title() {
-    return `${game.i18n.format("DND5E.AbilityConfigure", {
-      ability: game.i18n.localize("DND5E.Concentration") })
+    return `${game.i18n.format("SKJAALD.AbilityConfigure", {
+      ability: game.i18n.localize("SKJAALD.Concentration") })
     }: ${this.document.name}`;
   }
 
@@ -27437,13 +27437,13 @@ class ActorConcentrationConfig extends BaseConfigSheet {
     const { ability, bonuses, limit, roll } = src.system.attributes.concentration;
     return {
       ability, limit,
-      abilities: CONFIG.DND5E.abilities,
+      abilities: CONFIG.SKJAALD.abilities,
       bonus: bonuses.save,
       mode: roll.mode,
       modes: {
-        "-1": "DND5E.Disadvantage",
-        0: "DND5E.Normal",
-        1: "DND5E.Advantage"
+        "-1": "SKJAALD.Disadvantage",
+        0: "SKJAALD.Normal",
+        1: "SKJAALD.Advantage"
       },
       bonusGlobalSave: src.system.bonuses?.abilities?.save
     };
@@ -27458,8 +27458,8 @@ class ActorHitDiceConfig extends BaseConfigSheet {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "hd-config", "dialog"],
-      template: "systems/dnd5e/templates/apps/hit-dice-config.hbs",
+      classes: ["skjaald", "hd-config", "dialog"],
+      template: "systems/skjaald/templates/apps/hit-dice-config.hbs",
       width: 360,
       height: "auto"
     });
@@ -27469,7 +27469,7 @@ class ActorHitDiceConfig extends BaseConfigSheet {
 
   /** @inheritDoc */
   get title() {
-    return `${game.i18n.localize("DND5E.HitDiceConfig")}: ${this.object.name}`;
+    return `${game.i18n.localize("SKJAALD.HitDiceConfig")}: ${this.object.name}`;
   }
 
   /* -------------------------------------------- */
@@ -27557,8 +27557,8 @@ class ActorHitPointsConfig extends BaseConfigSheet {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "actor-hit-points-config"],
-      template: "systems/dnd5e/templates/apps/hit-points-config.hbs",
+      classes: ["skjaald", "actor-hit-points-config"],
+      template: "systems/skjaald/templates/apps/hit-points-config.hbs",
       width: 320,
       height: "auto"
     });
@@ -27568,7 +27568,7 @@ class ActorHitPointsConfig extends BaseConfigSheet {
 
   /** @inheritdoc */
   get title() {
-    return `${game.i18n.localize("DND5E.HitPointsConfig")}: ${this.document.name}`;
+    return `${game.i18n.localize("SKJAALD.HitPointsConfig")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -27636,7 +27636,7 @@ class ActorHitPointsConfig extends BaseConfigSheet {
       this.clone.updateSource({"system.attributes.hp.max": roll.total});
       this.render();
     } catch(error) {
-      ui.notifications.error("DND5E.HPFormulaError", {localize: true});
+      ui.notifications.error("SKJAALD.HPFormulaError", {localize: true});
       throw error;
     }
   }
@@ -27650,8 +27650,8 @@ class ActorInitiativeConfig extends BaseConfigSheet {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e"],
-      template: "systems/dnd5e/templates/apps/initiative-config.hbs",
+      classes: ["skjaald"],
+      template: "systems/skjaald/templates/apps/initiative-config.hbs",
       width: 360,
       height: "auto"
     });
@@ -27661,7 +27661,7 @@ class ActorInitiativeConfig extends BaseConfigSheet {
 
   /** @override */
   get title() {
-    return `${game.i18n.localize("DND5E.InitiativeConfig")}: ${this.document.name}`;
+    return `${game.i18n.localize("SKJAALD.InitiativeConfig")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -27670,10 +27670,10 @@ class ActorInitiativeConfig extends BaseConfigSheet {
   getData(options={}) {
     const source = this.document.toObject();
     const init = source.system.attributes.init || {};
-    const flags = source.flags.dnd5e || {};
+    const flags = source.flags.skjaald || {};
     return {
       ability: init.ability,
-      abilities: CONFIG.DND5E.abilities,
+      abilities: CONFIG.SKJAALD.abilities,
       bonus: init.bonus,
       initiativeAlert: flags.initiativeAlert,
       initiativeAdv: flags.initiativeAdv
@@ -27685,11 +27685,11 @@ class ActorInitiativeConfig extends BaseConfigSheet {
   /** @inheritDoc */
   _getSubmitData(updateData={}) {
     const formData = super._getSubmitData(updateData);
-    formData.flags = {dnd5e: {}};
+    formData.flags = {skjaald: {}};
     for ( const flag of ["initiativeAlert", "initiativeAdv"] ) {
-      const k = `flags.dnd5e.${flag}`;
-      if ( formData[k] ) formData.flags.dnd5e[flag] = true;
-      else formData.flags.dnd5e[`-=${flag}`] = null;
+      const k = `flags.skjaald.${flag}`;
+      if ( formData[k] ) formData.flags.skjaald[flag] = true;
+      else formData.flags.skjaald[`-=${flag}`] = null;
       delete formData[k];
     }
     return formData;
@@ -27704,8 +27704,8 @@ class ActorMovementConfig extends BaseConfigSheet {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e"],
-      template: "systems/dnd5e/templates/apps/movement-config.hbs",
+      classes: ["skjaald"],
+      template: "systems/skjaald/templates/apps/movement-config.hbs",
       width: 300,
       height: "auto",
       keyPath: "system.attributes.movement"
@@ -27716,7 +27716,7 @@ class ActorMovementConfig extends BaseConfigSheet {
 
   /** @inheritdoc */
   get title() {
-    return `${game.i18n.localize("DND5E.MovementConfig")}: ${this.document.name}`;
+    return `${game.i18n.localize("SKJAALD.MovementConfig")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -27729,15 +27729,15 @@ class ActorMovementConfig extends BaseConfigSheet {
 
     // Allowed speeds
     const speeds = source.type === "group" ? {
-      land: "DND5E.MovementLand",
-      water: "DND5E.MovementWater",
-      air: "DND5E.MovementAir"
+      land: "SKJAALD.MovementLand",
+      water: "SKJAALD.MovementWater",
+      air: "SKJAALD.MovementAir"
     } : {
-      walk: "DND5E.MovementWalk",
-      burrow: "DND5E.MovementBurrow",
-      climb: "DND5E.MovementClimb",
-      fly: "DND5E.MovementFly",
-      swim: "DND5E.MovementSwim"
+      walk: "SKJAALD.MovementWalk",
+      burrow: "SKJAALD.MovementBurrow",
+      climb: "SKJAALD.MovementClimb",
+      fly: "SKJAALD.MovementFly",
+      swim: "SKJAALD.MovementSwim"
     };
 
     return {
@@ -27748,9 +27748,9 @@ class ActorMovementConfig extends BaseConfigSheet {
       }, {}),
       selectUnits: Object.hasOwn(movement, "units"),
       canHover: Object.hasOwn(movement, "hover"),
-      units: CONFIG.DND5E.movementUnits,
-      unitsPlaceholder: game.i18n.format("DND5E.AutomaticValue", {
-        value: CONFIG.DND5E.movementUnits[raceData.units ?? Object.keys(CONFIG.DND5E.movementUnits)[0]]?.toLowerCase()
+      units: CONFIG.SKJAALD.movementUnits,
+      unitsPlaceholder: game.i18n.format("SKJAALD.AutomaticValue", {
+        value: CONFIG.SKJAALD.movementUnits[raceData.units ?? Object.keys(CONFIG.SKJAALD.movementUnits)[0]]?.toLowerCase()
       }),
       keyPath: this.options.keyPath
     };
@@ -27765,8 +27765,8 @@ class ActorSensesConfig extends BaseConfigSheet {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e"],
-      template: "systems/dnd5e/templates/apps/senses-config.hbs",
+      classes: ["skjaald"],
+      template: "systems/skjaald/templates/apps/senses-config.hbs",
       width: 300,
       height: "auto",
       keyPath: "system.attributes.senses"
@@ -27777,7 +27777,7 @@ class ActorSensesConfig extends BaseConfigSheet {
 
   /** @inheritdoc */
   get title() {
-    return `${game.i18n.localize("DND5E.SensesConfig")}: ${this.document.name}`;
+    return `${game.i18n.localize("SKJAALD.SensesConfig")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -27788,14 +27788,14 @@ class ActorSensesConfig extends BaseConfigSheet {
     const senses = foundry.utils.getProperty(source, this.options.keyPath) ?? {};
     const raceData = this.document.system.details?.race?.system?.senses ?? {};
     return foundry.utils.mergeObject(super.getData(options), {
-      senses: Object.entries(CONFIG.DND5E.senses).reduce((obj, [k, label]) => {
+      senses: Object.entries(CONFIG.SKJAALD.senses).reduce((obj, [k, label]) => {
         obj[k] = { label, value: senses[k], placeholder: raceData[k] ?? 0 };
         return obj;
       }, {}),
       special: senses.special ?? "",
-      units: senses.units, movementUnits: CONFIG.DND5E.movementUnits,
-      unitsPlaceholder: game.i18n.format("DND5E.AutomaticValue", {
-        value: CONFIG.DND5E.movementUnits[raceData.units ?? Object.keys(CONFIG.DND5E.movementUnits)[0]]?.toLowerCase()
+      units: senses.units, movementUnits: CONFIG.SKJAALD.movementUnits,
+      unitsPlaceholder: game.i18n.format("SKJAALD.AutomaticValue", {
+        value: CONFIG.SKJAALD.movementUnits[raceData.units ?? Object.keys(CONFIG.SKJAALD.movementUnits)[0]]?.toLowerCase()
       }),
       keyPath: this.options.keyPath
     });
@@ -27811,8 +27811,8 @@ class ActorSheetFlags extends BaseConfigSheet {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: "actor-flags",
-      classes: ["dnd5e"],
-      template: "systems/dnd5e/templates/apps/actor-flags.hbs",
+      classes: ["skjaald"],
+      template: "systems/skjaald/templates/apps/actor-flags.hbs",
       width: 500,
       closeOnSubmit: true
     });
@@ -27822,7 +27822,7 @@ class ActorSheetFlags extends BaseConfigSheet {
 
   /** @inheritDoc */
   get title() {
-    return `${game.i18n.localize("DND5E.FlagsTitle")}: ${this.object.name}`;
+    return `${game.i18n.localize("SKJAALD.FlagsTitle")}: ${this.object.name}`;
   }
 
   /* -------------------------------------------- */
@@ -27863,14 +27863,14 @@ class ActorSheetFlags extends BaseConfigSheet {
   _getFlags() {
     const flags = {};
     const baseData = this.document.toJSON();
-    for ( let [k, v] of Object.entries(CONFIG.DND5E.characterFlags) ) {
+    for ( let [k, v] of Object.entries(CONFIG.SKJAALD.characterFlags) ) {
       if ( !flags.hasOwnProperty(v.section) ) flags[v.section] = {};
       let flag = foundry.utils.deepClone(v);
       flag.type = v.type.name;
       flag.isCheckbox = v.type === Boolean;
       flag.isSelect = v.hasOwnProperty("choices");
-      flag.value = foundry.utils.getProperty(baseData.flags, `dnd5e.${k}`);
-      flags[v.section][`flags.dnd5e.${k}`] = flag;
+      flag.value = foundry.utils.getProperty(baseData.flags, `skjaald.${k}`);
+      flags[v.section][`flags.skjaald.${k}`] = flag;
     }
     return flags;
   }
@@ -27885,18 +27885,18 @@ class ActorSheetFlags extends BaseConfigSheet {
   _getBonuses() {
     const src = this.object.toObject();
     const bonuses = [
-      {name: "system.bonuses.mwak.attack", label: "DND5E.BonusMWAttack"},
-      {name: "system.bonuses.mwak.damage", label: "DND5E.BonusMWDamage"},
-      {name: "system.bonuses.rwak.attack", label: "DND5E.BonusRWAttack"},
-      {name: "system.bonuses.rwak.damage", label: "DND5E.BonusRWDamage"},
-      {name: "system.bonuses.msak.attack", label: "DND5E.BonusMSAttack"},
-      {name: "system.bonuses.msak.damage", label: "DND5E.BonusMSDamage"},
-      {name: "system.bonuses.rsak.attack", label: "DND5E.BonusRSAttack"},
-      {name: "system.bonuses.rsak.damage", label: "DND5E.BonusRSDamage"},
-      {name: "system.bonuses.abilities.check", label: "DND5E.BonusAbilityCheck"},
-      {name: "system.bonuses.abilities.save", label: "DND5E.BonusAbilitySave"},
-      {name: "system.bonuses.abilities.skill", label: "DND5E.BonusAbilitySkill"},
-      {name: "system.bonuses.spell.dc", label: "DND5E.BonusSpellDC"}
+      {name: "system.bonuses.mwak.attack", label: "SKJAALD.BonusMWAttack"},
+      {name: "system.bonuses.mwak.damage", label: "SKJAALD.BonusMWDamage"},
+      {name: "system.bonuses.rwak.attack", label: "SKJAALD.BonusRWAttack"},
+      {name: "system.bonuses.rwak.damage", label: "SKJAALD.BonusRWDamage"},
+      {name: "system.bonuses.msak.attack", label: "SKJAALD.BonusMSAttack"},
+      {name: "system.bonuses.msak.damage", label: "SKJAALD.BonusMSDamage"},
+      {name: "system.bonuses.rsak.attack", label: "SKJAALD.BonusRSAttack"},
+      {name: "system.bonuses.rsak.damage", label: "SKJAALD.BonusRSDamage"},
+      {name: "system.bonuses.abilities.check", label: "SKJAALD.BonusAbilityCheck"},
+      {name: "system.bonuses.abilities.save", label: "SKJAALD.BonusAbilitySave"},
+      {name: "system.bonuses.abilities.skill", label: "SKJAALD.BonusAbilitySkill"},
+      {name: "system.bonuses.spell.dc", label: "SKJAALD.BonusSpellDC"}
     ];
     for ( let b of bonuses ) {
       b.value = foundry.utils.getProperty(src, b.name) || "";
@@ -27913,11 +27913,11 @@ class ActorSheetFlags extends BaseConfigSheet {
     const src = actor.toObject();
 
     // Unset any flags which are "false"
-    const flags = updateData.flags.dnd5e;
+    const flags = updateData.flags.skjaald;
     for ( let [k, v] of Object.entries(flags) ) {
       if ( [undefined, null, "", false, 0].includes(v) ) {
         delete flags[k];
-        if ( foundry.utils.hasProperty(src.flags, `dnd5e.${k}`) ) flags[`-=${k}`] = null;
+        if ( foundry.utils.hasProperty(src.flags, `skjaald.${k}`) ) flags[`-=${k}`] = null;
       }
     }
 
@@ -27941,8 +27941,8 @@ class ActorTypeConfig extends DocumentSheet {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "actor-type", "trait-selector"],
-      template: "systems/dnd5e/templates/apps/actor-type.hbs",
+      classes: ["skjaald", "actor-type", "trait-selector"],
+      template: "systems/skjaald/templates/apps/actor-type.hbs",
       width: 280,
       height: "auto",
       choices: {},
@@ -27958,7 +27958,7 @@ class ActorTypeConfig extends DocumentSheet {
 
   /** @inheritdoc */
   get title() {
-    return `${game.i18n.localize("DND5E.CreatureTypeTitle")}: ${this.object.name}`;
+    return `${game.i18n.localize("SKJAALD.CreatureTypeTitle")}: ${this.object.name}`;
   }
 
   /* -------------------------------------------- */
@@ -27986,7 +27986,7 @@ class ActorTypeConfig extends DocumentSheet {
     // Get current value or new default
     let attr = foundry.utils.getProperty(this.object, this.options.keyPath);
     if ( foundry.utils.getType(attr) !== "Object" ) attr = {
-      value: (attr in CONFIG.DND5E.creatureTypes) ? attr : "humanoid",
+      value: (attr in CONFIG.SKJAALD.creatureTypes) ? attr : "humanoid",
       subtype: "",
       swarm: "",
       custom: ""
@@ -27994,7 +27994,7 @@ class ActorTypeConfig extends DocumentSheet {
 
     // Populate choices
     const types = {};
-    for ( let [k, v] of Object.entries(CONFIG.DND5E.creatureTypes) ) {
+    for ( let [k, v] of Object.entries(CONFIG.SKJAALD.creatureTypes) ) {
       types[k] = {
         label: game.i18n.localize(v.label),
         chosen: attr.value === k
@@ -28006,14 +28006,14 @@ class ActorTypeConfig extends DocumentSheet {
       types: types,
       custom: {
         value: attr.custom,
-        label: game.i18n.localize("DND5E.CreatureTypeSelectorCustom"),
+        label: game.i18n.localize("SKJAALD.CreatureTypeSelectorCustom"),
         chosen: attr.value === "custom"
       },
       showCustom: Object.hasOwn(attr, "custom"),
       showSwarm: Object.hasOwn(attr, "swarm"),
       subtype: attr.subtype,
       swarm: attr.swarm,
-      sizes: Array.from(Object.entries(CONFIG.DND5E.actorSizes)).reverse().reduce((obj, [key, { label }]) => {
+      sizes: Array.from(Object.entries(CONFIG.SKJAALD.actorSizes)).reverse().reduce((obj, [key, { label }]) => {
         obj[key] = label;
         return obj;
       }, {}),
@@ -28043,7 +28043,7 @@ class ActorTypeConfig extends DocumentSheet {
       // Disable editing any type field if one of them is overridden by an Active Effect.
       html.find("input, select").each((i, el) => {
         el.disabled = true;
-        el.dataset.tooltip = "DND5E.ActiveEffectOverrideWarning";
+        el.dataset.tooltip = "SKJAALD.ActiveEffectOverrideWarning";
       });
     }
   }
@@ -28078,8 +28078,8 @@ class DamageModificationConfig extends BaseConfigSheet {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "damage-modification", "trait-selector", "subconfig"],
-      template: "systems/dnd5e/templates/apps/damage-modification-config.hbs",
+      classes: ["skjaald", "damage-modification", "trait-selector", "subconfig"],
+      template: "systems/skjaald/templates/apps/damage-modification-config.hbs",
       width: 320,
       height: "auto"
     });
@@ -28089,7 +28089,7 @@ class DamageModificationConfig extends BaseConfigSheet {
 
   /** @inheritDoc */
   get title() {
-    return game.i18n.localize("DND5E.DamageModification.Label");
+    return game.i18n.localize("SKJAALD.DamageModification.Label");
   }
 
   /* -------------------------------------------- */
@@ -28098,11 +28098,11 @@ class DamageModificationConfig extends BaseConfigSheet {
   async getData(options={}) {
     const context = await super.getData(options);
     const data = foundry.utils.getProperty(this.document, "system.traits.dm");
-    context.bypasses = Object.entries(CONFIG.DND5E.itemProperties).reduce((obj, [k, v]) => {
+    context.bypasses = Object.entries(CONFIG.SKJAALD.itemProperties).reduce((obj, [k, v]) => {
       if ( v.isPhysical ) obj[k] = { ...v, chosen: data.bypasses.has(k) };
       return obj;
     }, {});
-    context.modifications = Object.entries(CONFIG.DND5E.damageTypes).reduce((obj, [k, v]) => {
+    context.modifications = Object.entries(CONFIG.SKJAALD.damageTypes).reduce((obj, [k, v]) => {
       obj[k] = {
         ...v,
         value: data.amount[k]
@@ -28146,8 +28146,8 @@ class SourceConfig extends DocumentSheet {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "source-config", "dialog"],
-      template: "systems/dnd5e/templates/apps/source-config.hbs",
+      classes: ["skjaald", "source-config", "dialog"],
+      template: "systems/skjaald/templates/apps/source-config.hbs",
       width: 400,
       height: "auto",
       sheetConfig: false,
@@ -28159,7 +28159,7 @@ class SourceConfig extends DocumentSheet {
 
   /** @override */
   get title() {
-    return `${game.i18n.localize("DND5E.SourceConfig")}: ${this.document.name}`;
+    return `${game.i18n.localize("SKJAALD.SourceConfig")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -28170,7 +28170,7 @@ class SourceConfig extends DocumentSheet {
   async getData(options) {
     const context = super.getData(options);
     context.appId = this.id;
-    context.CONFIG = CONFIG.DND5E;
+    context.CONFIG = CONFIG.SKJAALD;
     context.source = foundry.utils.getProperty(this.document, this.options.keyPath);
     context.sourceUuid = this.document._stats.compendiumSource
       ?? foundry.utils.getProperty(this.document, "flags.core.sourceId");
@@ -28199,8 +28199,8 @@ class SourceConfig extends DocumentSheet {
  */
 class TraitSelector extends BaseConfigSheet {
   constructor(actor, trait, options={}) {
-    if ( !CONFIG.DND5E.traits[trait] ) throw new Error(
-      `Cannot instantiate TraitSelector with a trait not defined in CONFIG.DND5E.traits: ${trait}.`
+    if ( !CONFIG.SKJAALD.traits[trait] ) throw new Error(
+      `Cannot instantiate TraitSelector with a trait not defined in CONFIG.SKJAALD.traits: ${trait}.`
     );
     if ( ["saves", "skills"].includes(trait) ) throw new Error(
       `TraitSelector does not support selection of ${trait}. That should be handled through `
@@ -28222,8 +28222,8 @@ class TraitSelector extends BaseConfigSheet {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: "trait-selector",
-      classes: ["dnd5e", "trait-selector", "subconfig"],
-      template: "systems/dnd5e/templates/apps/trait-selector.hbs",
+      classes: ["skjaald", "trait-selector", "subconfig"],
+      template: "systems/skjaald/templates/apps/trait-selector.hbs",
       width: 320,
       height: "auto",
       allowCustom: true
@@ -28257,7 +28257,7 @@ class TraitSelector extends BaseConfigSheet {
       choices: await choices(this.trait, { chosen: data.value }),
       custom: data.custom,
       customPath: "custom" in data ? `${path}.custom` : null,
-      bypasses: "bypasses" in data ? Object.entries(CONFIG.DND5E.itemProperties).reduce((obj, [k, v]) => {
+      bypasses: "bypasses" in data ? Object.entries(CONFIG.SKJAALD.itemProperties).reduce((obj, [k, v]) => {
         if ( v.isPhysical ) obj[k] = { label: v.label, chosen: data.bypasses.has(k) };
         return obj;
       }, {}) : null,
@@ -28371,8 +28371,8 @@ class ProficiencyConfig extends BaseConfigSheet {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e"],
-      template: "systems/dnd5e/templates/apps/proficiency-config.hbs",
+      classes: ["skjaald"],
+      template: "systems/skjaald/templates/apps/proficiency-config.hbs",
       width: 500,
       height: "auto"
     });
@@ -28402,9 +28402,9 @@ class ProficiencyConfig extends BaseConfigSheet {
 
   /** @inheritdoc */
   get title() {
-    const label = this.isSkill ? CONFIG.DND5E.skills[this.options.key].label
+    const label = this.isSkill ? CONFIG.SKJAALD.skills[this.options.key].label
       : keyLabel(this.options.key, { trait: "tool" });
-    return `${game.i18n.format("DND5E.ProficiencyConfigureTitle", {label})}: ${this.document.name}`;
+    return `${game.i18n.format("SKJAALD.ProficiencyConfigureTitle", {label})}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -28419,8 +28419,8 @@ class ProficiencyConfig extends BaseConfigSheet {
   /** @inheritdoc */
   getData(options={}) {
     return {
-      abilities: CONFIG.DND5E.abilities,
-      proficiencyLevels: CONFIG.DND5E.proficiencyLevels,
+      abilities: CONFIG.SKJAALD.abilities,
+      proficiencyLevels: CONFIG.SKJAALD.proficiencyLevels,
       entry: this.document.system[this.options.property]?.[this.options.key],
       isTool: this.isTool,
       isSkill: this.isSkill,
@@ -28437,8 +28437,8 @@ class ProficiencyConfig extends BaseConfigSheet {
     const passive = formData[`system.skills.${this.options.key}.bonuses.passive`];
     const passiveRoll = new Roll(passive);
     if ( !passiveRoll.isDeterministic ) {
-      const message = game.i18n.format("DND5E.FormulaCannotContainDiceError", {
-        name: game.i18n.localize("DND5E.SkillBonusPassive")
+      const message = game.i18n.format("SKJAALD.FormulaCannotContainDiceError", {
+        name: game.i18n.localize("SKJAALD.SkillBonusPassive")
       });
       ui.notifications.error(message);
       throw new Error(message);
@@ -28525,8 +28525,8 @@ class ActorSpellSlotsConfig extends DialogMixin(DocumentSheet) {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e2", "dialog"],
-      template: "systems/dnd5e/templates/apps/spell-slots-config.hbs",
+      classes: ["skjaald2", "dialog"],
+      template: "systems/skjaald/templates/apps/spell-slots-config.hbs",
       width: 450,
       height: "auto",
       sheetConfig: false,
@@ -28540,7 +28540,7 @@ class ActorSpellSlotsConfig extends DialogMixin(DocumentSheet) {
 
   /** @inheritDoc */
   get title() {
-    return `${game.i18n.localize("DND5E.SpellSlotsConfig")}: ${this.document.name}`;
+    return `${game.i18n.localize("SKJAALD.SpellSlotsConfig")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -28549,17 +28549,17 @@ class ActorSpellSlotsConfig extends DialogMixin(DocumentSheet) {
   getData(options={}) {
     const source = this.document._source.system.spells;
     const { spells } = this.document.system;
-    const overrides = Array.fromRange(Object.keys(CONFIG.DND5E.spellLevels).length - 1, 1).map(level => ({
+    const overrides = Array.fromRange(Object.keys(CONFIG.SKJAALD.spellLevels).length - 1, 1).map(level => ({
       value: source[`spell${level}`]?.override,
-      label: CONFIG.DND5E.spellLevels[level],
+      label: CONFIG.SKJAALD.spellLevels[level],
       name: `system.spells.spell${level}.override`,
       placeholder: spells[`spell${level}`]?.max ?? 0
     }));
 
-    for ( const k of Object.keys(CONFIG.DND5E.spellcastingTypes) ) {
+    for ( const k of Object.keys(CONFIG.SKJAALD.spellcastingTypes) ) {
       const hasSpell = this.document.items.some(i => i.type === "spell" && i.system.preparation.mode === k);
       if ( parseInt(spells[k]?.level) || hasSpell ) overrides.push({
-        label: CONFIG.DND5E.spellPreparationModes[k].label,
+        label: CONFIG.SKJAALD.spellPreparationModes[k].label,
         value: source[k]?.override,
         name: `system.spells.${k}.override`,
         placeholder: spells[k]?.max ?? 0
@@ -28618,19 +28618,19 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       scrollY: [
-        "dnd5e-inventory .inventory-list",
-        "dnd5e-effects .effects-list",
+        "skjaald-inventory .inventory-list",
+        "skjaald-effects .effects-list",
         ".center-pane"
       ],
       tabs: [{navSelector: ".tabs", contentSelector: ".sheet-body", initial: "description"}],
       width: 720,
       height: Math.max(680, Math.max(
-        237 + (Object.keys(CONFIG.DND5E.abilities).length * 70),
-        240 + (Object.keys(CONFIG.DND5E.skills).length * 24)
+        237 + (Object.keys(CONFIG.SKJAALD.abilities).length * 70),
+        240 + (Object.keys(CONFIG.SKJAALD.skills).length * 24)
       )),
       elements: {
-        effects: "dnd5e-effects",
-        inventory: "dnd5e-inventory"
+        effects: "skjaald-effects",
+        inventory: "skjaald-inventory"
       }
     });
   }
@@ -28647,8 +28647,8 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
 
   /** @override */
   get template() {
-    if ( !game.user.isGM && this.actor.limited ) return "systems/dnd5e/templates/actors/limited-sheet.hbs";
-    return `systems/dnd5e/templates/actors/${this.actor.type}-sheet.hbs`;
+    if ( !game.user.isGM && this.actor.limited ) return "systems/skjaald/templates/actors/limited-sheet.hbs";
+    return `systems/skjaald/templates/actors/${this.actor.type}-sheet.hbs`;
   }
 
   /* -------------------------------------------- */
@@ -28685,7 +28685,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
       isCharacter: this.actor.type === "character",
       isNPC: this.actor.type === "npc",
       isVehicle: this.actor.type === "vehicle",
-      config: CONFIG.DND5E,
+      config: CONFIG.SKJAALD,
       rollableClass: this.isEditable ? "rollable" : "",
       rollData: this.actor.getRollData(),
       overrides: {
@@ -28708,8 +28708,8 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     // Ability Scores
     for ( const [a, abl] of Object.entries(context.abilities) ) {
       abl.icon = this._getProficiencyIcon(abl.proficient);
-      abl.hover = CONFIG.DND5E.proficiencyLevels[abl.proficient];
-      abl.label = CONFIG.DND5E.abilities[a]?.label;
+      abl.hover = CONFIG.SKJAALD.proficiencyLevels[abl.proficient];
+      abl.label = CONFIG.SKJAALD.abilities[a]?.label;
       abl.baseProf = source.system.abilities[a]?.proficient ?? 0;
     }
 
@@ -28717,15 +28717,15 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     const baseAbility = (prop, key) => {
       let src = source.system[prop]?.[key]?.ability;
       if ( src ) return src;
-      if ( prop === "skills" ) src = CONFIG.DND5E.skills[key]?.ability;
+      if ( prop === "skills" ) src = CONFIG.SKJAALD.skills[key]?.ability;
       return src ?? "int";
     };
     ["skills", "tools"].forEach(prop => {
       for ( const [key, entry] of Object.entries(context[prop]) ) {
-        entry.abbreviation = CONFIG.DND5E.abilities[entry.ability]?.abbreviation;
+        entry.abbreviation = CONFIG.SKJAALD.abilities[entry.ability]?.abbreviation;
         entry.icon = this._getProficiencyIcon(entry.value);
-        entry.hover = CONFIG.DND5E.proficiencyLevels[entry.value];
-        entry.label = (prop === "skills") ? CONFIG.DND5E.skills[key]?.label : keyLabel(key, {trait: "tool"});
+        entry.hover = CONFIG.SKJAALD.proficiencyLevels[entry.value];
+        entry.label = (prop === "skills") ? CONFIG.SKJAALD.skills[key]?.label : keyLabel(key, {trait: "tool"});
         entry.baseValue = source.system[prop]?.[key]?.value ?? 0;
         entry.baseAbility = baseAbility(prop, key);
       }
@@ -28767,13 +28767,13 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     const labels = {...this.actor.labels};
 
     // Currency Labels
-    labels.currencies = Object.entries(CONFIG.DND5E.currencies).reduce((obj, [k, c]) => {
+    labels.currencies = Object.entries(CONFIG.SKJAALD.currencies).reduce((obj, [k, c]) => {
       obj[k] = c.label;
       return obj;
     }, {});
 
     // Proficiency
-    labels.proficiency = game.settings.get("dnd5e", "proficiencyModifier") === "dice"
+    labels.proficiency = game.settings.get("skjaald", "proficiencyModifier") === "dice"
       ? `d${this.actor.system.attributes.prof * 2}`
       : `+${this.actor.system.attributes.prof}`;
 
@@ -28794,13 +28794,13 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
 
     // Prepare an array of available movement speeds
     let speeds = [
-      [movement.burrow, `${game.i18n.localize("DND5E.MovementBurrow")} ${movement.burrow}`],
-      [movement.climb, `${game.i18n.localize("DND5E.MovementClimb")} ${movement.climb}`],
-      [movement.fly, `${game.i18n.localize("DND5E.MovementFly")} ${movement.fly}${movement.hover ? ` (${game.i18n.localize("DND5E.MovementHover")})` : ""}`],
-      [movement.swim, `${game.i18n.localize("DND5E.MovementSwim")} ${movement.swim}`]
+      [movement.burrow, `${game.i18n.localize("SKJAALD.MovementBurrow")} ${movement.burrow}`],
+      [movement.climb, `${game.i18n.localize("SKJAALD.MovementClimb")} ${movement.climb}`],
+      [movement.fly, `${game.i18n.localize("SKJAALD.MovementFly")} ${movement.fly}${movement.hover ? ` (${game.i18n.localize("SKJAALD.MovementHover")})` : ""}`],
+      [movement.swim, `${game.i18n.localize("SKJAALD.MovementSwim")} ${movement.swim}`]
     ];
     if ( largestPrimary ) {
-      speeds.push([movement.walk, `${game.i18n.localize("DND5E.MovementWalk")} ${movement.walk}`]);
+      speeds.push([movement.walk, `${game.i18n.localize("SKJAALD.MovementWalk")} ${movement.walk}`]);
     }
 
     // Filter and sort speeds on their values
@@ -28810,7 +28810,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     if ( largestPrimary ) {
       let primary = speeds.shift();
       return {
-        primary: `${primary ? primary[1] : "0"} ${movement.units || Object.keys(CONFIG.DND5E.movementUnits)[0]}`,
+        primary: `${primary ? primary[1] : "0"} ${movement.units || Object.keys(CONFIG.SKJAALD.movementUnits)[0]}`,
         special: speeds.map(s => s[1]).join(", ")
       };
     }
@@ -28818,7 +28818,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     // Case 2: Walk as primary
     else {
       return {
-        primary: `${movement.walk || 0} ${movement.units || Object.keys(CONFIG.DND5E.movementUnits)[0]}`,
+        primary: `${movement.walk || 0} ${movement.units || Object.keys(CONFIG.SKJAALD.movementUnits)[0]}`,
         special: speeds.length ? speeds.map(s => s[1]).join(", ") : ""
       };
     }
@@ -28835,10 +28835,10 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
   _getSenses(systemData) {
     const senses = systemData.attributes.senses ?? {};
     const tags = {};
-    for ( let [k, label] of Object.entries(CONFIG.DND5E.senses) ) {
+    for ( let [k, label] of Object.entries(CONFIG.SKJAALD.senses) ) {
       const v = senses[k] ?? 0;
       if ( v === 0 ) continue;
-      tags[k] = `${game.i18n.localize(label)} ${v} ${senses.units ?? Object.keys(CONFIG.DND5E.movementUnits)[0]}`;
+      tags[k] = `${game.i18n.localize(label)} ${v} ${senses.units ?? Object.keys(CONFIG.SKJAALD.movementUnits)[0]}`;
     }
     if ( senses.special ) senses.special.split(";").forEach((c, i) => tags[`custom${i+1}`] = c.trim());
     return tags;
@@ -28862,7 +28862,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
    */
   _prepareTraits(systemData) {
     const traits = {};
-    for ( const [trait$1, traitConfig] of Object.entries(CONFIG.DND5E.traits) ) {
+    for ( const [trait$1, traitConfig] of Object.entries(CONFIG.SKJAALD.traits) ) {
       const key = traitConfig.actorKeyPath?.replace("system.", "") ?? `traits.${trait$1}`;
       const data = foundry.utils.deepClone(foundry.utils.getProperty(systemData, key));
       if ( !data ) continue;
@@ -28876,7 +28876,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
       const physical = [];
       if ( data.bypasses?.size ) {
         values = values.filter(t => {
-          if ( !CONFIG.DND5E.damageTypes[t]?.isPhysical ) return true;
+          if ( !CONFIG.SKJAALD.damageTypes[t]?.isPhysical ) return true;
           physical.push(t);
           return false;
         });
@@ -28891,10 +28891,10 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
       if ( physical.length ) {
         const damageTypesFormatter = new Intl.ListFormat(game.i18n.lang, { style: "long", type: "conjunction" });
         const bypassFormatter = new Intl.ListFormat(game.i18n.lang, { style: "long", type: "disjunction" });
-        data.selected.physical = game.i18n.format("DND5E.DamagePhysicalBypasses", {
+        data.selected.physical = game.i18n.format("SKJAALD.DamagePhysicalBypasses", {
           damageTypes: damageTypesFormatter.format(physical.map(t => keyLabel(t, { trait: trait$1 }))),
           bypassTypes: bypassFormatter.format(data.bypasses.reduce((acc, t) => {
-            const v = CONFIG.DND5E.itemProperties[t];
+            const v = CONFIG.SKJAALD.itemProperties[t];
             if ( v && v.isPhysical ) acc.push(v.label);
             return acc;
           }, []))
@@ -28907,7 +28907,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
 
       // If petrified, display "All Damage" instead of all damage types separately
       if ( (trait$1 === "dr") && this.document.hasConditionEffect("petrification") ) {
-        data.selected = { custom1: game.i18n.localize("DND5E.DamageAll") };
+        data.selected = { custom1: game.i18n.localize("SKJAALD.DamageAll") };
         data.cssClass = "";
       }
     }
@@ -28938,7 +28938,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     const spellbook = {};
 
     // Define section and label mappings
-    const sections = Object.entries(CONFIG.DND5E.spellPreparationModes).reduce((acc, [k, {order}]) => {
+    const sections = Object.entries(CONFIG.SKJAALD.spellPreparationModes).reduce((acc, [k, {order}]) => {
       if ( Number.isNumeric(order) ) acc[k] = Number(order);
       return acc;
     }, {});
@@ -28964,7 +28964,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     };
 
     // Determine the maximum spell level which has a slot
-    const maxLevel = Array.fromRange(Object.keys(CONFIG.DND5E.spellLevels).length - 1, 1).reduce((max, i) => {
+    const maxLevel = Array.fromRange(Object.keys(CONFIG.SKJAALD.spellLevels).length - 1, 1).reduce((max, i) => {
       const level = levels[`spell${i}`];
       if ( level && (level.max || level.override ) && ( i > max ) ) max = i;
       return max;
@@ -28972,20 +28972,20 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
 
     // Level-based spellcasters have cantrips and leveled slots
     if ( maxLevel > 0 ) {
-      registerSection("spell0", 0, CONFIG.DND5E.spellLevels[0]);
+      registerSection("spell0", 0, CONFIG.SKJAALD.spellLevels[0]);
       for (let lvl = 1; lvl <= maxLevel; lvl++) {
         const sl = `spell${lvl}`;
-        registerSection(sl, lvl, CONFIG.DND5E.spellLevels[lvl], levels[sl]);
+        registerSection(sl, lvl, CONFIG.SKJAALD.spellLevels[lvl], levels[sl]);
       }
     }
 
     // Create spellbook sections for all alternative spell preparation modes that have spell slots.
-    for ( const [k, v] of Object.entries(CONFIG.DND5E.spellPreparationModes) ) {
+    for ( const [k, v] of Object.entries(CONFIG.SKJAALD.spellPreparationModes) ) {
       if ( !(k in levels) || !v.upcast || !levels[k].max ) continue;
 
-      if ( !spellbook["0"] && v.cantrips ) registerSection("spell0", 0, CONFIG.DND5E.spellLevels[0]);
+      if ( !spellbook["0"] && v.cantrips ) registerSection("spell0", 0, CONFIG.SKJAALD.spellLevels[0]);
       const l = levels[k];
-      const level = game.i18n.localize(`DND5E.SpellLevel${l.level}`);
+      const level = game.i18n.localize(`SKJAALD.SpellLevel${l.level}`);
       const label = `${v.label} — ${level}`;
       registerSection(k, sections[k], label, {
         prepMode: k,
@@ -29007,7 +29007,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
         s = sections[mode];
         if ( !spellbook[s] ) {
           const l = levels[mode] || {};
-          const config = CONFIG.DND5E.spellPreparationModes[mode];
+          const config = CONFIG.SKJAALD.spellPreparationModes[mode];
           registerSection(mode, s, config.label, {
             prepMode: mode,
             value: l.value,
@@ -29020,7 +29020,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
 
       // Sections for higher-level spells which the caster "should not" have, but spell items exist for
       else if ( !spellbook[s] ) {
-        registerSection(sl, s, CONFIG.DND5E.spellLevels[s], {levels: levels[sl]});
+        registerSection(sl, s, CONFIG.SKJAALD.spellLevels[s], {levels: levels[sl]});
       }
 
       // Add the spell to the relevant heading
@@ -29073,7 +29073,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
    * @protected
    */
   _filterItems(items, filters) {
-    const spellSchools = new Set(Object.keys(CONFIG.DND5E.spellSchools));
+    const spellSchools = new Set(Object.keys(CONFIG.SKJAALD.spellSchools));
     return items.filter(item => {
 
       // Subclass-specific logic.
@@ -29122,7 +29122,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
 
   /**
    * Get the font-awesome icon used to display a certain level of skill proficiency.
-   * @param {number} level  A proficiency mode defined in `CONFIG.DND5E.proficiencyLevels`.
+   * @param {number} level  A proficiency mode defined in `CONFIG.SKJAALD.proficiencyLevels`.
    * @returns {string}      HTML string for the chosen icon.
    * @private
    */
@@ -29213,7 +29213,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     for ( const override of Object.keys(foundry.utils.flattenObject(this.actor.overrides)) ) {
       html.find(`input[name="${override}"],select[name="${override}"]`).each((i, el) => {
         el.disabled = true;
-        el.dataset.tooltip = "DND5E.ActiveEffectOverrideWarning";
+        el.dataset.tooltip = "SKJAALD.ActiveEffectOverrideWarning";
       });
 
       for ( const [key, regex] of Object.entries(proficiencyToggles) ) {
@@ -29221,13 +29221,13 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
         if ( match ) {
           const toggle = html.find(`li[data-${key}="${match}"] .proficiency-toggle`);
           toggle.addClass("disabled");
-          toggle.attr("data-tooltip", "DND5E.ActiveEffectOverrideWarning");
+          toggle.attr("data-tooltip", "SKJAALD.ActiveEffectOverrideWarning");
         }
       }
 
       const [, spell] = override.match(/system\.spells\.(spell\d)\.override/) || [];
       if ( spell ) {
-        html.find(`.spell-max[data-level="${spell}"]`).attr("data-tooltip", "DND5E.ActiveEffectOverrideWarning");
+        html.find(`.spell-max[data-level="${spell}"]`).attr("data-tooltip", "SKJAALD.ActiveEffectOverrideWarning");
       }
     }
   }
@@ -29246,7 +29246,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     const classId = event.target.closest("[data-item-id]")?.dataset.itemId;
     if ( !delta || !classId ) return;
     const classItem = this.actor.items.get(classId);
-    if ( !game.settings.get("dnd5e", "disableAdvancements") ) {
+    if ( !game.settings.get("skjaald", "disableAdvancements") ) {
       const manager = AdvancementManager.forLevelChange(this.actor, classId, delta);
       if ( manager.steps.length ) {
         if ( delta > 0 ) return manager.render(true);
@@ -29368,7 +29368,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
 
   /** @override */
   async _onDropActor(event, data) {
-    const canPolymorph = game.user.isGM || (this.actor.isOwner && game.settings.get("dnd5e", "allowPolymorphing"));
+    const canPolymorph = game.user.isGM || (this.actor.isOwner && game.settings.get("skjaald", "allowPolymorphing"));
     if ( !canPolymorph ) return false;
 
     // Get the target actor
@@ -29382,48 +29382,48 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
       html.find("input").each((i, el) => {
         options[el.name] = el.checked;
       });
-      const settings = foundry.utils.mergeObject(game.settings.get("dnd5e", "polymorphSettings") ?? {}, options);
-      game.settings.set("dnd5e", "polymorphSettings", settings);
+      const settings = foundry.utils.mergeObject(game.settings.get("skjaald", "polymorphSettings") ?? {}, options);
+      game.settings.set("skjaald", "polymorphSettings", settings);
       return settings;
     };
 
     // Create and render the Dialog
     return new Dialog({
-      title: game.i18n.localize("DND5E.PolymorphPromptTitle"),
+      title: game.i18n.localize("SKJAALD.PolymorphPromptTitle"),
       content: {
-        options: game.settings.get("dnd5e", "polymorphSettings"),
-        settings: CONFIG.DND5E.polymorphSettings,
-        effectSettings: CONFIG.DND5E.polymorphEffectSettings,
+        options: game.settings.get("skjaald", "polymorphSettings"),
+        settings: CONFIG.SKJAALD.polymorphSettings,
+        effectSettings: CONFIG.SKJAALD.polymorphEffectSettings,
         isToken: this.actor.isToken
       },
       default: "accept",
       buttons: {
         accept: {
           icon: '<i class="fas fa-check"></i>',
-          label: game.i18n.localize("DND5E.PolymorphAcceptSettings"),
+          label: game.i18n.localize("SKJAALD.PolymorphAcceptSettings"),
           callback: html => this.actor.transformInto(sourceActor, rememberOptions(html))
         },
         wildshape: {
-          icon: CONFIG.DND5E.transformationPresets.wildshape.icon,
-          label: CONFIG.DND5E.transformationPresets.wildshape.label,
+          icon: CONFIG.SKJAALD.transformationPresets.wildshape.icon,
+          label: CONFIG.SKJAALD.transformationPresets.wildshape.label,
           callback: html => this.actor.transformInto(sourceActor, foundry.utils.mergeObject(
-            CONFIG.DND5E.transformationPresets.wildshape.options,
+            CONFIG.SKJAALD.transformationPresets.wildshape.options,
             { transformTokens: rememberOptions(html).transformTokens }
           ))
         },
         polymorph: {
-          icon: CONFIG.DND5E.transformationPresets.polymorph.icon,
-          label: CONFIG.DND5E.transformationPresets.polymorph.label,
+          icon: CONFIG.SKJAALD.transformationPresets.polymorph.icon,
+          label: CONFIG.SKJAALD.transformationPresets.polymorph.label,
           callback: html => this.actor.transformInto(sourceActor, foundry.utils.mergeObject(
-            CONFIG.DND5E.transformationPresets.polymorph.options,
+            CONFIG.SKJAALD.transformationPresets.polymorph.options,
             { transformTokens: rememberOptions(html).transformTokens }
           ))
         },
         self: {
-          icon: CONFIG.DND5E.transformationPresets.polymorphSelf.icon,
-          label: CONFIG.DND5E.transformationPresets.polymorphSelf.label,
+          icon: CONFIG.SKJAALD.transformationPresets.polymorphSelf.icon,
+          label: CONFIG.SKJAALD.transformationPresets.polymorphSelf.label,
           callback: html => this.actor.transformInto(sourceActor, foundry.utils.mergeObject(
-            CONFIG.DND5E.transformationPresets.polymorphSelf.options,
+            CONFIG.SKJAALD.transformationPresets.polymorphSelf.options,
             { transformTokens: rememberOptions(html).transformTokens }
           ))
         },
@@ -29433,9 +29433,9 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
         }
       }
     }, {
-      classes: ["dialog", "dnd5e", "polymorph"],
+      classes: ["dialog", "skjaald", "polymorph"],
       width: 900,
-      template: "systems/dnd5e/templates/apps/polymorph-prompt.hbs"
+      template: "systems/skjaald/templates/apps/polymorph-prompt.hbs"
     }).render(true);
   }
 
@@ -29498,8 +29498,8 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     let items = itemData instanceof Array ? itemData : [itemData];
     const itemsWithoutAdvancement = items.filter(i => !i.system.advancement?.length);
     const multipleAdvancements = (items.length - itemsWithoutAdvancement.length) > 1;
-    if ( multipleAdvancements && !game.settings.get("dnd5e", "disableAdvancements") ) {
-      ui.notifications.warn(game.i18n.format("DND5E.WarnCantAddMultipleAdvancements"));
+    if ( multipleAdvancements && !game.settings.get("skjaald", "disableAdvancements") ) {
+      ui.notifications.warn(game.i18n.format("SKJAALD.WarnCantAddMultipleAdvancements"));
       items = itemsWithoutAdvancement;
     }
 
@@ -29526,7 +29526,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
   async _onDropSingleItem(itemData) {
     // Check to make sure items of this type are allowed on this actor
     if ( this.constructor.unsupportedItemTypes.has(itemData.type) ) {
-      ui.notifications.warn(game.i18n.format("DND5E.ActorWarningInvalidItem", {
+      ui.notifications.warn(game.i18n.format("SKJAALD.ActorWarningInvalidItem", {
         itemType: game.i18n.localize(CONFIG.Item.typeLabels[itemData.type]),
         actorType: game.i18n.localize(CONFIG.Actor.typeLabels[this.actor.type])
       }));
@@ -29549,12 +29549,12 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
 
     // Bypass normal creation flow for any items with advancement
     if ( this.actor.system.metadata?.supportsAdvancement && itemData.system.advancement?.length
-        && !game.settings.get("dnd5e", "disableAdvancements") ) {
+        && !game.settings.get("skjaald", "disableAdvancements") ) {
       // Ensure that this item isn't violating the singleton rule
       const dataModel = CONFIG.Item.dataModels[itemData.type];
       const singleton = dataModel?.metadata.singleton ?? false;
       if ( singleton && this.actor.itemTypes[itemData.type].length ) {
-        ui.notifications.error(game.i18n.format("DND5E.ActorWarningSingleton", {
+        ui.notifications.error(game.i18n.format("SKJAALD.ActorWarningSingleton", {
           itemType: game.i18n.localize(CONFIG.Item.typeLabels[itemData.type]),
           actorType: game.i18n.localize(CONFIG.Actor.typeLabels[this.actor.type])
         }));
@@ -29603,7 +29603,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     const { level, preparationMode } = header?.closest("[data-level]")?.dataset ?? {};
 
     // Determine the actor's spell slot progressions, if any.
-    const spellcastKeys = Object.keys(CONFIG.DND5E.spellcastingTypes);
+    const spellcastKeys = Object.keys(CONFIG.SKJAALD.spellcastingTypes);
     const progs = Object.values(this.document.classes).reduce((acc, cls) => {
       const type = cls.spellcasting?.type;
       if ( spellcastKeys.includes(type) ) acc.add(type);
@@ -29614,7 +29614,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
 
     // Case 1: Drop a cantrip.
     if ( itemData.system.level === 0 ) {
-      const modes = CONFIG.DND5E.spellPreparationModes;
+      const modes = CONFIG.SKJAALD.spellPreparationModes;
       if ( modes[preparationMode]?.cantrips ) {
         prep.mode = "prepared";
       } else if ( !preparationMode ) {
@@ -29797,7 +29797,7 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     let buttons = super._getHeaderButtons();
     if ( this.actor.isPolymorphed ) {
       buttons.unshift({
-        label: "DND5E.PolymorphRestoreTransformation",
+        label: "SKJAALD.PolymorphRestoreTransformation",
         class: "restore-transformation",
         icon: "fas fa-backward",
         onclick: () => this.actor.revertOriginalForm()
@@ -29815,7 +29815,7 @@ class ActorSheet5eCharacter extends ActorSheet5e {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "sheet", "actor", "character"]
+      classes: ["skjaald", "sheet", "actor", "character"]
     });
   }
 
@@ -29831,7 +29831,7 @@ class ActorSheet5eCharacter extends ActorSheet5e {
     context.resources = ["primary", "secondary", "tertiary"].reduce((arr, r) => {
       const res = foundry.utils.mergeObject(context.actor.system.resources[r] || {}, {
         name: r,
-        placeholder: game.i18n.localize(`DND5E.Resource${r.titleCase()}`)
+        placeholder: game.i18n.localize(`SKJAALD.Resource${r.titleCase()}`)
       }, {inplace: false});
       if ( res.value === 0 ) delete res.value;
       if ( res.max === 0 ) delete res.max;
@@ -29840,14 +29840,14 @@ class ActorSheet5eCharacter extends ActorSheet5e {
 
     const classes = this.actor.itemTypes.class;
     return foundry.utils.mergeObject(context, {
-      disableExperience: game.settings.get("dnd5e", "disableExperienceTracking"),
+      disableExperience: game.settings.get("skjaald", "disableExperienceTracking"),
       classLabels: classes.map(c => c.name).join(", "),
       labels: {
         type: context.system.details.type.label
       },
       multiclassLabels: classes.map(c => [c.subclass?.name ?? "", c.name, c.system.levels].filterJoin(" ")).join(", "),
-      weightUnit: game.i18n.localize(`DND5E.Abbreviation${
-        game.settings.get("dnd5e", "metricWeightUnits") ? "Kg" : "Lbs"}`),
+      weightUnit: game.i18n.localize(`SKJAALD.Abbreviation${
+        game.settings.get("skjaald", "metricWeightUnits") ? "Kg" : "Lbs"}`),
       encumbrance: context.system.attributes.encumbrance
     });
   }
@@ -29876,11 +29876,11 @@ class ActorSheet5eCharacter extends ActorSheet5e {
       if ( item.system.attunement ) ctx.attunement = item.system.attuned ? {
         icon: "fa-sun",
         cls: "attuned",
-        title: "DND5E.AttunementAttuned"
+        title: "SKJAALD.AttunementAttuned"
       } : {
         icon: "fa-sun",
         cls: "not-attuned",
-        title: CONFIG.DND5E.attunementTypes[item.system.attunement]
+        title: CONFIG.SKJAALD.attunementTypes[item.system.attunement]
       };
 
       // Prepare data needed to display expanded sections
@@ -29896,7 +29896,7 @@ class ActorSheet5eCharacter extends ActorSheet5e {
       ctx.concealDetails = !game.user.isGM && (item.system.identified === false);
 
       // Item grouping
-      const [originId] = item.getFlag("dnd5e", "advancementOrigin")?.split(".") ?? [];
+      const [originId] = item.getFlag("skjaald", "advancementOrigin")?.split(".") ?? [];
       const group = this.actor.items.get(originId);
       switch ( group?.type ) {
         case "race": ctx.group = "race"; break;
@@ -29936,10 +29936,10 @@ class ActorSheet5eCharacter extends ActorSheet5e {
 
     // Sort classes and interleave matching subclasses, put unmatched subclasses into features so they don't disappear
     classes.sort((a, b) => b.system.levels - a.system.levels);
-    const maxLevelDelta = CONFIG.DND5E.maxLevel - this.actor.system.details.level;
+    const maxLevelDelta = CONFIG.SKJAALD.maxLevel - this.actor.system.details.level;
     classes = classes.reduce((arr, cls) => {
       const ctx = context.itemContext[cls.id] ??= {};
-      ctx.availableLevels = Array.fromRange(CONFIG.DND5E.maxLevel + 1).slice(1).map(level => {
+      ctx.availableLevels = Array.fromRange(CONFIG.SKJAALD.maxLevel + 1).slice(1).map(level => {
         const delta = level - cls.system.levels;
         return { level, delta, disabled: delta > maxLevelDelta };
       });
@@ -29952,7 +29952,7 @@ class ActorSheet5eCharacter extends ActorSheet5e {
     }, []);
     for ( const subclass of subclasses ) {
       feats.push(subclass);
-      const message = game.i18n.format("DND5E.SubclassMismatchWarn", {
+      const message = game.i18n.format("SKJAALD.SubclassMismatchWarn", {
         name: subclass.name, class: subclass.system.classIdentifier
       });
       context.warnings.push({ message, type: "warning" });
@@ -29970,10 +29970,10 @@ class ActorSheet5eCharacter extends ActorSheet5e {
         label: `${CONFIG.Item.typeLabels.class}Pl`, items: classes,
         hasActions: false, dataset: {type: "class"}, isClass: true },
       active: {
-        label: "DND5E.FeatureActive", items: [],
+        label: "SKJAALD.FeatureActive", items: [],
         hasActions: true, dataset: {type: "feat", "activation.type": "action"} },
       passive: {
-        label: "DND5E.FeaturePassive", items: [],
+        label: "SKJAALD.FeaturePassive", items: [],
         hasActions: false, dataset: {type: "feat"} }
     };
     for ( const feat of feats ) {
@@ -30004,14 +30004,14 @@ class ActorSheet5eCharacter extends ActorSheet5e {
       const isPrepared = !!prep.prepared;
       context.toggleClass = isPrepared ? "active" : "";
       if ( isAlways ) context.toggleClass = "fixed";
-      if ( isAlways ) context.toggleTitle = CONFIG.DND5E.spellPreparationModes.always.label;
-      else if ( isPrepared ) context.toggleTitle = CONFIG.DND5E.spellPreparationModes.prepared.label;
-      else context.toggleTitle = game.i18n.localize("DND5E.SpellUnprepared");
+      if ( isAlways ) context.toggleTitle = CONFIG.SKJAALD.spellPreparationModes.always.label;
+      else if ( isPrepared ) context.toggleTitle = CONFIG.SKJAALD.spellPreparationModes.prepared.label;
+      else context.toggleTitle = game.i18n.localize("SKJAALD.SpellUnprepared");
     }
     else {
       const isActive = !!item.system.equipped;
       context.toggleClass = isActive ? "active" : "";
-      context.toggleTitle = game.i18n.localize(isActive ? "DND5E.Equipped" : "DND5E.Unequipped");
+      context.toggleTitle = game.i18n.localize(isActive ? "SKJAALD.Equipped" : "SKJAALD.Unequipped");
       context.canToggle = "equipped" in item.system;
     }
   }
@@ -30056,8 +30056,8 @@ class ActorSheet5eCharacter extends ActorSheet5e {
     switch ( button.dataset.action ) {
       case "convertCurrency":
         return Dialog.confirm({
-          title: `${game.i18n.localize("DND5E.CurrencyConvert")}`,
-          content: `<p>${game.i18n.localize("DND5E.CurrencyConvertHint")}</p>`,
+          title: `${game.i18n.localize("SKJAALD.CurrencyConvert")}`,
+          content: `<p>${game.i18n.localize("SKJAALD.CurrencyConvertHint")}</p>`,
           yes: () => this.actor.convertCurrency()
         });
       case "rollDeathSave":
@@ -30103,9 +30103,9 @@ class ActorSheet5eCharacter extends ActorSheet5e {
     // Increment the number of class levels a character instead of creating a new item
     if ( itemData.type === "class" ) {
       const charLevel = this.actor.system.details.level;
-      itemData.system.levels = Math.min(itemData.system.levels, CONFIG.DND5E.maxLevel - charLevel);
+      itemData.system.levels = Math.min(itemData.system.levels, CONFIG.SKJAALD.maxLevel - charLevel);
       if ( itemData.system.levels <= 0 ) {
-        const err = game.i18n.format("DND5E.MaxCharacterLevelExceededWarn", { max: CONFIG.DND5E.maxLevel });
+        const err = game.i18n.format("SKJAALD.MaxCharacterLevelExceededWarn", { max: CONFIG.SKJAALD.maxLevel });
         ui.notifications.error(err);
         return false;
       }
@@ -30113,7 +30113,7 @@ class ActorSheet5eCharacter extends ActorSheet5e {
       const cls = this.actor.itemTypes.class.find(c => c.identifier === itemData.system.identifier);
       if ( cls ) {
         const priorLevel = cls.system.levels;
-        if ( !game.settings.get("dnd5e", "disableAdvancements") ) {
+        if ( !game.settings.get("skjaald", "disableAdvancements") ) {
           const manager = AdvancementManager.forLevelChange(this.actor, cls.id, itemData.system.levels);
           if ( manager.steps.length ) {
             manager.render(true);
@@ -30129,13 +30129,13 @@ class ActorSheet5eCharacter extends ActorSheet5e {
     else if ( itemData.type === "subclass" ) {
       const other = this.actor.itemTypes.subclass.find(i => i.identifier === itemData.system.identifier);
       if ( other ) {
-        const err = game.i18n.format("DND5E.SubclassDuplicateError", {identifier: other.identifier});
+        const err = game.i18n.format("SKJAALD.SubclassDuplicateError", {identifier: other.identifier});
         ui.notifications.error(err);
         return false;
       }
       const cls = this.actor.itemTypes.class.find(i => i.identifier === itemData.system.classIdentifier);
       if ( cls && cls.subclass ) {
-        const err = game.i18n.format("DND5E.SubclassAssignmentError", {class: cls.name, subclass: cls.subclass.name});
+        const err = game.i18n.format("SKJAALD.SubclassAssignmentError", {class: cls.name, subclass: cls.subclass.name});
         ui.notifications.error(err);
         return false;
       }
@@ -30317,14 +30317,14 @@ class HitDice {
 class CreatureTypeField extends foundry.data.fields.SchemaField {
   constructor(fields={}, options={}) {
     fields = {
-      value: new foundry.data.fields.StringField({blank: true, label: "DND5E.CreatureType"}),
-      subtype: new foundry.data.fields.StringField({label: "DND5E.CreatureTypeSelectorSubtype"}),
-      swarm: new foundry.data.fields.StringField({blank: true, label: "DND5E.CreatureSwarmSize"}),
-      custom: new foundry.data.fields.StringField({label: "DND5E.CreatureTypeSelectorCustom"}),
+      value: new foundry.data.fields.StringField({blank: true, label: "SKJAALD.CreatureType"}),
+      subtype: new foundry.data.fields.StringField({label: "SKJAALD.CreatureTypeSelectorSubtype"}),
+      swarm: new foundry.data.fields.StringField({blank: true, label: "SKJAALD.CreatureSwarmSize"}),
+      custom: new foundry.data.fields.StringField({label: "SKJAALD.CreatureTypeSelectorCustom"}),
       ...fields
     };
     Object.entries(fields).forEach(([k, v]) => !v ? delete fields[k] : null);
-    super(fields, { label: "DND5E.CreatureType", ...options });
+    super(fields, { label: "SKJAALD.CreatureType", ...options });
   }
 
   /* -------------------------------------------- */
@@ -30335,13 +30335,13 @@ class CreatureTypeField extends foundry.data.fields.SchemaField {
 
     Object.defineProperty(obj, "label", {
       get() {
-        return dnd5e.documents.Actor5e.formatCreatureType(this);
+        return skjaald.documents.Actor5e.formatCreatureType(this);
       },
       enumerable: false
     });
     Object.defineProperty(obj, "config", {
       get() {
-        return CONFIG.DND5E.creatureTypes[this.value];
+        return CONFIG.SKJAALD.creatureTypes[this.value];
       },
       enumerable: false
     });
@@ -30359,11 +30359,11 @@ class RollConfigField extends foundry.data.fields.SchemaField {
   constructor({roll={}, ability="", ...fields}={}, options={}) {
     const opts = { initial: null, nullable: true, min: 1, max: 20, integer: true };
     fields = {
-      ability: new StringField$9({required: true, initial: ability, label: "DND5E.AbilityModifier"}),
+      ability: new StringField$9({required: true, initial: ability, label: "SKJAALD.AbilityModifier"}),
       roll: new SchemaField$7({
-        min: new NumberField$8({...opts, label: "DND5E.Minimum"}),
-        max: new NumberField$8({...opts, label: "DND5E.Maximum"}),
-        mode: new NumberField$8({choices: [-1, 0, 1], initial: 0, label: "DND5E.AdvantageMode"}),
+        min: new NumberField$8({...opts, label: "SKJAALD.Minimum"}),
+        max: new NumberField$8({...opts, label: "SKJAALD.Maximum"}),
+        mode: new NumberField$8({choices: [-1, 0, 1], initial: 0, label: "SKJAALD.AdvantageMode"}),
         ...roll
       }),
       ...fields
@@ -30379,19 +30379,19 @@ class MovementField extends foundry.data.fields.SchemaField {
   constructor(fields={}, options={}) {
     const numberConfig = { required: true, nullable: true, min: 0, step: 0.1, initial: null };
     fields = {
-      burrow: new foundry.data.fields.NumberField({ ...numberConfig, label: "DND5E.MovementBurrow" }),
-      climb: new foundry.data.fields.NumberField({ ...numberConfig, label: "DND5E.MovementClimb" }),
-      fly: new foundry.data.fields.NumberField({ ...numberConfig, label: "DND5E.MovementFly" }),
-      swim: new foundry.data.fields.NumberField({ ...numberConfig, label: "DND5E.MovementSwim" }),
-      walk: new foundry.data.fields.NumberField({ ...numberConfig, label: "DND5E.MovementWalk" }),
+      burrow: new foundry.data.fields.NumberField({ ...numberConfig, label: "SKJAALD.MovementBurrow" }),
+      climb: new foundry.data.fields.NumberField({ ...numberConfig, label: "SKJAALD.MovementClimb" }),
+      fly: new foundry.data.fields.NumberField({ ...numberConfig, label: "SKJAALD.MovementFly" }),
+      swim: new foundry.data.fields.NumberField({ ...numberConfig, label: "SKJAALD.MovementSwim" }),
+      walk: new foundry.data.fields.NumberField({ ...numberConfig, label: "SKJAALD.MovementWalk" }),
       units: new foundry.data.fields.StringField({
-        required: true, nullable: true, blank: false, initial: null, label: "DND5E.MovementUnits"
+        required: true, nullable: true, blank: false, initial: null, label: "SKJAALD.MovementUnits"
       }),
-      hover: new foundry.data.fields.BooleanField({required: true, label: "DND5E.MovementHover"}),
+      hover: new foundry.data.fields.BooleanField({required: true, label: "SKJAALD.MovementHover"}),
       ...fields
     };
     Object.entries(fields).forEach(([k, v]) => !v ? delete fields[k] : null);
-    super(fields, { label: "DND5E.Movement", ...options });
+    super(fields, { label: "SKJAALD.Movement", ...options });
   }
 }
 
@@ -30402,18 +30402,18 @@ class SensesField extends foundry.data.fields.SchemaField {
   constructor(fields={}, options={}) {
     const numberConfig = { required: true, nullable: true, integer: true, min: 0, initial: null };
     fields = {
-      darkvision: new foundry.data.fields.NumberField({ ...numberConfig, label: "DND5E.SenseDarkvision" }),
-      blindsight: new foundry.data.fields.NumberField({ ...numberConfig, label: "DND5E.SenseBlindsight" }),
-      tremorsense: new foundry.data.fields.NumberField({ ...numberConfig, label: "DND5E.SenseTremorsense" }),
-      truesight: new foundry.data.fields.NumberField({ ...numberConfig, label: "DND5E.SenseTruesight" }),
+      darkvision: new foundry.data.fields.NumberField({ ...numberConfig, label: "SKJAALD.SenseDarkvision" }),
+      blindsight: new foundry.data.fields.NumberField({ ...numberConfig, label: "SKJAALD.SenseBlindsight" }),
+      tremorsense: new foundry.data.fields.NumberField({ ...numberConfig, label: "SKJAALD.SenseTremorsense" }),
+      truesight: new foundry.data.fields.NumberField({ ...numberConfig, label: "SKJAALD.SenseTruesight" }),
       units: new foundry.data.fields.StringField({
-        required: true, nullable: true, blank: false, initial: null, label: "DND5E.SenseUnits"
+        required: true, nullable: true, blank: false, initial: null, label: "SKJAALD.SenseUnits"
       }),
-      special: new foundry.data.fields.StringField({required: true, label: "DND5E.SenseSpecial"}),
+      special: new foundry.data.fields.StringField({required: true, label: "SKJAALD.SenseSpecial"}),
       ...fields
     };
     Object.entries(fields).forEach(([k, v]) => !v ? delete fields[k] : null);
-    super(fields, { label: "DND5E.Senses", ...options });
+    super(fields, { label: "SKJAALD.Senses", ...options });
   }
 }
 
@@ -30441,8 +30441,8 @@ class AttributesFields {
     return {
       init: new RollConfigField({
         ability: "",
-        bonus: new FormulaField({required: true, label: "DND5E.InitiativeBonus"})
-      }, { label: "DND5E.Initiative" }),
+        bonus: new FormulaField({required: true, label: "SKJAALD.InitiativeBonus"})
+      }, { label: "SKJAALD.Initiative" }),
       movement: new MovementField()
     };
   }
@@ -30477,23 +30477,23 @@ class AttributesFields {
     return {
       attunement: new foundry.data.fields.SchemaField({
         max: new foundry.data.fields.NumberField({
-          required: true, nullable: false, integer: true, min: 0, initial: 3, label: "DND5E.AttunementMax"
+          required: true, nullable: false, integer: true, min: 0, initial: 3, label: "SKJAALD.AttunementMax"
         })
-      }, {label: "DND5E.Attunement"}),
+      }, {label: "SKJAALD.Attunement"}),
       senses: new SensesField(),
       spellcasting: new foundry.data.fields.StringField({
-        required: true, blank: true, initial: "int", label: "DND5E.SpellAbility"
+        required: true, blank: true, initial: "int", label: "SKJAALD.SpellAbility"
       }),
       exhaustion: new foundry.data.fields.NumberField({
-        required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.Exhaustion"
+        required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.Exhaustion"
       }),
       concentration: new RollConfigField({
         ability: "",
         bonuses: new foundry.data.fields.SchemaField({
-          save: new FormulaField({required: true, label: "DND5E.SaveBonus"})
+          save: new FormulaField({required: true, label: "SKJAALD.SaveBonus"})
         }),
-        limit: new foundry.data.fields.NumberField({integer: true, min: 0, initial: 1, label: "DND5E.AttrConcentration.Limit"})
-      }, {label: "DND5E.Concentration"})
+        limit: new foundry.data.fields.NumberField({integer: true, min: 0, initial: 1, label: "SKJAALD.AttrConcentration.Limit"})
+      }, {label: "SKJAALD.Concentration"})
     };
   }
 
@@ -30553,7 +30553,7 @@ class AttributesFields {
    */
   static prepareConcentration(rollData) {
     const { concentration } = this.attributes;
-    const abilityId = concentration.ability || CONFIG.DND5E.defaultAbilities.concentration;
+    const abilityId = concentration.ability || CONFIG.SKJAALD.defaultAbilities.concentration;
     const ability = this.abilities?.[abilityId] || {};
     const bonus = simplifyBonus(concentration.bonuses.save, rollData);
     concentration.save = (ability.save ?? 0) + bonus;
@@ -30569,11 +30569,11 @@ class AttributesFields {
    * @param {Function} [options.validateItem]  Determine whether an item's weight should count toward encumbrance.
    */
   static prepareEncumbrance(rollData, { validateItem }={}) {
-    const config = CONFIG.DND5E.encumbrance;
+    const config = CONFIG.SKJAALD.encumbrance;
     const encumbrance = this.attributes.encumbrance ??= {};
-    const baseUnits = CONFIG.DND5E.encumbrance.baseUnits[this.parent.type]
-      ?? CONFIG.DND5E.encumbrance.baseUnits.default;
-    const unitSystem = game.settings.get("dnd5e", "metricWeightUnits") ? "metric" : "imperial";
+    const baseUnits = CONFIG.SKJAALD.encumbrance.baseUnits[this.parent.type]
+      ?? CONFIG.SKJAALD.encumbrance.baseUnits.default;
+    const unitSystem = game.settings.get("skjaald", "metricWeightUnits") ? "metric" : "imperial";
 
     // Get the total weight from items
     let weight = this.parent.items
@@ -30582,7 +30582,7 @@ class AttributesFields {
 
     // [Optional] add Currency Weight (for non-transformed actors)
     const currency = this.currency;
-    if ( game.settings.get("dnd5e", "currencyWeight") && currency ) {
+    if ( game.settings.get("skjaald", "currencyWeight") && currency ) {
       const numCoins = Object.values(currency).reduce((val, denom) => val + Math.max(denom, 0), 0);
       const currencyPerWeight = config.currencyPerWeight[unitSystem];
       weight += convertWeight(
@@ -30593,10 +30593,10 @@ class AttributesFields {
     }
 
     // Determine the Encumbrance size class
-    const keys = Object.keys(CONFIG.DND5E.actorSizes);
+    const keys = Object.keys(CONFIG.SKJAALD.actorSizes);
     const index = keys.findIndex(k => k === this.traits.size);
-    const sizeConfig = CONFIG.DND5E.actorSizes[
-      keys[this.parent.flags.dnd5e?.powerfulBuild ? Math.min(index + 1, keys.length - 1) : index]
+    const sizeConfig = CONFIG.SKJAALD.actorSizes[
+      keys[this.parent.flags.skjaald?.powerfulBuild ? Math.min(index + 1, keys.length - 1) : index]
     ];
     const sizeMod = sizeConfig?.capacityMultiplier ?? sizeConfig?.token ?? 1;
     let maximumMultiplier;
@@ -30638,7 +30638,7 @@ class AttributesFields {
    */
   static prepareExhaustionLevel() {
     const exhaustion = this.parent.effects.get(ActiveEffect5e.ID.EXHAUSTION);
-    const level = exhaustion?.getFlag("dnd5e", "exhaustionLevel");
+    const level = exhaustion?.getFlag("skjaald", "exhaustionLevel");
     this.attributes.exhaustion = Number.isFinite(level) ? level : 0;
   }
 
@@ -30679,18 +30679,18 @@ class AttributesFields {
     const exceedingCarryingCapacity = statuses.has("exceedingCarryingCapacity");
     const crawl = this.parent.hasConditionEffect("crawl");
     const units = this.attributes.movement.units;
-    for ( const type in CONFIG.DND5E.movementTypes ) {
+    for ( const type in CONFIG.SKJAALD.movementTypes ) {
       let speed = this.attributes.movement[type];
       if ( noMovement || (crawl && (type !== "walk")) ) speed = 0;
       else {
         if ( halfMovement ) speed *= 0.5;
         if ( heavilyEncumbered ) {
-          speed = Math.max(0, speed - (CONFIG.DND5E.encumbrance.speedReduction.heavilyEncumbered[units] ?? 0));
+          speed = Math.max(0, speed - (CONFIG.SKJAALD.encumbrance.speedReduction.heavilyEncumbered[units] ?? 0));
         } else if ( encumbered ) {
-          speed = Math.max(0, speed - (CONFIG.DND5E.encumbrance.speedReduction.encumbered[units] ?? 0));
+          speed = Math.max(0, speed - (CONFIG.SKJAALD.encumbrance.speedReduction.encumbered[units] ?? 0));
         }
         if ( exceedingCarryingCapacity ) {
-          speed = Math.min(speed, CONFIG.DND5E.encumbrance.speedReduction.exceedingCarryingCapacity[units] ?? 0);
+          speed = Math.min(speed, CONFIG.SKJAALD.encumbrance.speedReduction.exceedingCarryingCapacity[units] ?? 0);
         }
       }
       this.attributes.movement[type] = speed;
@@ -30708,7 +30708,7 @@ class AttributesFields {
    * @this {CharacterData|NPCData}
    */
   static prepareRace(race, { force=false }={}) {
-    for ( const key of Object.keys(CONFIG.DND5E.movementTypes) ) {
+    for ( const key of Object.keys(CONFIG.SKJAALD.movementTypes) ) {
       if ( !race.system.movement[key] || (!force && (this.attributes.movement[key] !== null)) ) continue;
       this.attributes.movement[key] = race.system.movement[key];
     }
@@ -30716,7 +30716,7 @@ class AttributesFields {
     if ( force && race.system.movement.units ) this.attributes.movement.units = race.system.movement.units;
     else this.attributes.movement.units ??= race.system.movement.units;
 
-    for ( const key of Object.keys(CONFIG.DND5E.senses) ) {
+    for ( const key of Object.keys(CONFIG.SKJAALD.senses) ) {
       if ( !race.system.senses[key] || (!force && (this.attributes.senses[key] !== null)) ) continue;
       this.attributes.senses[key] = race.system.senses[key];
     }
@@ -30749,21 +30749,21 @@ class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplate) {
     return this.mergeSchema(super.defineSchema(), {
       abilities: new MappingField(new foundry.data.fields.SchemaField({
         value: new foundry.data.fields.NumberField({
-          required: true, nullable: false, integer: true, min: 0, initial: 10, label: "DND5E.AbilityScore"
+          required: true, nullable: false, integer: true, min: 0, initial: 10, label: "SKJAALD.AbilityScore"
         }),
         proficient: new foundry.data.fields.NumberField({
-          required: true, integer: true, min: 0, max: 1, initial: 0, label: "DND5E.ProficiencyLevel"
+          required: true, integer: true, min: 0, max: 1, initial: 0, label: "SKJAALD.ProficiencyLevel"
         }),
         max: new foundry.data.fields.NumberField({
-          required: true, integer: true, nullable: true, min: 0, initial: null, label: "DND5E.AbilityScoreMax"
+          required: true, integer: true, nullable: true, min: 0, initial: null, label: "SKJAALD.AbilityScoreMax"
         }),
         bonuses: new foundry.data.fields.SchemaField({
-          check: new FormulaField({required: true, label: "DND5E.AbilityCheckBonus"}),
-          save: new FormulaField({required: true, label: "DND5E.SaveBonus"})
-        }, {label: "DND5E.AbilityBonuses"})
+          check: new FormulaField({required: true, label: "SKJAALD.AbilityCheckBonus"}),
+          save: new FormulaField({required: true, label: "SKJAALD.SaveBonus"})
+        }, {label: "SKJAALD.AbilityBonuses"})
       }), {
-        initialKeys: CONFIG.DND5E.abilities, initialValue: this._initialAbilityValue.bind(this),
-        initialKeysOnly: true, label: "DND5E.Abilities"
+        initialKeys: CONFIG.SKJAALD.abilities, initialValue: this._initialAbilityValue.bind(this),
+        initialKeysOnly: true, label: "SKJAALD.Abilities"
       })
     });
   }
@@ -30779,7 +30779,7 @@ class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplate) {
    * @private
    */
   static _initialAbilityValue(key, initial, existing) {
-    const config = CONFIG.DND5E.abilities[key];
+    const config = CONFIG.SKJAALD.abilities[key];
     if ( config ) {
       let defaultValue = config.defaults?.[this._systemType] ?? initial.value;
       if ( typeof defaultValue === "string" ) defaultValue = existing?.[defaultValue]?.value ?? initial.value;
@@ -30847,7 +30847,7 @@ class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplate) {
    * @param {object} [options.originalSaves]  Original ability data for transformed actors.
    */
   prepareAbilities({ rollData={}, originalSaves }={}) {
-    const flags = this.parent.flags.dnd5e ?? {};
+    const flags = this.parent.flags.skjaald ?? {};
     const prof = this.attributes?.prof ?? 0;
     const checkBonus = simplifyBonus(this.bonuses?.abilities?.check, rollData);
     const saveBonus = simplifyBonus(this.bonuses?.abilities?.save, rollData);
@@ -30869,7 +30869,7 @@ class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplate) {
       if ( Number.isNumeric(abl.saveProf.term) ) abl.save += abl.saveProf.flat;
       abl.dc = 8 + abl.mod + prof + dcBonus;
 
-      if ( !Number.isFinite(abl.max) ) abl.max = CONFIG.DND5E.maxAbilityScore;
+      if ( !Number.isFinite(abl.max) ) abl.max = CONFIG.SKJAALD.maxAbilityScore;
 
       // If we merged saves when transforming, take the highest bonus here.
       if ( originalSaves && abl.proficient ) abl.save = Math.max(abl.save, originalSaves[id].save);
@@ -30907,49 +30907,49 @@ class CreatureTemplate extends CommonTemplate {
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
       bonuses: new foundry.data.fields.SchemaField({
-        mwak: makeAttackBonuses({label: "DND5E.BonusMWAttack"}),
-        rwak: makeAttackBonuses({label: "DND5E.BonusRWAttack"}),
-        msak: makeAttackBonuses({label: "DND5E.BonusMSAttack"}),
-        rsak: makeAttackBonuses({label: "DND5E.BonusRSAttack"}),
+        mwak: makeAttackBonuses({label: "SKJAALD.BonusMWAttack"}),
+        rwak: makeAttackBonuses({label: "SKJAALD.BonusRWAttack"}),
+        msak: makeAttackBonuses({label: "SKJAALD.BonusMSAttack"}),
+        rsak: makeAttackBonuses({label: "SKJAALD.BonusRSAttack"}),
         abilities: new foundry.data.fields.SchemaField({
-          check: new FormulaField({required: true, label: "DND5E.BonusAbilityCheck"}),
-          save: new FormulaField({required: true, label: "DND5E.BonusAbilitySave"}),
-          skill: new FormulaField({required: true, label: "DND5E.BonusAbilitySkill"})
-        }, {label: "DND5E.BonusAbility"}),
+          check: new FormulaField({required: true, label: "SKJAALD.BonusAbilityCheck"}),
+          save: new FormulaField({required: true, label: "SKJAALD.BonusAbilitySave"}),
+          skill: new FormulaField({required: true, label: "SKJAALD.BonusAbilitySkill"})
+        }, {label: "SKJAALD.BonusAbility"}),
         spell: new foundry.data.fields.SchemaField({
-          dc: new FormulaField({required: true, deterministic: true, label: "DND5E.BonusSpellDC"})
-        }, {label: "DND5E.BonusSpell"})
-      }, {label: "DND5E.Bonuses"}),
+          dc: new FormulaField({required: true, deterministic: true, label: "SKJAALD.BonusSpellDC"})
+        }, {label: "SKJAALD.BonusSpell"})
+      }, {label: "SKJAALD.Bonuses"}),
       skills: new MappingField(new RollConfigField({
         value: new foundry.data.fields.NumberField({
-          required: true, nullable: false, min: 0, max: 2, step: 0.5, initial: 0, label: "DND5E.ProficiencyLevel"
+          required: true, nullable: false, min: 0, max: 2, step: 0.5, initial: 0, label: "SKJAALD.ProficiencyLevel"
         }),
         ability: "dex",
         bonuses: new foundry.data.fields.SchemaField({
-          check: new FormulaField({required: true, label: "DND5E.SkillBonusCheck"}),
-          passive: new FormulaField({required: true, label: "DND5E.SkillBonusPassive"})
-        }, {label: "DND5E.SkillBonuses"})
+          check: new FormulaField({required: true, label: "SKJAALD.SkillBonusCheck"}),
+          passive: new FormulaField({required: true, label: "SKJAALD.SkillBonusPassive"})
+        }, {label: "SKJAALD.SkillBonuses"})
       }), {
-        initialKeys: CONFIG.DND5E.skills, initialValue: this._initialSkillValue,
-        initialKeysOnly: true, label: "DND5E.Skills"
+        initialKeys: CONFIG.SKJAALD.skills, initialValue: this._initialSkillValue,
+        initialKeysOnly: true, label: "SKJAALD.Skills"
       }),
       tools: new MappingField(new RollConfigField({
         value: new foundry.data.fields.NumberField({
-          required: true, nullable: false, min: 0, max: 2, step: 0.5, initial: 1, label: "DND5E.ProficiencyLevel"
+          required: true, nullable: false, min: 0, max: 2, step: 0.5, initial: 1, label: "SKJAALD.ProficiencyLevel"
         }),
         ability: "int",
         bonuses: new foundry.data.fields.SchemaField({
-          check: new FormulaField({required: true, label: "DND5E.CheckBonus"})
-        }, {label: "DND5E.ToolBonuses"})
+          check: new FormulaField({required: true, label: "SKJAALD.CheckBonus"})
+        }, {label: "SKJAALD.ToolBonuses"})
       })),
       spells: new MappingField(new foundry.data.fields.SchemaField({
         value: new foundry.data.fields.NumberField({
-          nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.SpellProgAvailable"
+          nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.SpellProgAvailable"
         }),
         override: new foundry.data.fields.NumberField({
-          integer: true, min: 0, label: "DND5E.SpellProgOverride"
+          integer: true, min: 0, label: "SKJAALD.SpellProgOverride"
         })
-      }), {initialKeys: this._spellLevels, label: "DND5E.SpellLevels"})
+      }), {initialKeys: this._spellLevels, label: "SKJAALD.SpellLevels"})
     });
   }
 
@@ -30963,7 +30963,7 @@ class CreatureTemplate extends CommonTemplate {
    * @private
    */
   static _initialSkillValue(key, initial) {
-    if ( CONFIG.DND5E.skills[key]?.ability ) initial.ability = CONFIG.DND5E.skills[key].ability;
+    if ( CONFIG.SKJAALD.skills[key]?.ability ) initial.ability = CONFIG.SKJAALD.skills[key].ability;
     return initial;
   }
 
@@ -30975,7 +30975,7 @@ class CreatureTemplate extends CommonTemplate {
    * @private
    */
   static get _spellLevels() {
-    const levels = Object.keys(CONFIG.DND5E.spellLevels).filter(a => a !== "0").map(l => `spell${l}`);
+    const levels = Object.keys(CONFIG.SKJAALD.spellLevels).filter(a => a !== "0").map(l => `spell${l}`);
     return [...levels, "pact"];
   }
 
@@ -31012,7 +31012,7 @@ class CreatureTemplate extends CommonTemplate {
       const match = s.match(pattern);
       if ( !match ) continue;
       const type = match[1].toLowerCase();
-      if ( (type in CONFIG.DND5E.senses) && !(type in source.attributes.senses) ) {
+      if ( (type in CONFIG.SKJAALD.senses) && !(type in source.attributes.senses) ) {
         source.attributes.senses[type] = Number(match[2]).toNearest(0.5);
         wasMatched = true;
       }
@@ -31033,7 +31033,7 @@ class CreatureTemplate extends CommonTemplate {
     if ( !original || foundry.utils.isEmpty(original.value) ) return;
     source.tools ??= {};
     for ( const prof of original.value ) {
-      const validProf = (prof in CONFIG.DND5E.toolProficiencies) || (prof in CONFIG.DND5E.toolIds);
+      const validProf = (prof in CONFIG.SKJAALD.toolProficiencies) || (prof in CONFIG.SKJAALD.toolIds);
       if ( !validProf || (prof in source.tools) ) continue;
       source.tools[prof] = {
         value: 1,
@@ -31086,8 +31086,8 @@ class CreatureTemplate extends CommonTemplate {
  */
 function makeAttackBonuses(schemaOptions={}) {
   return new foundry.data.fields.SchemaField({
-    attack: new FormulaField({required: true, label: "DND5E.BonusAttack"}),
-    damage: new FormulaField({required: true, label: "DND5E.BonusDamage"})
+    attack: new FormulaField({required: true, label: "SKJAALD.BonusAttack"}),
+    damage: new FormulaField({required: true, label: "SKJAALD.BonusDamage"})
   }, schemaOptions);
 }
 
@@ -31106,9 +31106,9 @@ class DetailsField {
   static get common() {
     return {
       biography: new foundry.data.fields.SchemaField({
-        value: new foundry.data.fields.HTMLField({label: "DND5E.Biography"}),
-        public: new foundry.data.fields.HTMLField({label: "DND5E.BiographyPublic"})
-      }, {label: "DND5E.Biography"})
+        value: new foundry.data.fields.HTMLField({label: "SKJAALD.Biography"}),
+        public: new foundry.data.fields.HTMLField({label: "SKJAALD.BiographyPublic"})
+      }, {label: "SKJAALD.Biography"})
     };
   }
 
@@ -31123,9 +31123,9 @@ class DetailsField {
    */
   static get creature() {
     return {
-      alignment: new foundry.data.fields.StringField({required: true, label: "DND5E.Alignment"}),
+      alignment: new foundry.data.fields.StringField({required: true, label: "SKJAALD.Alignment"}),
       race: new LocalDocumentField(foundry.documents.BaseItem, {
-        required: true, fallback: true, label: "DND5E.Race"
+        required: true, fallback: true, label: "SKJAALD.Race"
       })
     };
   }
@@ -31177,17 +31177,17 @@ class TraitsField {
    */
   static get common() {
     return {
-      size: new StringField$8({required: true, initial: "med", label: "DND5E.Size"}),
-      di: this.makeDamageTrait({label: "DND5E.DamImm"}),
-      dr: this.makeDamageTrait({label: "DND5E.DamRes"}),
-      dv: this.makeDamageTrait({label: "DND5E.DamVuln"}),
+      size: new StringField$8({required: true, initial: "med", label: "SKJAALD.Size"}),
+      di: this.makeDamageTrait({label: "SKJAALD.DamImm"}),
+      dr: this.makeDamageTrait({label: "SKJAALD.DamRes"}),
+      dv: this.makeDamageTrait({label: "SKJAALD.DamVuln"}),
       dm: new SchemaField$6({
-        amount: new MappingField(new FormulaField({deterministic: true}), {label: "DND5E.DamMod"}),
+        amount: new MappingField(new FormulaField({deterministic: true}), {label: "SKJAALD.DamMod"}),
         bypasses: new SetField$5(new StringField$8(), {
-          label: "DND5E.DamagePhysicalBypass", hint: "DND5E.DamagePhysicalBypassHint"
+          label: "SKJAALD.DamagePhysicalBypass", hint: "SKJAALD.DamagePhysicalBypassHint"
         })
       }),
-      ci: this.makeSimpleTrait({label: "DND5E.ConImm"})
+      ci: this.makeSimpleTrait({label: "SKJAALD.ConImm"})
     };
   }
 
@@ -31201,7 +31201,7 @@ class TraitsField {
    */
   static get creature() {
     return {
-      languages: this.makeSimpleTrait({label: "DND5E.Languages"})
+      languages: this.makeSimpleTrait({label: "SKJAALD.Languages"})
     };
   }
 
@@ -31219,9 +31219,9 @@ class TraitsField {
     return new SchemaField$6({
       ...extraFields,
       value: new SetField$5(
-        new StringField$8(), {label: "DND5E.TraitsChosen", initial}
+        new StringField$8(), {label: "SKJAALD.TraitsChosen", initial}
       ),
-      custom: new StringField$8({required: true, label: "DND5E.Special"})
+      custom: new StringField$8({required: true, label: "SKJAALD.Special"})
     }, schemaOptions);
   }
 
@@ -31239,7 +31239,7 @@ class TraitsField {
     return this.makeSimpleTrait(schemaOptions, {initial, extraFields: {
       ...extraFields,
       bypasses: new SetField$5(new StringField$8(), {
-        label: "DND5E.DamagePhysicalBypass", hint: "DND5E.DamagePhysicalBypassHint", initial: initialBypasses
+        label: "SKJAALD.DamagePhysicalBypass", hint: "SKJAALD.DamagePhysicalBypassHint", initial: initialBypasses
       })
     }});
   }
@@ -31254,8 +31254,8 @@ class TraitsField {
    */
   static prepareResistImmune() {
     if ( this.parent.hasConditionEffect("petrification") ) {
-      this.traits.dr.custom = game.i18n.localize("DND5E.DamageAll");
-      Object.keys(CONFIG.DND5E.damageTypes).forEach(type => this.traits.dr.value.add(type));
+      this.traits.dr.custom = game.i18n.localize("SKJAALD.DamageAll");
+      Object.keys(CONFIG.SKJAALD.damageTypes).forEach(type => this.traits.dr.value.add(type));
       this.traits.dr.bypasses.clear();
       this.traits.di.value.add("poison");
       this.traits.ci.value.add("poisoned");
@@ -31335,76 +31335,76 @@ class CharacterData extends CreatureTemplate {
         ...AttributesFields.common,
         ...AttributesFields.creature,
         ac: new SchemaField$5({
-          flat: new NumberField$7({integer: true, min: 0, label: "DND5E.ArmorClassFlat"}),
-          calc: new StringField$7({initial: "default", label: "DND5E.ArmorClassCalculation"}),
-          formula: new FormulaField({deterministic: true, label: "DND5E.ArmorClassFormula"})
-        }, {label: "DND5E.ArmorClass"}),
+          flat: new NumberField$7({integer: true, min: 0, label: "SKJAALD.ArmorClassFlat"}),
+          calc: new StringField$7({initial: "default", label: "SKJAALD.ArmorClassCalculation"}),
+          formula: new FormulaField({deterministic: true, label: "SKJAALD.ArmorClassFormula"})
+        }, {label: "SKJAALD.ArmorClass"}),
         hp: new SchemaField$5({
           value: new NumberField$7({
-            nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.HitPointsCurrent"
+            nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.HitPointsCurrent"
           }),
           max: new NumberField$7({
-            nullable: true, integer: true, min: 0, initial: null, label: "DND5E.HitPointsOverride"
+            nullable: true, integer: true, min: 0, initial: null, label: "SKJAALD.HitPointsOverride"
           }),
-          temp: new NumberField$7({integer: true, initial: 0, min: 0, label: "DND5E.HitPointsTemp"}),
-          tempmax: new NumberField$7({integer: true, initial: 0, label: "DND5E.HitPointsTempMax"}),
+          temp: new NumberField$7({integer: true, initial: 0, min: 0, label: "SKJAALD.HitPointsTemp"}),
+          tempmax: new NumberField$7({integer: true, initial: 0, label: "SKJAALD.HitPointsTempMax"}),
           bonuses: new SchemaField$5({
-            level: new FormulaField({deterministic: true, label: "DND5E.HitPointsBonusLevel"}),
-            overall: new FormulaField({deterministic: true, label: "DND5E.HitPointsBonusOverall"})
+            level: new FormulaField({deterministic: true, label: "SKJAALD.HitPointsBonusLevel"}),
+            overall: new FormulaField({deterministic: true, label: "SKJAALD.HitPointsBonusOverall"})
           })
-        }, {label: "DND5E.HitPoints"}),
+        }, {label: "SKJAALD.HitPoints"}),
         death: new RollConfigField({
           success: new NumberField$7({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.DeathSaveSuccesses"
+            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.DeathSaveSuccesses"
           }),
           failure: new NumberField$7({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.DeathSaveFailures"
+            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.DeathSaveFailures"
           })
-        }, {label: "DND5E.DeathSave"}),
-        inspiration: new BooleanField$5({required: true, label: "DND5E.Inspiration"})
-      }, {label: "DND5E.Attributes"}),
+        }, {label: "SKJAALD.DeathSave"}),
+        inspiration: new BooleanField$5({required: true, label: "SKJAALD.Inspiration"})
+      }, {label: "SKJAALD.Attributes"}),
       details: new SchemaField$5({
         ...DetailsField.common,
         ...DetailsField.creature,
         background: new LocalDocumentField(foundry.documents.BaseItem, {
-          required: true, fallback: true, label: "DND5E.Background"
+          required: true, fallback: true, label: "SKJAALD.Background"
         }),
-        originalClass: new StringField$7({required: true, label: "DND5E.ClassOriginal"}),
+        originalClass: new StringField$7({required: true, label: "SKJAALD.ClassOriginal"}),
         xp: new SchemaField$5({
           value: new NumberField$7({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.ExperiencePointsCurrent"
+            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.ExperiencePointsCurrent"
           })
-        }, {label: "DND5E.ExperiencePoints"}),
-        appearance: new StringField$7({required: true, label: "DND5E.Appearance"}),
-        trait: new StringField$7({required: true, label: "DND5E.PersonalityTraits"}),
-        ideal: new StringField$7({required: true, label: "DND5E.Ideals"}),
-        bond: new StringField$7({required: true, label: "DND5E.Bonds"}),
-        flaw: new StringField$7({required: true, label: "DND5E.Flaws"}),
-        gender: new StringField$7({ label: "DND5E.Gender" }),
-        eyes: new StringField$7({ label: "DND5E.Eyes" }),
-        height: new StringField$7({ label: "DND5E.Height" }),
-        faith: new StringField$7({ label: "DND5E.Faith" }),
-        hair: new StringField$7({ label: "DND5E.Hair" }),
-        skin: new StringField$7({ label: "DND5E.Skin" }),
-        age: new StringField$7({ label: "DND5E.Age" }),
-        weight: new StringField$7({ label: "DND5E.Weight" })
-      }, {label: "DND5E.Details"}),
+        }, {label: "SKJAALD.ExperiencePoints"}),
+        appearance: new StringField$7({required: true, label: "SKJAALD.Appearance"}),
+        trait: new StringField$7({required: true, label: "SKJAALD.PersonalityTraits"}),
+        ideal: new StringField$7({required: true, label: "SKJAALD.Ideals"}),
+        bond: new StringField$7({required: true, label: "SKJAALD.Bonds"}),
+        flaw: new StringField$7({required: true, label: "SKJAALD.Flaws"}),
+        gender: new StringField$7({ label: "SKJAALD.Gender" }),
+        eyes: new StringField$7({ label: "SKJAALD.Eyes" }),
+        height: new StringField$7({ label: "SKJAALD.Height" }),
+        faith: new StringField$7({ label: "SKJAALD.Faith" }),
+        hair: new StringField$7({ label: "SKJAALD.Hair" }),
+        skin: new StringField$7({ label: "SKJAALD.Skin" }),
+        age: new StringField$7({ label: "SKJAALD.Age" }),
+        weight: new StringField$7({ label: "SKJAALD.Weight" })
+      }, {label: "SKJAALD.Details"}),
       traits: new SchemaField$5({
         ...TraitsField.common,
         ...TraitsField.creature,
-        weaponProf: TraitsField.makeSimpleTrait({label: "DND5E.TraitWeaponProf"}),
-        armorProf: TraitsField.makeSimpleTrait({label: "DND5E.TraitArmorProf"})
-      }, {label: "DND5E.Traits"}),
+        weaponProf: TraitsField.makeSimpleTrait({label: "SKJAALD.TraitWeaponProf"}),
+        armorProf: TraitsField.makeSimpleTrait({label: "SKJAALD.TraitArmorProf"})
+      }, {label: "SKJAALD.Traits"}),
       resources: new SchemaField$5({
-        primary: makeResourceField({label: "DND5E.ResourcePrimary"}),
-        secondary: makeResourceField({label: "DND5E.ResourceSecondary"}),
-        tertiary: makeResourceField({label: "DND5E.ResourceTertiary"})
-      }, {label: "DND5E.Resources"}),
+        primary: makeResourceField({label: "SKJAALD.ResourcePrimary"}),
+        secondary: makeResourceField({label: "SKJAALD.ResourceSecondary"}),
+        tertiary: makeResourceField({label: "SKJAALD.ResourceTertiary"})
+      }, {label: "SKJAALD.Resources"}),
       favorites: new ArrayField$1(new SchemaField$5({
         type: new StringField$7({ required: true, blank: false }),
         id: new StringField$7({ required: true, blank: false }),
         sort: new IntegerSortField()
-      }), { label: "DND5E.Favorites" })
+      }), { label: "SKJAALD.Favorites" })
     });
   }
 
@@ -31439,7 +31439,7 @@ class CharacterData extends CreatureTemplate {
     const { xp, level } = this.details;
     xp.max = this.parent.getLevelExp(level || 1);
     xp.min = level ? this.parent.getLevelExp(level - 1) : 0;
-    if ( level >= CONFIG.DND5E.CHARACTER_EXP_LEVELS.length ) xp.pct = 100;
+    if ( level >= CONFIG.SKJAALD.CHARACTER_EXP_LEVELS.length ) xp.pct = 100;
     else {
       const required = xp.max - xp.min;
       const pct = Math.round((xp.value - xp.min) * 100 / required);
@@ -31462,10 +31462,10 @@ class CharacterData extends CreatureTemplate {
     } else {
       this.details.type = new CreatureTypeField({ swarm: false }).initialize({ value: "humanoid" }, this);
     }
-    for ( const key of Object.keys(CONFIG.DND5E.movementTypes) ) this.attributes.movement[key] ??= 0;
-    for ( const key of Object.keys(CONFIG.DND5E.senses) ) this.attributes.senses[key] ??= 0;
-    this.attributes.movement.units ??= Object.keys(CONFIG.DND5E.movementUnits)[0];
-    this.attributes.senses.units ??= Object.keys(CONFIG.DND5E.movementUnits)[0];
+    for ( const key of Object.keys(CONFIG.SKJAALD.movementTypes) ) this.attributes.movement[key] ??= 0;
+    for ( const key of Object.keys(CONFIG.SKJAALD.senses) ) this.attributes.senses[key] ??= 0;
+    this.attributes.movement.units ??= Object.keys(CONFIG.SKJAALD.movementUnits)[0];
+    this.attributes.senses.units ??= Object.keys(CONFIG.SKJAALD.movementUnits)[0];
   }
 
   /* -------------------------------------------- */
@@ -31491,7 +31491,7 @@ class CharacterData extends CreatureTemplate {
         .map(c => c.advancement.byType.HitPoints?.[0]).filter(a => a);
       hpOptions.bonus = (simplifyBonus(this.attributes.hp.bonuses.level, rollData) * this.details.level)
         + simplifyBonus(this.attributes.hp.bonuses.overall, rollData);
-      hpOptions.mod = this.abilities[CONFIG.DND5E.defaultAbilities.hitPoints ?? "con"]?.mod ?? 0;
+      hpOptions.mod = this.abilities[CONFIG.SKJAALD.defaultAbilities.hitPoints ?? "con"]?.mod ?? 0;
     }
     AttributesFields.prepareHitPoints.call(this, this.attributes.hp, hpOptions);
   }
@@ -31569,11 +31569,11 @@ class CharacterData extends CreatureTemplate {
  */
 function makeResourceField(schemaOptions={}) {
   return new SchemaField$5({
-    value: new NumberField$7({required: true, integer: true, initial: 0, labels: "DND5E.ResourceValue"}),
-    max: new NumberField$7({required: true, integer: true, initial: 0, labels: "DND5E.ResourceMax"}),
-    sr: new BooleanField$5({required: true, labels: "DND5E.ShortRestRecovery"}),
-    lr: new BooleanField$5({required: true, labels: "DND5E.LongRestRecovery"}),
-    label: new StringField$7({required: true, labels: "DND5E.ResourceLabel"})
+    value: new NumberField$7({required: true, integer: true, initial: 0, labels: "SKJAALD.ResourceValue"}),
+    max: new NumberField$7({required: true, integer: true, initial: 0, labels: "SKJAALD.ResourceMax"}),
+    sr: new BooleanField$5({required: true, labels: "SKJAALD.ShortRestRecovery"}),
+    lr: new BooleanField$5({required: true, labels: "SKJAALD.LongRestRecovery"}),
+    label: new StringField$7({required: true, labels: "SKJAALD.ResourceLabel"})
   }, schemaOptions);
 }
 
@@ -31585,7 +31585,7 @@ class SheetConfig5e extends DocumentSheetConfig {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "systems/dnd5e/templates/shared/sheet-config.hbs"
+      template: "systems/skjaald/templates/shared/sheet-config.hbs"
     });
   }
 
@@ -31594,7 +31594,7 @@ class SheetConfig5e extends DocumentSheetConfig {
   /** @inheritdoc */
   getData(options) {
     const context = super.getData(options);
-    context.CONFIG = CONFIG.DND5E;
+    context.CONFIG = CONFIG.SKJAALD;
     return context;
   }
 
@@ -31606,9 +31606,9 @@ class SheetConfig5e extends DocumentSheetConfig {
     delete formData.defaultClass;
     this.object.update(formData);
 
-    if ( "flags.dnd5e.theme" in formData ) {
+    if ( "flags.skjaald.theme" in formData ) {
       const sheet = this.object.sheet.element?.[0];
-      if ( sheet ) setTheme(sheet, formData["flags.dnd5e.theme"]);
+      if ( sheet ) setTheme(sheet, formData["flags.skjaald.theme"]);
     }
   }
 }
@@ -31638,7 +31638,7 @@ class Tabs5e extends Tabs {
 class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
   constructor(object, options={}) {
     const key = `character${object.limited ? ":limited" : ""}`;
-    const { width, height } = game.user.getFlag("dnd5e", `sheetPrefs.${key}`) ?? {};
+    const { width, height } = game.user.getFlag("skjaald", `sheetPrefs.${key}`) ?? {};
     if ( width && !("width" in options) ) options.width = width;
     if ( height && !("height" in options) ) options.height = height;
     super(object, options);
@@ -31647,7 +31647,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e2", "sheet", "actor", "character"],
+      classes: ["skjaald2", "sheet", "actor", "character"],
       tabs: [{ navSelector: ".tabs", contentSelector: ".tab-body", initial: "details" }],
       dragDrop: [
         { dragSelector: ".item-list .item", dropSelector: null },
@@ -31698,12 +31698,12 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
    * @type {SheetTabDescriptor5e[]}
    */
   static TABS = [
-    { tab: "details", label: "DND5E.Details", icon: "fas fa-cog" },
-    { tab: "inventory", label: "DND5E.Inventory", svg: "backpack" },
-    { tab: "features", label: "DND5E.Features", icon: "fas fa-list" },
+    { tab: "details", label: "SKJAALD.Details", icon: "fas fa-cog" },
+    { tab: "inventory", label: "SKJAALD.Inventory", svg: "backpack" },
+    { tab: "features", label: "SKJAALD.Features", icon: "fas fa-list" },
     { tab: "spells", label: "TYPES.Item.spellPl", icon: "fas fa-book" },
-    { tab: "effects", label: "DND5E.Effects", icon: "fas fa-bolt" },
-    { tab: "biography", label: "DND5E.Biography", icon: "fas fa-feather" }
+    { tab: "effects", label: "SKJAALD.Effects", icon: "fas fa-bolt" },
+    { tab: "biography", label: "SKJAALD.Biography", icon: "fas fa-feather" }
   ];
 
   /**
@@ -31731,8 +31731,8 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
 
   /** @override */
   get template() {
-    if ( !game.user.isGM && this.actor.limited ) return "systems/dnd5e/templates/actors/limited-sheet-2.hbs";
-    return "systems/dnd5e/templates/actors/character-sheet-2.hbs";
+    if ( !game.user.isGM && this.actor.limited ) return "systems/skjaald/templates/actors/limited-sheet-2.hbs";
+    return "systems/skjaald/templates/actors/character-sheet-2.hbs";
   }
 
   /* -------------------------------------------- */
@@ -31747,8 +31747,8 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       const toggle = document.createElement("slide-toggle");
       toggle.checked = this._mode === this.constructor.MODES.EDIT;
       toggle.classList.add("mode-slider");
-      toggle.dataset.tooltip = "DND5E.SheetModeEdit";
-      toggle.setAttribute("aria-label", game.i18n.localize("DND5E.SheetModeEdit"));
+      toggle.dataset.tooltip = "SKJAALD.SheetModeEdit";
+      toggle.setAttribute("aria-label", game.i18n.localize("SKJAALD.SheetModeEdit"));
       toggle.addEventListener("change", this._onChangeSheetMode.bind(this));
       toggle.addEventListener("dblclick", event => event.stopPropagation());
       header.insertAdjacentElement("afterbegin", toggle);
@@ -31785,7 +31785,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       item.dataset.tooltip = label;
       item.setAttribute("aria-label", label);
       if ( icon ) item.innerHTML = `<i class="${icon}"></i>`;
-      else if ( svg ) item.innerHTML = `<dnd5e-icon src="systems/dnd5e/icons/svg/${svg}.svg"></dnd5e-icon>`;
+      else if ( svg ) item.innerHTML = `<skjaald-icon src="systems/skjaald/icons/svg/${svg}.svg"></skjaald-icon>`;
       return item;
     }));
     html[0].insertAdjacentElement("afterbegin", nav);
@@ -31797,7 +31797,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
 
     // Set theme
     // TODO: Re-enable this when we support V12 only
-    // setTheme(html[0], this.actor.getFlag("dnd5e", "theme"));
+    // setTheme(html[0], this.actor.getFlag("skjaald", "theme"));
 
     return html;
   }
@@ -31825,7 +31825,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     context.cssClass = context.editable ? "editable" : this.isEditable ? "interactable" : "locked";
     const activeTab = (game.user.isGM || !this.actor.limited) ? this._tabs?.[0]?.active ?? "details" : "biography";
     context.cssClass += ` tab-${activeTab}`;
-    const sidebarCollapsed = game.user.getFlag("dnd5e", `sheetPrefs.character.tabs.${activeTab}.collapseSidebar`);
+    const sidebarCollapsed = game.user.getFlag("skjaald", `sheetPrefs.character.tabs.${activeTab}.collapseSidebar`);
     if ( sidebarCollapsed ) {
       context.cssClass += " collapsed";
       context.sidebarCollapsed = true;
@@ -31838,7 +31838,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     }).map(c => `${c.name} ${c.system.levels}`).join(" / ");
 
     // Portrait
-    const showTokenPortrait = this.actor.getFlag("dnd5e", "showTokenPortrait") === true;
+    const showTokenPortrait = this.actor.getFlag("skjaald", "showTokenPortrait") === true;
     const token = this.actor.isToken ? this.actor.token : this.actor.prototypeToken;
     context.portrait = {
       token: showTokenPortrait,
@@ -31848,9 +31848,9 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     };
 
     // Exhaustion
-    const max = CONFIG.DND5E.conditionTypes.exhaustion.levels;
+    const max = CONFIG.SKJAALD.conditionTypes.exhaustion.levels;
     context.exhaustion = Array.fromRange(max, 1).reduce((acc, n) => {
-      const label = game.i18n.format("DND5E.ExhaustionLevel", { n });
+      const label = game.i18n.format("SKJAALD.ExhaustionLevel", { n });
       const classes = ["pip"];
       const filled = attributes.exhaustion >= n;
       if ( filled ) classes.push("filled");
@@ -31863,11 +31863,11 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     }, { left: [], right: [] });
 
     // Speed
-    context.speed = Object.entries(CONFIG.DND5E.movementTypes).reduce((obj, [k, label]) => {
+    context.speed = Object.entries(CONFIG.SKJAALD.movementTypes).reduce((obj, [k, label]) => {
       const value = attributes.movement[k];
       if ( value > obj.value ) Object.assign(obj, { value, label });
       return obj;
-    }, { value: 0, label: CONFIG.DND5E.movementTypes.walk });
+    }, { value: 0, label: CONFIG.SKJAALD.movementTypes.walk });
 
     // Hit Dice
     context.hd = attributes.hd;
@@ -31879,7 +31879,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       context.death[deathSave] = [];
       for ( let i = 1; i < 4; i++ ) {
         const n = deathSave === "failure" ? i : 4 - i;
-        const i18nKey = `DND5E.DeathSave${deathSave.titleCase()}Label`;
+        const i18nKey = `SKJAALD.DeathSave${deathSave.titleCase()}Label`;
         const filled = attributes.death[deathSave] >= n;
         const classes = ["pip"];
         if ( filled ) classes.push("filled");
@@ -31896,7 +31896,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     // Ability Scores
     context.abilityRows = Object.entries(context.abilities).reduce((obj, [k, ability]) => {
       ability.key = k;
-      ability.abbr = CONFIG.DND5E.abilities[k]?.abbreviation ?? "";
+      ability.abbr = CONFIG.SKJAALD.abilities[k]?.abbreviation ?? "";
       ability.sign = Math.sign(ability.mod) < 0 ? "-" : "+";
       ability.mod = Math.abs(ability.mod);
       ability.baseValue = context.source.abilities[k]?.value ?? 0;
@@ -31904,14 +31904,14 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       else obj.bottom.push(ability);
       return obj;
     }, { top: [], bottom: [] });
-    context.abilityRows.optional = Object.keys(CONFIG.DND5E.abilities).length - 6;
+    context.abilityRows.optional = Object.keys(CONFIG.SKJAALD.abilities).length - 6;
 
     // Saving Throws
     context.saves = {};
     for ( let ability of Object.values(context.abilities) ) {
       ability = context.saves[ability.key] = { ...ability };
       ability.class = this.constructor.PROFICIENCY_CLASSES[context.editable ? ability.baseProf : ability.proficient];
-      ability.hover = CONFIG.DND5E.proficiencyLevels[ability.proficient];
+      ability.hover = CONFIG.SKJAALD.proficiencyLevels[ability.proficient];
       ability.sign = Math.sign(ability.save) < 0 ? "-" : "+";
       ability.mod = Math.abs(ability.save);
     }
@@ -31920,8 +31920,8 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       context.saves.concentration = {
         isConcentration: true,
         class: "colspan concentration",
-        label: game.i18n.localize("DND5E.Concentration"),
-        abbr: game.i18n.localize("DND5E.Concentration"),
+        label: game.i18n.localize("SKJAALD.Concentration"),
+        abbr: game.i18n.localize("SKJAALD.Concentration"),
         mod: Math.abs(attributes.concentration.save),
         sign: attributes.concentration.save < 0 ? "-" : "+"
       };
@@ -31929,8 +31929,8 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
 
     // Size
     context.size = {
-      label: CONFIG.DND5E.actorSizes[traits.size]?.label ?? traits.size,
-      abbr: CONFIG.DND5E.actorSizes[traits.size]?.abbreviation ?? "—",
+      label: CONFIG.SKJAALD.actorSizes[traits.size]?.label ?? traits.size,
+      abbr: CONFIG.SKJAALD.actorSizes[traits.size]?.abbreviation ?? "—",
       mod: attributes.encumbrance.mod
     };
 
@@ -31939,26 +31939,26 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       entry.class = this.constructor.PROFICIENCY_CLASSES[context.editable ? entry.baseValue : entry.value];
       entry.sign = Math.sign(entry.total) < 0 ? "-" : "+";
       entry.mod = Math.abs(entry.total);
-      if ( key in CONFIG.DND5E.skills ) entry.reference = CONFIG.DND5E.skills[key].reference;
-      else if ( key in CONFIG.DND5E.toolIds ) entry.reference = getBaseItemUUID(CONFIG.DND5E.toolIds[key]);
+      if ( key in CONFIG.SKJAALD.skills ) entry.reference = CONFIG.SKJAALD.skills[key].reference;
+      else if ( key in CONFIG.SKJAALD.toolIds ) entry.reference = getBaseItemUUID(CONFIG.SKJAALD.toolIds[key]);
     }
 
     // Character Background
     context.creatureType = {
       class: details.type.value === "custom" ? "none" : "",
-      icon: CONFIG.DND5E.creatureTypes[details.type.value]?.icon ?? "icons/svg/mystery-man.svg",
+      icon: CONFIG.SKJAALD.creatureTypes[details.type.value]?.icon ?? "icons/svg/mystery-man.svg",
       title: details.type.value === "custom"
         ? details.type.custom
-        : CONFIG.DND5E.creatureTypes[details.type.value]?.label,
-      reference: CONFIG.DND5E.creatureTypes[details.type.value]?.reference,
+        : CONFIG.SKJAALD.creatureTypes[details.type.value]?.label,
+      reference: CONFIG.SKJAALD.creatureTypes[details.type.value]?.reference,
       subtitle: details.type.subtype
     };
 
-    if ( details.race instanceof dnd5e.documents.Item5e ) context.race = details.race;
-    if ( details.background instanceof dnd5e.documents.Item5e ) context.background = details.background;
+    if ( details.race instanceof skjaald.documents.Item5e ) context.race = details.race;
+    if ( details.background instanceof skjaald.documents.Item5e ) context.background = details.background;
 
     // Senses
-    context.senses = Object.entries(CONFIG.DND5E.senses).reduce((obj, [k, label]) => {
+    context.senses = Object.entries(CONFIG.SKJAALD.senses).reduce((obj, [k, label]) => {
       const value = attributes.senses[k];
       if ( value ) obj[k] = { label, value };
       return obj;
@@ -31983,7 +31983,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       const attack = mod + this.actor.system.attributes.prof + attackBonus;
       const name = item.system.spellcasting.progression === sc.progression ? item.name : item.subclass?.name;
       context.spellcasting.push({
-        label: game.i18n.format("DND5E.SpellcastingClass", { class: name }),
+        label: game.i18n.format("SKJAALD.SpellcastingClass", { class: name }),
         ability: { sign: Math.sign(mod) < 0 ? "-" : "+", value: Math.abs(mod), ability: sc.ability },
         attack: { sign: Math.sign(attack) < 0 ? "-" : "+", value: Math.abs(attack) },
         primary: this.actor.system.attributes.spellcasting === sc.ability,
@@ -31999,10 +31999,10 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
 
     // Effects & Conditions
     const conditionIds = new Set();
-    context.conditions = Object.entries(CONFIG.DND5E.conditionTypes).reduce((arr, [k, c]) => {
+    context.conditions = Object.entries(CONFIG.SKJAALD.conditionTypes).reduce((arr, [k, c]) => {
       if ( c.pseudo ) return arr; // Filter out pseudo-conditions.
       const { label: name, icon, reference } = c;
-      const id = staticID(`dnd5e${k}`);
+      const id = staticID(`skjaald${k}`);
       conditionIds.add(id);
       const existing = this.actor.effects.get(id);
       const { disabled, img } = existing ?? {};
@@ -32023,7 +32023,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
         const toggleable = !this._concentration?.effects.has(effect);
         let source = await effect.getSource();
         // If the source is an ActiveEffect from another Actor, note the source as that Actor instead.
-        if ( (source instanceof dnd5e.documents.ActiveEffect5e) && (source.target !== this.object) ) {
+        if ( (source instanceof skjaald.documents.ActiveEffect5e) && (source.target !== this.object) ) {
           source = source.target;
         }
         arr = await arr;
@@ -32031,7 +32031,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
           id, name, img, disabled, duration, source, toggleable,
           parentId: effect.target === effect.parent ? null : effect.parent.id,
           durationParts: duration.remaining ? duration.label.split(", ") : [],
-          hasTooltip: source instanceof dnd5e.documents.Item5e
+          hasTooltip: source instanceof skjaald.documents.Item5e
         });
         return arr;
       }, []);
@@ -32061,7 +32061,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
   /** @inheritDoc */
   _getLabels() {
     const labels = super._getLabels();
-    labels.damageAndHealing = { ...CONFIG.DND5E.damageTypes, ...CONFIG.DND5E.healingTypes };
+    labels.damageAndHealing = { ...CONFIG.SKJAALD.damageTypes, ...CONFIG.SKJAALD.healingTypes };
     return labels;
   }
 
@@ -32070,7 +32070,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
   /** @override */
   _prepareTraits() {
     const traits = {};
-    for ( const [trait$1, config] of Object.entries(CONFIG.DND5E.traits) ) {
+    for ( const [trait$1, config] of Object.entries(CONFIG.SKJAALD.traits) ) {
       const key = config.actorKeyPath ?? `system.traits.${trait$1}`;
       const data = foundry.utils.deepClone(foundry.utils.getProperty(this.actor, key));
       if ( !data ) continue;
@@ -32081,7 +32081,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       values = values.map(key => {
         const value = { label: keyLabel(key, { trait: trait$1 }) ?? key };
         const icons = value.icons = [];
-        if ( data.bypasses?.size && CONFIG.DND5E.damageTypes[key]?.isPhysical ) icons.push(...data.bypasses);
+        if ( data.bypasses?.size && CONFIG.SKJAALD.damageTypes[key]?.isPhysical ) icons.push(...data.bypasses);
         return value;
       });
       if ( data.custom ) data.custom.split(";").forEach(v => values.push({ label: v.trim() }));
@@ -32089,7 +32089,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     }
     // If petrified, display "All Damage" instead of all damage types separately
     if ( this.document.hasConditionEffect("petrification") ) {
-      traits.dr = [{ label: game.i18n.localize("DND5E.DamageAll") }];
+      traits.dr = [{ label: game.i18n.localize("SKJAALD.DamageAll") }];
     }
     // Combine damage & condition immunities in play mode.
     if ( (this._mode === this.constructor.MODES.PLAY) && traits.ci ) {
@@ -32106,11 +32106,11 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
         const total = simplifyBonus(v, rollData);
         if ( !total ) return null;
         const value = {
-          label: `${CONFIG.DND5E.damageTypes[k]?.label ?? k} ${formatNumber(total, { signDisplay: "always" })}`,
+          label: `${CONFIG.SKJAALD.damageTypes[k]?.label ?? k} ${formatNumber(total, { signDisplay: "always" })}`,
           color: total > 0 ? "maroon" : "green"
         };
         const icons = value.icons = [];
-        if ( dm.bypasses.size && CONFIG.DND5E.damageTypes[k]?.isPhysical ) icons.push(...dm.bypasses);
+        if ( dm.bypasses.size && CONFIG.SKJAALD.damageTypes[k]?.isPhysical ) icons.push(...dm.bypasses);
         return value;
       }).filter(f => f);
       if ( values.length ) traits.dm = values;
@@ -32128,7 +32128,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       .findSplice(entry => entry.dataset.type === "container")
       ?.items?.sort((a, b) => a.sort - b.sort);
     context.inventory = context.inventory.filter(entry => entry.items.length);
-    context.inventory.push({ label: "DND5E.Contents", items: [], dataset: { type: "all" } });
+    context.inventory.push({ label: "SKJAALD.Contents", items: [], dataset: { type: "all" } });
 
     // Remove races & background as they are shown on the details tab instead.
     context.features = context.features.filter(f => (f.dataset.type !== "background") && (f.dataset.type !== "race"));
@@ -32140,21 +32140,21 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     // Add extra categories for features grouping.
     Object.values(this.actor.classes ?? {}).sort((a, b) => b.system.levels - a.system.levels).forEach(cls => {
       context.features.push({
-        label: game.i18n.format("DND5E.FeaturesClass", { class: cls.name }),
+        label: game.i18n.format("SKJAALD.FeaturesClass", { class: cls.name }),
         items: [],
         dataset: { type: cls.identifier }
       });
     });
 
-    if ( this.actor.system.details.race instanceof dnd5e.documents.Item5e ) {
-      context.features.push({ label: "DND5E.FeaturesRace", items: [], dataset: { type: "race" } });
+    if ( this.actor.system.details.race instanceof skjaald.documents.Item5e ) {
+      context.features.push({ label: "SKJAALD.FeaturesRace", items: [], dataset: { type: "race" } });
     }
 
-    if ( this.actor.system.details.background instanceof dnd5e.documents.Item5e ) {
-      context.features.push({ label: "DND5E.FeaturesBackground", items: [], dataset: { type: "background" } });
+    if ( this.actor.system.details.background instanceof skjaald.documents.Item5e ) {
+      context.features.push({ label: "SKJAALD.FeaturesBackground", items: [], dataset: { type: "background" } });
     }
 
-    context.features.push({ label: "DND5E.FeaturesOther", items: [], dataset: { type: "other" } });
+    context.features.push({ label: "SKJAALD.FeaturesOther", items: [], dataset: { type: "other" } });
     context.classes = context.features.findSplice(f => f.isClass)?.items;
 
     // Spell slots
@@ -32166,8 +32166,8 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       section.pips = Array.fromRange(max, 1).map(n => {
         const filled = spells.value >= n;
         const label = filled
-          ? game.i18n.format(`DND5E.SpellSlotN.${plurals.select(n)}`, { n })
-          : game.i18n.localize("DND5E.SpellSlotExpended");
+          ? game.i18n.format(`SKJAALD.SpellSlotN.${plurals.select(n)}`, { n })
+          : game.i18n.localize("SKJAALD.SpellSlotExpended");
         const classes = ["pip"];
         if ( filled ) classes.push("filled");
         return { n, label, filled, tooltip: label, classes: classes.join(" ") };
@@ -32187,23 +32187,23 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       // Activation
       const cost = system.activation?.cost;
       const abbr = {
-        action: "DND5E.ActionAbbr",
-        bonus: "DND5E.BonusActionAbbr",
-        reaction: "DND5E.ReactionAbbr",
-        minute: "DND5E.TimeMinuteAbbr",
-        hour: "DND5E.TimeHourAbbr",
-        day: "DND5E.TimeDayAbbr"
+        action: "SKJAALD.ActionAbbr",
+        bonus: "SKJAALD.BonusActionAbbr",
+        reaction: "SKJAALD.ReactionAbbr",
+        minute: "SKJAALD.TimeMinuteAbbr",
+        hour: "SKJAALD.TimeHourAbbr",
+        day: "SKJAALD.TimeDayAbbr"
       }[system.activation.type];
       ctx.activation = cost && abbr ? `${cost}${game.i18n.localize(abbr)}` : item.labels.activation;
 
       // Range
       const units = system.range?.units;
       if ( units && (units !== "none") ) {
-        if ( units in CONFIG.DND5E.movementUnits ) {
+        if ( units in CONFIG.SKJAALD.movementUnits ) {
           ctx.range = {
             distance: true,
             value: system.range.value,
-            unit: game.i18n.localize(`DND5E.Dist${units.capitalize()}Abbr`)
+            unit: game.i18n.localize(`SKJAALD.Dist${units.capitalize()}Abbr`)
           };
         }
         else ctx.range = { distance: false };
@@ -32220,7 +32220,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
 
       // Prepared
       const mode = system.preparation?.mode;
-      const config = CONFIG.DND5E.spellPreparationModes[mode] ?? {};
+      const config = CONFIG.SKJAALD.spellPreparationModes[mode] ?? {};
       if ( config.prepares ) {
         const isAlways = mode === "always";
         const prepared = isAlways || system.preparation.prepared;
@@ -32230,10 +32230,10 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
           cls: prepared ? "active" : "",
           icon: `<i class="fa-${prepared ? "solid" : "regular"} fa-${isAlways ? "certificate" : "sun"}"></i>`,
           title: isAlways
-            ? CONFIG.DND5E.spellPreparationModes.always.label
+            ? CONFIG.SKJAALD.spellPreparationModes.always.label
             : prepared
-              ? CONFIG.DND5E.spellPreparationModes.prepared.label
-              : game.i18n.localize("DND5E.SpellUnprepared")
+              ? CONFIG.SKJAALD.spellPreparationModes.prepared.label
+              : game.i18n.localize("SKJAALD.SpellUnprepared")
         };
       }
       else ctx.preparation = { applicable: false };
@@ -32255,7 +32255,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
         ctx.equip = {
           applicable: true,
           cls: system.equipped ? "active" : "",
-          title: `DND5E.${system.equipped ? "Equipped" : "Unequipped"}`,
+          title: `SKJAALD.${system.equipped ? "Equipped" : "Unequipped"}`,
           disabled: !item.isOwner
         };
       }
@@ -32345,7 +32345,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     super._onChangeTab(event, tabs, active);
     this.form.className = this.form.className.replace(/tab-\w+/g, "");
     this.form.classList.add(`tab-${active}`);
-    const sidebarCollapsed = game.user.getFlag("dnd5e", `sheetPrefs.character.tabs.${active}.collapseSidebar`);
+    const sidebarCollapsed = game.user.getFlag("skjaald", `sheetPrefs.character.tabs.${active}.collapseSidebar`);
     if ( sidebarCollapsed !== undefined ) this._toggleSidebar(sidebarCollapsed);
     const createChild = this.form.querySelector(".create-child");
     createChild.setAttribute("aria-label", game.i18n.format("SIDEBAR.Create", {
@@ -32376,19 +32376,19 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     requestAnimationFrame(() => game.tooltip.deactivate());
     game.tooltip.deactivate();
 
-    const modes = CONFIG.DND5E.spellPreparationModes;
+    const modes = CONFIG.SKJAALD.spellPreparationModes;
 
     const { key } = event.target.closest("[data-key]")?.dataset ?? {};
     const { level, preparationMode } = event.target.closest("[data-level]")?.dataset ?? {};
     const isSlots = event.target.closest("[data-favorite-id]") || event.target.classList.contains("spell-header");
     let type;
-    if ( key in CONFIG.DND5E.skills ) type = "skill";
-    else if ( key in CONFIG.DND5E.toolIds ) type = "tool";
+    if ( key in CONFIG.SKJAALD.skills ) type = "skill";
+    else if ( key in CONFIG.SKJAALD.toolIds ) type = "tool";
     else if ( modes[preparationMode]?.upcast && (level !== "0") && isSlots ) type = "slots";
     if ( !type ) return super._onDragStart(event);
-    const dragData = { dnd5e: { action: "favorite", type } };
-    if ( type === "slots" ) dragData.dnd5e.id = (preparationMode === "prepared") ? `spell${level}` : preparationMode;
-    else dragData.dnd5e.id = key;
+    const dragData = { skjaald: { action: "favorite", type } };
+    if ( type === "slots" ) dragData.skjaald.id = (preparationMode === "prepared") ? `spell${level}` : preparationMode;
+    else dragData.skjaald.id = key;
     event.dataTransfer.setData("application/json", JSON.stringify(dragData));
   }
 
@@ -32402,7 +32402,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
   async _onChangeSheetMode(event) {
     const { MODES } = this.constructor;
     const toggle = event.currentTarget;
-    const label = game.i18n.localize(`DND5E.SheetMode${toggle.checked ? "Play" : "Edit"}`);
+    const label = game.i18n.localize(`SKJAALD.SheetMode${toggle.checked ? "Play" : "Edit"}`);
     toggle.dataset.tooltip = label;
     toggle.setAttribute("aria-label", label);
     this._mode = toggle.checked ? MODES.EDIT : MODES.PLAY;
@@ -32457,7 +32457,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     const tab = tray.querySelector(".death-tab");
     tray.classList.toggle("open", open);
     this._deathTrayOpen = tray.classList.contains("open");
-    tab.dataset.tooltip = `DND5E.DeathSave${this._deathTrayOpen ? "Hide" : "Show"}`;
+    tab.dataset.tooltip = `SKJAALD.DeathSave${this._deathTrayOpen ? "Hide" : "Show"}`;
     tab.setAttribute("aria-label", game.i18n.localize(tab.dataset.tooltip));
   }
 
@@ -32470,7 +32470,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
   _onToggleSidebar() {
     const collapsed = this._toggleSidebar();
     const activeTab = this._tabs?.[0]?.active ?? "details";
-    game.user.setFlag("dnd5e", `sheetPrefs.character.tabs.${activeTab}.collapseSidebar`, collapsed);
+    game.user.setFlag("skjaald", `sheetPrefs.character.tabs.${activeTab}.collapseSidebar`, collapsed);
   }
 
   /* -------------------------------------------- */
@@ -32500,7 +32500,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
    * @protected
    */
   _onShowPortrait() {
-    const showTokenPortrait = this.actor.getFlag("dnd5e", "showTokenPortrait") === true;
+    const showTokenPortrait = this.actor.getFlag("skjaald", "showTokenPortrait") === true;
     const token = this.actor.isToken ? this.actor.token : this.actor.prototypeToken;
     const img = showTokenPortrait ? token.texture.src : this.actor.img;
     new ImagePopout(img, { title: this.actor.name, uuid: this.actor.uuid }).render(true);
@@ -32557,7 +32557,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     const activeTab = this._tabs?.[0]?.active ?? "details";
 
     if ( activeTab === "effects" ) return ActiveEffect.implementation.create({
-      name: game.i18n.localize("DND5E.EffectNew"),
+      name: game.i18n.localize("SKJAALD.EffectNew"),
       icon: "icons/svg/aura.svg"
     }, { parent: this.actor, renderSheet: true });
 
@@ -32591,9 +32591,9 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
    */
   _onFindItem(type) {
     switch ( type ) {
-      case "class": game.packs.get(CONFIG.DND5E.sourcePacks.CLASSES)?.render(true); break;
-      case "race": game.packs.get(CONFIG.DND5E.sourcePacks.RACES)?.render(true); break;
-      case "background": game.packs.get(CONFIG.DND5E.sourcePacks.BACKGROUNDS)?.render(true); break;
+      case "class": game.packs.get(CONFIG.SKJAALD.sourcePacks.CLASSES)?.render(true); break;
+      case "race": game.packs.get(CONFIG.SKJAALD.sourcePacks.RACES)?.render(true); break;
+      case "background": game.packs.get(CONFIG.SKJAALD.sourcePacks.BACKGROUNDS)?.render(true); break;
     }
   }
 
@@ -32642,7 +32642,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     element.dataset.tooltip = `
       <section class="loading" data-uuid="${uuid}"><i class="fas fa-spinner fa-spin-pulse"></i></section>
     `;
-    element.dataset.tooltipClass = "dnd5e2 dnd5e-tooltip item-tooltip";
+    element.dataset.tooltipClass = "skjaald2 skjaald-tooltip item-tooltip";
     element.dataset.tooltipDirection ??= "LEFT";
   }
 
@@ -32704,7 +32704,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     super._onResize(event);
     const { width, height } = this.position;
     const key = `character${this.actor.limited ? ":limited": ""}`;
-    game.user.setFlag("dnd5e", `sheetPrefs.${key}`, { width, height });
+    game.user.setFlag("skjaald", `sheetPrefs.${key}`, { width, height });
   }
 
   /* -------------------------------------------- */
@@ -32730,7 +32730,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       console.error(e);
       return;
     }
-    const { action, type, id } = data.dnd5e ?? {};
+    const { action, type, id } = data.skjaald ?? {};
     if ( action === "favorite" ) return this._onDropFavorite(event, { type, id });
   }
 
@@ -32826,8 +32826,8 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     if ( !this.isEditable ) return;
     const { favoriteId } = event.currentTarget.closest("[data-favorite-id]").dataset;
     const favorite = await fromUuid(favoriteId, { relative: this.actor });
-    if ( favorite instanceof dnd5e.documents.Item5e ) return favorite.use({}, { event });
-    if ( favorite instanceof dnd5e.documents.ActiveEffect5e ) return favorite.update({ disabled: !favorite.disabled });
+    if ( favorite instanceof skjaald.documents.Item5e ) return favorite.use({}, { event });
+    if ( favorite instanceof skjaald.documents.ActiveEffect5e ) return favorite.update({ disabled: !favorite.disabled });
   }
 
   /* -------------------------------------------- */
@@ -32850,8 +32850,8 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
         css: "uses",
         title: label,
         subtitle: [
-          sr ? game.i18n.localize("DND5E.AbbreviationSR") : null,
-          lr ? game.i18n.localize("DND5E.AbbreviationLR") : null
+          sr ? game.i18n.localize("SKJAALD.AbbreviationSR") : null,
+          lr ? game.i18n.localize("SKJAALD.AbbreviationLR") : null
         ].filterJoin(" &bull; ")
       });
       return arr;
@@ -32894,7 +32894,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       if ( type === "skill" ) rollableClass.push("skill-name");
       else if ( type === "tool" ) rollableClass.push("tool-name");
 
-      if ( suppressed ) subtitle = game.i18n.localize("DND5E.Suppressed");
+      if ( suppressed ) subtitle = game.i18n.localize("SKJAALD.Suppressed");
       arr.push({
         id, img, type, title, value, uses, sort, save, modifier, passive, range, reference, suppressed, level,
         itemId: type === "item" ? favorite.id : null,
@@ -32929,21 +32929,21 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       const uses = { value, max, name: `system.spells.${id}.value` };
       if ( !/spell\d+/.test(id) ) return {
         uses, level,
-        title: game.i18n.localize(`DND5E.SpellSlots${id.capitalize()}`),
+        title: game.i18n.localize(`SKJAALD.SpellSlots${id.capitalize()}`),
         subtitle: [
-          game.i18n.localize(`DND5E.SpellLevel${level}`),
-          game.i18n.localize(`DND5E.Abbreviation${CONFIG.DND5E.spellcastingTypes[id]?.shortRest ? "SR" : "LR"}`)
+          game.i18n.localize(`SKJAALD.SpellLevel${level}`),
+          game.i18n.localize(`SKJAALD.Abbreviation${CONFIG.SKJAALD.spellcastingTypes[id]?.shortRest ? "SR" : "LR"}`)
         ],
-        img: CONFIG.DND5E.spellcastingTypes[id]?.img || CONFIG.DND5E.spellcastingTypes.pact.img
+        img: CONFIG.SKJAALD.spellcastingTypes[id]?.img || CONFIG.SKJAALD.spellcastingTypes.pact.img
       };
 
       const plurals = new Intl.PluralRules(game.i18n.lang, { type: "ordinal" });
-      const isSR = CONFIG.DND5E.spellcastingTypes.leveled.shortRest;
+      const isSR = CONFIG.SKJAALD.spellcastingTypes.leveled.shortRest;
       return {
         uses, level,
-        title: game.i18n.format(`DND5E.SpellSlotsN.${plurals.select(level)}`, { n: level }),
-        subtitle: game.i18n.localize(`DND5E.Abbreviation${isSR ? "SR" : "LR"}`),
-        img: CONFIG.DND5E.spellcastingTypes.leveled.img.replace("{id}", id)
+        title: game.i18n.format(`SKJAALD.SpellSlotsN.${plurals.select(level)}`, { n: level }),
+        subtitle: game.i18n.localize(`SKJAALD.Abbreviation${isSR ? "SR" : "LR"}`),
+        img: CONFIG.SKJAALD.spellcastingTypes.leveled.img.replace("{id}", id)
       };
     }
 
@@ -32952,17 +32952,17 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       const data = this.actor.system[`${type}s`]?.[id];
       if ( !data ) return;
       const { total, ability, passive } = data ?? {};
-      const subtitle = game.i18n.format("DND5E.AbilityPromptTitle", {
-        ability: CONFIG.DND5E.abilities[ability].label
+      const subtitle = game.i18n.format("SKJAALD.AbilityPromptTitle", {
+        ability: CONFIG.SKJAALD.abilities[ability].label
       });
       let img;
       let title;
       let reference;
       if ( type === "tool" ) {
-        reference = getBaseItemUUID(CONFIG.DND5E.toolIds[id]);
+        reference = getBaseItemUUID(CONFIG.SKJAALD.toolIds[id]);
         ({ img, name: title } = getBaseItem(reference, { indexOnly: true }));
       }
-      else if ( type === "skill" ) ({ icon: img, label: title, reference } = CONFIG.DND5E.skills[id]);
+      else if ( type === "skill" ) ({ icon: img, label: title, reference } = CONFIG.SKJAALD.skills[id]);
       return { img, title, subtitle, modifier: total, passive, reference };
     }
   }
@@ -32976,7 +32976,7 @@ class ActorSheet5eNPC extends ActorSheet5e {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "sheet", "actor", "npc"],
+      classes: ["skjaald", "sheet", "actor", "npc"],
       width: 600
     });
   }
@@ -33012,16 +33012,16 @@ class ActorSheet5eNPC extends ActorSheet5e {
 
     // Categorize Items as Features and Spells
     const features = {
-      weapons: { label: game.i18n.localize("DND5E.AttackPl"), items: [], hasActions: true,
+      weapons: { label: game.i18n.localize("SKJAALD.AttackPl"), items: [], hasActions: true,
         dataset: {type: "weapon", "weapon-type": "natural"} },
-      actions: { label: game.i18n.localize("DND5E.ActionPl"), items: [], hasActions: true,
+      actions: { label: game.i18n.localize("SKJAALD.ActionPl"), items: [], hasActions: true,
         dataset: {type: "feat", "activation.type": "action"} },
-      passive: { label: game.i18n.localize("DND5E.Features"), items: [], dataset: {type: "feat"} },
-      equipment: { label: game.i18n.localize("DND5E.Inventory"), items: [], dataset: {type: "loot"}}
+      passive: { label: game.i18n.localize("SKJAALD.Features"), items: [], dataset: {type: "feat"} },
+      equipment: { label: game.i18n.localize("SKJAALD.Inventory"), items: [], dataset: {type: "loot"}}
     };
 
     // Start by classifying items into groups for rendering
-    const maxLevelDelta = CONFIG.DND5E.maxLevel - (this.actor.system.details.level ?? 0);
+    const maxLevelDelta = CONFIG.SKJAALD.maxLevel - (this.actor.system.details.level ?? 0);
     let [spells, other] = context.items.reduce((arr, item) => {
       const {quantity, uses, recharge, target} = item.system;
       const ctx = context.itemContext[item.id] ??= {};
@@ -33032,7 +33032,7 @@ class ActorSheet5eNPC extends ActorSheet5e {
       ctx.isDepleted = item.isOnCooldown && (uses.per && (uses.value > 0));
       ctx.hasTarget = !!target && !(["none", ""].includes(target.type));
       ctx.canToggle = false;
-      if ( item.type === "class" ) ctx.availableLevels = Array.fromRange(CONFIG.DND5E.maxLevel, 1).map(level => ({
+      if ( item.type === "class" ) ctx.availableLevels = Array.fromRange(CONFIG.SKJAALD.maxLevel, 1).map(level => ({
         level, delta: level - item.system.levels, disabled: (level - item.system.levels) > maxLevelDelta
       }));
       if ( item.type === "spell" ) arr[0].push(item);
@@ -33072,8 +33072,8 @@ class ActorSheet5eNPC extends ActorSheet5e {
   getArmorLabel() {
     const ac = this.actor.system.attributes.ac;
     const label = [];
-    if ( ac.calc === "default" ) label.push(this.actor.armor?.name || game.i18n.localize("DND5E.ArmorClassUnarmored"));
-    else label.push(game.i18n.localize(CONFIG.DND5E.armorClasses[ac.calc].label));
+    if ( ac.calc === "default" ) label.push(this.actor.armor?.name || game.i18n.localize("SKJAALD.ArmorClassUnarmored"));
+    else label.push(game.i18n.localize(CONFIG.SKJAALD.armorClasses[ac.calc].label));
     if ( this.actor.shield ) label.push(this.actor.shield.name);
     return label.filterJoin(", ");
   }
@@ -33145,7 +33145,7 @@ class ActorSheet5eVehicle extends ActorSheet5e {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "sheet", "actor", "vehicle"]
+      classes: ["skjaald", "sheet", "actor", "vehicle"]
     });
   }
 
@@ -33186,11 +33186,11 @@ class ActorSheet5eVehicle extends ActorSheet5e {
     // Determine crewed status
     const isCrewed = item.system.crewed;
     context.toggleClass = isCrewed ? "active" : "";
-    context.toggleTitle = game.i18n.localize(`DND5E.${isCrewed ? "Crewed" : "Uncrewed"}`);
+    context.toggleTitle = game.i18n.localize(`SKJAALD.${isCrewed ? "Crewed" : "Uncrewed"}`);
 
     // Handle crew actions
     if ( item.type === "feat" && item.system.activation.type === "crew" ) {
-      context.cover = game.i18n.localize(`DND5E.${item.system.cover ? "CoverTotal" : "None"}`);
+      context.cover = game.i18n.localize(`SKJAALD.${item.system.cover ? "CoverTotal" : "None"}`);
       if ( item.system.cover === .5 ) context.cover = "½";
       else if ( item.system.cover === .75 ) context.cover = "¾";
       else if ( item.system.cover === null ) context.cover = "—";
@@ -33207,42 +33207,42 @@ class ActorSheet5eVehicle extends ActorSheet5e {
   /** @override */
   _prepareItems(context) {
     const cargoColumns = [{
-      label: game.i18n.localize("DND5E.Quantity"),
+      label: game.i18n.localize("SKJAALD.Quantity"),
       css: "item-qty",
       property: "quantity",
       editable: "Number"
     }];
 
     const equipmentColumns = [{
-      label: game.i18n.localize("DND5E.Quantity"),
+      label: game.i18n.localize("SKJAALD.Quantity"),
       css: "item-qty",
       property: "system.quantity",
       editable: "Number"
     }, {
-      label: game.i18n.localize("DND5E.AC"),
+      label: game.i18n.localize("SKJAALD.AC"),
       css: "item-ac",
       property: "system.armor.value"
     }, {
-      label: game.i18n.localize("DND5E.HP"),
+      label: game.i18n.localize("SKJAALD.HP"),
       css: "item-hp",
       property: "system.hp.value",
       maxProperty: "system.hp.max",
       editable: "Number"
     }, {
-      label: game.i18n.localize("DND5E.Threshold"),
+      label: game.i18n.localize("SKJAALD.Threshold"),
       css: "item-threshold",
       property: "threshold"
     }];
 
     const features = {
       actions: {
-        label: game.i18n.localize("DND5E.ActionPl"),
+        label: game.i18n.localize("SKJAALD.ActionPl"),
         items: [],
         hasActions: true,
         crewable: true,
         dataset: {type: "feat", "activation.type": "crew"},
         columns: [{
-          label: game.i18n.localize("DND5E.Cover"),
+          label: game.i18n.localize("SKJAALD.Cover"),
           css: "item-cover",
           property: "cover"
         }]
@@ -33255,12 +33255,12 @@ class ActorSheet5eVehicle extends ActorSheet5e {
         columns: equipmentColumns
       },
       passive: {
-        label: game.i18n.localize("DND5E.Features"),
+        label: game.i18n.localize("SKJAALD.Features"),
         items: [],
         dataset: {type: "feat"}
       },
       reactions: {
-        label: game.i18n.localize("DND5E.ReactionPl"),
+        label: game.i18n.localize("SKJAALD.ReactionPl"),
         items: [],
         dataset: {type: "feat", "activation.type": "reaction"}
       },
@@ -33285,7 +33285,7 @@ class ActorSheet5eVehicle extends ActorSheet5e {
 
     const cargo = {
       crew: {
-        label: game.i18n.localize("DND5E.VehicleCrew"),
+        label: game.i18n.localize("SKJAALD.VehicleCrew"),
         items: context.actor.system.cargo.crew,
         css: "cargo-row crew",
         editableName: true,
@@ -33293,7 +33293,7 @@ class ActorSheet5eVehicle extends ActorSheet5e {
         columns: cargoColumns
       },
       passengers: {
-        label: game.i18n.localize("DND5E.VehiclePassengers"),
+        label: game.i18n.localize("SKJAALD.VehiclePassengers"),
         items: context.actor.system.cargo.passengers,
         css: "cargo-row passengers",
         editableName: true,
@@ -33301,21 +33301,21 @@ class ActorSheet5eVehicle extends ActorSheet5e {
         columns: cargoColumns
       },
       cargo: {
-        label: game.i18n.localize("DND5E.VehicleCargo"),
+        label: game.i18n.localize("SKJAALD.VehicleCargo"),
         items: [],
         dataset: {type: "loot"},
         columns: [{
-          label: game.i18n.localize("DND5E.Quantity"),
+          label: game.i18n.localize("SKJAALD.Quantity"),
           css: "item-qty",
           property: "system.quantity",
           editable: "Number"
         }, {
-          label: game.i18n.localize("DND5E.Price"),
+          label: game.i18n.localize("SKJAALD.Price"),
           css: "item-price",
           property: "system.price.value",
           editable: "Number"
         }, {
-          label: game.i18n.localize("DND5E.Weight"),
+          label: game.i18n.localize("SKJAALD.Weight"),
           css: "item-weight",
           property: "system.weight.value",
           editable: "Number"
@@ -33329,7 +33329,7 @@ class ActorSheet5eVehicle extends ActorSheet5e {
       this._prepareCrewedItem(item, ctx);
 
       // Handle cargo explicitly
-      const isCargo = item.flags.dnd5e?.vehicleCargo === true;
+      const isCargo = item.flags.skjaald?.vehicleCargo === true;
       if ( isCargo ) {
         cargo.cargo.items.push(item);
         continue;
@@ -33370,7 +33370,7 @@ class ActorSheet5eVehicle extends ActorSheet5e {
     super.activateListeners(html);
     if ( !this.isEditable ) return;
 
-    html[0].querySelector('[data-tab="cargo"] dnd5e-inventory')
+    html[0].querySelector('[data-tab="cargo"] skjaald-inventory')
       .addEventListener("inventory", this._onInventoryEvent.bind(this));
 
     html.find(".cargo-row input")
@@ -33447,7 +33447,7 @@ class ActorSheet5eVehicle extends ActorSheet5e {
   async _onDropSingleItem(itemData) {
     const cargoTypes = ["weapon", "equipment", "consumable", "tool", "loot", "container"];
     const isCargo = cargoTypes.includes(itemData.type) && (this._tabs[0].active === "cargo");
-    foundry.utils.setProperty(itemData, "flags.dnd5e.vehicleCargo", isCargo);
+    foundry.utils.setProperty(itemData, "flags.skjaald.vehicleCargo", isCargo);
     return super._onDropSingleItem(itemData);
   }
 }
@@ -33471,14 +33471,14 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "sheet", "actor", "group"],
-      template: "systems/dnd5e/templates/actors/group-sheet.hbs",
+      classes: ["skjaald", "sheet", "actor", "group"],
+      template: "systems/skjaald/templates/actors/group-sheet.hbs",
       tabs: [{navSelector: ".tabs", contentSelector: ".sheet-body", initial: "members"}],
-      scrollY: ["dnd5e-inventory .inventory-list"],
+      scrollY: ["skjaald-inventory .inventory-list"],
       width: 620,
       height: 620,
       elements: {
-        inventory: "dnd5e-inventory"
+        inventory: "skjaald-inventory"
       }
     });
   }
@@ -33500,7 +33500,7 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
     const context = super.getData(options);
     context.system = this.actor.system;
     context.items = Array.from(this.actor.items);
-    context.config = CONFIG.DND5E;
+    context.config = CONFIG.SKJAALD;
     context.isGM = game.user.isGM;
 
     // Membership
@@ -33512,7 +33512,7 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
     context.movement = this.#prepareMovementSpeed();
 
     // XP
-    if ( !game.settings.get("dnd5e", "disableExperienceTracking") ) context.xp = context.system.details.xp;
+    if ( !game.settings.get("skjaald", "disableExperienceTracking") ) context.xp = context.system.details.xp;
 
     // Inventory
     context.itemContext = {};
@@ -33539,7 +33539,7 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
 
     // Text labels
     context.labels = {
-      currencies: Object.entries(CONFIG.DND5E.currencies).reduce((obj, [k, c]) => {
+      currencies: Object.entries(CONFIG.SKJAALD.currencies).reduce((obj, [k, c]) => {
         obj[k] = c.label;
         return obj;
       }, {})
@@ -33559,13 +33559,13 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
     const rule = new Intl.PluralRules(game.i18n.lang);
     const members = [];
     if ( stats.nMembers ) {
-      members.push(`${stats.nMembers} ${game.i18n.localize(`DND5E.Group.Member.${rule.select(stats.nMembers)}`)}`);
+      members.push(`${stats.nMembers} ${game.i18n.localize(`SKJAALD.Group.Member.${rule.select(stats.nMembers)}`)}`);
     }
     if ( stats.nVehicles ) {
-      members.push(`${stats.nVehicles} ${game.i18n.localize(`DND5E.Group.Vehicle.${rule.select(stats.nVehicles)}`)}`);
+      members.push(`${stats.nVehicles} ${game.i18n.localize(`SKJAALD.Group.Vehicle.${rule.select(stats.nVehicles)}`)}`);
     }
-    if ( !members.length ) return game.i18n.localize("DND5E.GroupSummaryEmpty");
-    return game.i18n.format("DND5E.GroupSummary", {members: formatter.format(members)});
+    if ( !members.length ) return game.i18n.localize("SKJAALD.GroupSummaryEmpty");
+    return game.i18n.format("SKJAALD.GroupSummary", {members: formatter.format(members)});
   }
 
   /* -------------------------------------------- */
@@ -33587,7 +33587,7 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
       vehicle: {label: `${CONFIG.Actor.typeLabels.vehicle}Pl`, members: []}
     };
     const type = this.actor.system.type.value;
-    const displayXP = !game.settings.get("dnd5e", "disableExperienceTracking");
+    const displayXP = !game.settings.get("skjaald", "disableExperienceTracking");
     for ( const [index, memberData] of this.object.system.members.entries() ) {
       const member = memberData.actor;
       const multiplier = type === "encounter" ? (memberData.quantity.value ?? 1) : 1;
@@ -33608,7 +33608,7 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
       m.hp.current = hp.value + (hp.temp || 0);
       m.hp.max = Math.max(0, hp.effectiveMax);
       m.hp.pct = Math.clamp((m.hp.current / m.hp.max) * 100, 0, 100).toFixed(2);
-      m.hp.color = dnd5e.documents.Actor5e.getHPColor(m.hp.current, m.hp.max).css;
+      m.hp.color = skjaald.documents.Actor5e.getHPColor(m.hp.current, m.hp.max).css;
       stats.currentHP += (m.hp.current * multiplier);
       stats.maxHP += (m.hp.max * multiplier);
 
@@ -33642,9 +33642,9 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
   #prepareMovementSpeed() {
     const movement = this.object.system.attributes.movement;
     let speeds = [
-      [movement.land, `${game.i18n.localize("DND5E.MovementLand")} ${movement.land}`],
-      [movement.water, `${game.i18n.localize("DND5E.MovementWater")} ${movement.water}`],
-      [movement.air, `${game.i18n.localize("DND5E.MovementAir")} ${movement.air}`]
+      [movement.land, `${game.i18n.localize("SKJAALD.MovementLand")} ${movement.land}`],
+      [movement.water, `${game.i18n.localize("SKJAALD.MovementWater")} ${movement.water}`],
+      [movement.air, `${game.i18n.localize("SKJAALD.MovementAir")} ${movement.air}`]
     ];
     speeds = speeds.filter(s => s[0]).sort((a, b) => b[0] - a[0]);
     const primary = speeds.shift();
@@ -33740,7 +33740,7 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
     const button = event.currentTarget;
     switch ( button.dataset.action ) {
       case "award":
-        const award = new Award(this.object, { savedDestinations: this.actor.getFlag("dnd5e", "awardDestinations") });
+        const award = new Award(this.object, { savedDestinations: this.actor.getFlag("skjaald", "awardDestinations") });
         award.render(true);
         break;
       case "longRest":
@@ -33851,7 +33851,7 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
 
     // Check to make sure items of this type are allowed on this actor
     if ( this.constructor.unsupportedItemTypes.has(itemData.type) ) {
-      ui.notifications.warn(game.i18n.format("DND5E.ActorWarningInvalidItem", {
+      ui.notifications.warn(game.i18n.format("SKJAALD.ActorWarningInvalidItem", {
         itemType: game.i18n.localize(CONFIG.Item.typeLabels[itemData.type]),
         actorType: game.i18n.localize(CONFIG.Actor.typeLabels[this.actor.type])
       }));
@@ -33909,7 +33909,7 @@ class AdvancementMigrationDialog extends Dialog {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "advancement-migration", "dialog"],
+      classes: ["skjaald", "advancement-migration", "dialog"],
       jQuery: false,
       width: 500
     });
@@ -33930,15 +33930,15 @@ class AdvancementMigrationDialog extends Dialog {
     }));
     return new Promise(async (resolve, reject) => {
       const dialog = new this({
-        title: `${game.i18n.localize("DND5E.AdvancementMigrationTitle")}: ${item.name}`,
+        title: `${game.i18n.localize("SKJAALD.AdvancementMigrationTitle")}: ${item.name}`,
         content: await renderTemplate(
-          "systems/dnd5e/templates/advancement/advancement-migration-dialog.hbs",
+          "systems/skjaald/templates/advancement/advancement-migration-dialog.hbs",
           { item, advancements: advancementContext }
         ),
         buttons: {
           continue: {
             icon: '<i class="fas fa-check"></i>',
-            label: game.i18n.localize("DND5E.AdvancementMigrationConfirm"),
+            label: game.i18n.localize("SKJAALD.AdvancementMigrationConfirm"),
             callback: html => resolve(advancements.filter(a => html.querySelector(`[name="${a.id}"]`)?.checked))
           },
           cancel: {
@@ -33980,9 +33980,9 @@ class AdvancementSelection extends Dialog {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "sheet", "advancement"],
-      template: "systems/dnd5e/templates/advancement/advancement-selection.hbs",
-      title: "DND5E.AdvancementSelectionTitle",
+      classes: ["skjaald", "sheet", "advancement"],
+      template: "systems/skjaald/templates/advancement/advancement-selection.hbs",
+      title: "SKJAALD.AdvancementSelectionTitle",
       width: 500,
       height: "auto"
     });
@@ -34000,11 +34000,11 @@ class AdvancementSelection extends Dialog {
   /** @inheritDoc */
   getData() {
     const context = { types: {} };
-    for ( let [name, config] of Object.entries(CONFIG.DND5E.advancementTypes) ) {
+    for ( let [name, config] of Object.entries(CONFIG.SKJAALD.advancementTypes) ) {
       if ( config.prototype instanceof Advancement ) {
         foundry.utils.logCompatibilityWarning(
           "Advancement type configuration changed into an object with `documentClass` defining the advancement class.",
-          { since: "DnD5e 3.1", until: "DnD5e 3.3", once: true }
+          { since: "Skjaald 3.1", until: "Skjaald 3.3", once: true }
         );
         config = {
           documentClass: config,
@@ -34020,7 +34020,7 @@ class AdvancementSelection extends Dialog {
         disabled: !advancement.availableForItem(this.item)
       };
     }
-    context.types = dnd5e.utils.sortObjectEntries(context.types, "label");
+    context.types = skjaald.utils.sortObjectEntries(context.types, "label");
     return context;
   }
 
@@ -34054,7 +34054,7 @@ class AdvancementSelection extends Dialog {
   static async createDialog(item, { rejectClose=false, options={} }={}) {
     return new Promise((resolve, reject) => {
       const dialog = new this(item, {
-        title: `${game.i18n.localize("DND5E.AdvancementSelectionTitle")}: ${item.name}`,
+        title: `${game.i18n.localize("SKJAALD.AdvancementSelectionTitle")}: ${item.name}`,
         buttons: {
           submit: {
             callback: html => {
@@ -34305,23 +34305,23 @@ class DamageApplicationElement extends ChatTrayElement {
       div.innerHTML = `
         <label class="roboto-upper">
           <i class="fa-solid fa-heart-crack"></i>
-          <span>${game.i18n.localize("DND5E.Apply")}</span>
+          <span>${game.i18n.localize("SKJAALD.Apply")}</span>
           <i class="fa-solid fa-caret-down"></i>
         </label>
         <div class="collapsible-content">
           <div class="wrapper">
             <div class="target-source-control">
               <button type="button" class="unbutton" data-mode="targeted" aria-pressed="false">
-                <i class="fa-solid fa-bullseye" inert></i> ${game.i18n.localize("DND5E.Tokens.Targeted")}
+                <i class="fa-solid fa-bullseye" inert></i> ${game.i18n.localize("SKJAALD.Tokens.Targeted")}
               </button>
               <button type="button" class="unbutton" data-mode="selected" aria-pressed="false">
-                <i class="fa-solid fa-expand" inert></i> ${game.i18n.localize("DND5E.Tokens.Selected")}
+                <i class="fa-solid fa-expand" inert></i> ${game.i18n.localize("SKJAALD.Tokens.Selected")}
               </button>
             </div>
             <ul class="targets unlist"></ul>
             <button class="apply-damage" type="button" data-action="applyDamage">
               <i class="fa-solid fa-reply-all fa-flip-horizontal" inert></i>
-              ${game.i18n.localize("DND5E.Apply")}
+              ${game.i18n.localize("SKJAALD.Apply")}
             </button>
           </div>
         </div>
@@ -34334,7 +34334,7 @@ class DamageApplicationElement extends ChatTrayElement {
       this.targetSourceControl.querySelectorAll("button").forEach(b =>
         b.addEventListener("click", this._onChangeTargetMode.bind(this))
       );
-      if ( !this.chatMessage.getFlag("dnd5e", "targets")?.length ) this.targetSourceControl.hidden = true;
+      if ( !this.chatMessage.getFlag("skjaald", "targets")?.length ) this.targetSourceControl.hidden = true;
       div.addEventListener("click", this._handleClickHeader.bind(this));
     }
 
@@ -34350,7 +34350,7 @@ class DamageApplicationElement extends ChatTrayElement {
     let targetedTokens;
     switch ( this.targetingMode ) {
       case "targeted":
-        targetedTokens = (this.chatMessage.getFlag("dnd5e", "targets") ?? []).map(t => t.uuid);
+        targetedTokens = (this.chatMessage.getFlag("skjaald", "targets") ?? []).map(t => t.uuid);
         break;
       case "selected":
         targetedTokens = canvas.tokens?.controlled?.map(t => t.actor?.uuid) ?? [];
@@ -34362,7 +34362,7 @@ class DamageApplicationElement extends ChatTrayElement {
     else {
       const li = document.createElement("li");
       li.classList.add("none");
-      li.innerText = game.i18n.localize(`DND5E.Tokens.None${this.targetingMode.capitalize()}`);
+      li.innerText = game.i18n.localize(`SKJAALD.Tokens.None${this.targetingMode.capitalize()}`);
       this.targetList.replaceChildren(li);
     }
   }
@@ -34385,7 +34385,7 @@ class DamageApplicationElement extends ChatTrayElement {
     const types = [];
     for ( const [change, values] of Object.entries(active) ) {
       for ( const type of values ) {
-        const config = CONFIG.DND5E.damageTypes[type] ?? CONFIG.DND5E.healingTypes[type];
+        const config = CONFIG.SKJAALD.damageTypes[type] ?? CONFIG.SKJAALD.healingTypes[type];
         if ( !config ) continue;
         const data = { type, change, icon: config.icon };
         types.push(data);
@@ -34396,7 +34396,7 @@ class DamageApplicationElement extends ChatTrayElement {
       acc += `
         <button class="change-source unbutton" type="button" data-type="${type}" data-change="${change}"
                 data-tooltip="${label}" aria-label="${label}" aria-pressed="${pressed}">
-          <dnd5e-icon src="${icon}" inert></dnd5e-icon>
+          <skjaald-icon src="${icon}" inert></skjaald-icon>
           <i class="fa-solid fa-slash" inert></i>
           <i class="fa-solid fa-arrow-turn-down" inert></i>
         </button>
@@ -34416,7 +34416,7 @@ class DamageApplicationElement extends ChatTrayElement {
       <div class="calculated damage">
         ${total}
       </div>
-      <div class="calculated temp" data-tooltip="DND5E.HitPointsTemp">
+      <div class="calculated temp" data-tooltip="SKJAALD.HitPointsTemp">
         ${temp}
       </div>
       <menu class="damage-multipliers unlist"></menu>
@@ -34493,11 +34493,11 @@ class DamageApplicationElement extends ChatTrayElement {
     if ( options.ignore?.[change]?.has(type) ) mode = "ignore";
     else if ( (change === "immunity") && options.downgrade?.has(type) ) mode = "downgrade";
 
-    let label = game.i18n.format(`DND5E.DamageApplication.Change.${change.capitalize()}`, {
-      type: CONFIG.DND5E.damageTypes[type]?.label ?? CONFIG.DND5E.healingTypes[type]?.label
+    let label = game.i18n.format(`SKJAALD.DamageApplication.Change.${change.capitalize()}`, {
+      type: CONFIG.SKJAALD.damageTypes[type]?.label ?? CONFIG.SKJAALD.healingTypes[type]?.label
     });
-    if ( mode === "ignore" ) label = game.i18n.format("DND5E.DamageApplication.Ignoring", { source: label });
-    if ( mode === "downgrade" ) label = game.i18n.format("DND5E.DamageApplication.Downgrading", { source: label });
+    if ( mode === "ignore" ) label = game.i18n.format("SKJAALD.DamageApplication.Ignoring", { source: label });
+    if ( mode === "downgrade" ) label = game.i18n.format("SKJAALD.DamageApplication.Downgrading", { source: label });
 
     return { label, pressed: mode === "active" ? "false" : mode === "ignore" ? "true" : "mixed" };
   }
@@ -34515,7 +34515,7 @@ class DamageApplicationElement extends ChatTrayElement {
     const calculatedDamage = entry.querySelector(".calculated.damage");
     calculatedDamage.innerText = formatNumber(-total, { signDisplay: "exceptZero" });
     calculatedDamage.classList.toggle("healing", total < 0);
-    calculatedDamage.dataset.tooltip = `DND5E.${total < 0 ? "Healing" : "Damage"}`;
+    calculatedDamage.dataset.tooltip = `SKJAALD.${total < 0 ? "Healing" : "Damage"}`;
     calculatedDamage.hidden = !total && !!temp;
     const calculatedTemp = entry.querySelector(".calculated.temp");
     calculatedTemp.innerText = temp;
@@ -34689,9 +34689,9 @@ class EnchantmentApplicationElement extends HTMLElement {
       `;
       if ( item.isOwner ) {
         const control = document.createElement("a");
-        control.ariaLabel = game.i18n.localize("DND5E.Enchantment.Action.Remove");
+        control.ariaLabel = game.i18n.localize("SKJAALD.Enchantment.Action.Remove");
         control.dataset.action = "removeEnchantment";
-        control.dataset.tooltip = "DND5E.Enchantment.Action.Remove";
+        control.dataset.tooltip = "SKJAALD.Enchantment.Action.Remove";
         control.innerHTML = '<i class="fa-solid fa-rotate-left" inert></i>';
         div.append(control);
       }
@@ -34700,7 +34700,7 @@ class EnchantmentApplicationElement extends HTMLElement {
     if ( enchantedItems.length ) {
       this.dropArea.replaceChildren(...enchantedItems);
     } else {
-      this.dropArea.innerHTML = `<p>${game.i18n.localize("DND5E.Enchantment.DropArea")}</p>`;
+      this.dropArea.innerHTML = `<p>${game.i18n.localize("SKJAALD.Enchantment.DropArea")}</p>`;
     }
   }
 
@@ -34715,7 +34715,7 @@ class EnchantmentApplicationElement extends HTMLElement {
   async _onDrop(event) {
     event.preventDefault();
     const data = TextEditor.getDragEventData(event);
-    const effect = this.enchantmentItem.effects.get(this.chatMessage.getFlag("dnd5e", "use.enchantmentProfile"));
+    const effect = this.enchantmentItem.effects.get(this.chatMessage.getFlag("skjaald", "use.enchantmentProfile"));
     if ( (data.type !== "Item") || !effect ) return;
     const droppedItem = await Item.implementation.fromDropData(data);
 
@@ -34727,14 +34727,14 @@ class EnchantmentApplicationElement extends HTMLElement {
     }
 
     // If concentration is required, ensure it is still being maintained & GM is present
-    const concentrationId = this.chatMessage.getFlag("dnd5e", "use.concentrationId");
+    const concentrationId = this.chatMessage.getFlag("skjaald", "use.concentrationId");
     const concentration = effect.parent.actor.effects.get(concentrationId);
     if ( concentrationId && !concentration ) {
-      ui.notifications.error("DND5E.Enchantment.Warning.ConcentrationEnded", { localize: true });
+      ui.notifications.error("SKJAALD.Enchantment.Warning.ConcentrationEnded", { localize: true });
       return;
     }
     if ( !game.user.isGM && concentration && !concentration.actor?.isOwner ) {
-      ui.notifications.error("DND5E.EffectApplyWarningConcentration", { localize: true });
+      ui.notifications.error("SKJAALD.EffectApplyWarningConcentration", { localize: true });
       return;
     }
 
@@ -34845,13 +34845,13 @@ class FiligreeBoxElement extends AdoptedStyleSheetMixin(HTMLElement) {
       position: relative;
       isolation: isolate;
       min-height: 56px;
-      filter: var(--filigree-drop-shadow, drop-shadow(0 0 12px var(--dnd5e-shadow-15)));
+      filter: var(--filigree-drop-shadow, drop-shadow(0 0 12px var(--skjaald-shadow-15)));
     }
     .backdrop {
       --chamfer: 12px;
       position: absolute;
       inset: 0;
-      background: var(--filigree-background-color, var(--dnd5e-color-card));
+      background: var(--filigree-background-color, var(--skjaald-color-card));
       z-index: -2;
       clip-path: polygon(
         var(--chamfer) 0,
@@ -34866,7 +34866,7 @@ class FiligreeBoxElement extends AdoptedStyleSheetMixin(HTMLElement) {
     }
     .filigree {
       position: absolute;
-      fill: var(--filigree-border-color, var(--dnd5e-color-gold));
+      fill: var(--filigree-border-color, var(--skjaald-color-gold));
       z-index: -1;
 
       &.top, &.bottom { height: 30px; }
@@ -35037,10 +35037,10 @@ class CurrencyManager extends DialogMixin(FormApplication) {
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e2", "currency-manager", "dialog"],
+      classes: ["skjaald2", "currency-manager", "dialog"],
       tabs: [{navSelector: "nav", contentSelector: ".sheet-content", initial: "transfer"}],
-      template: "systems/dnd5e/templates/apps/currency-manager.hbs",
-      title: "DND5E.CurrencyManager.Title",
+      template: "systems/skjaald/templates/apps/currency-manager.hbs",
+      title: "SKJAALD.CurrencyManager.Title",
       width: 350,
       height: "auto"
     });
@@ -35061,7 +35061,7 @@ class CurrencyManager extends DialogMixin(FormApplication) {
     destinations.push(...(actor?.system.transferDestinations ?? []));
     destinations.push(...(actor?.itemTypes.container.filter(b => b !== this.object) ?? []));
     if ( game.user.isGM ) {
-      const primaryParty = game.settings.get("dnd5e", "primaryParty")?.actor;
+      const primaryParty = game.settings.get("skjaald", "primaryParty")?.actor;
       if ( primaryParty && (this.object !== primaryParty) && !destinations.includes(primaryParty) ) {
         destinations.push(primaryParty);
       }
@@ -35077,7 +35077,7 @@ class CurrencyManager extends DialogMixin(FormApplication) {
   getData(options={}) {
     const context = super.getData(options);
 
-    context.CONFIG = CONFIG.DND5E;
+    context.CONFIG = CONFIG.SKJAALD;
     context.currency = this.object.system.currency;
     context.destinations = Award.prepareDestinations(this.transferDestinations);
 
@@ -35159,14 +35159,14 @@ class CurrencyManager extends DialogMixin(FormApplication) {
 
   /**
    * Convert all carried currency to the highest possible denomination using configured conversion rates.
-   * See CONFIG.DND5E.currencies for configuration.
+   * See CONFIG.SKJAALD.currencies for configuration.
    * @param {Actor5e|Item5e} doc  Actor or container item to convert.
    * @returns {Promise<Actor5e|Item5e>}
    */
   static convertCurrency(doc) {
     const currency = foundry.utils.deepClone(doc.system.currency);
 
-    const currencies = Object.entries(CONFIG.DND5E.currencies);
+    const currencies = Object.entries(CONFIG.SKJAALD.currencies);
     currencies.sort((a, b) => a[1].conversion - b[1].conversion);
 
     // Count total converted units of the base currency
@@ -35282,7 +35282,7 @@ class InventoryElement extends HTMLElement {
   /* -------------------------------------------- */
 
   /**
-   * TODO: Remove filtering code from dnd5e-inventory when all sheets use item-list-controls.
+   * TODO: Remove filtering code from skjaald-inventory when all sheets use item-list-controls.
    * Apply the current set of filters to the inventory list.
    * @param {FilterState5e} state  The filter state to apply.
    * @protected
@@ -35377,39 +35377,39 @@ class InventoryElement extends HTMLElement {
     // Standard Options
     const options = [
       {
-        name: "DND5E.ContextMenuActionEdit",
+        name: "SKJAALD.ContextMenuActionEdit",
         icon: "<i class='fas fa-edit fa-fw'></i>",
         condition: () => item.isOwner,
         callback: li => this._onAction(li[0], "edit")
       },
       {
-        name: "DND5E.ItemView",
+        name: "SKJAALD.ItemView",
         icon: '<i class="fas fa-eye"></i>',
         condition: () => !item.isOwner,
         callback: li => this._onAction(li[0], "view")
       },
       {
-        name: "DND5E.ContextMenuActionDuplicate",
+        name: "SKJAALD.ContextMenuActionDuplicate",
         icon: "<i class='fas fa-copy fa-fw'></i>",
         condition: () => !item.system.metadata?.singleton && !["class", "subclass"].includes(item.type) && item.isOwner,
         callback: li => this._onAction(li[0], "duplicate")
       },
       {
-        name: "DND5E.ContextMenuActionDelete",
+        name: "SKJAALD.ContextMenuActionDelete",
         icon: "<i class='fas fa-trash fa-fw'></i>",
         condition: () => item.isOwner,
         callback: li => this._onAction(li[0], "delete")
       },
       {
-        name: "DND5E.Scroll.CreateScroll",
+        name: "SKJAALD.Scroll.CreateScroll",
         icon: '<i class="fa-solid fa-scroll"></i>',
         callback: async li => Item5e.create(await Item5e.createScrollFromSpell(item), { parent: this.actor }),
         condition: li => (item.type === "spell") && this.actor?.isOwner,
         group: "action"
       },
       {
-        name: "DND5E.ConcentrationBreak",
-        icon: '<dnd5e-icon src="systems/dnd5e/icons/svg/break-concentration.svg"></dnd5e-icon>',
+        name: "SKJAALD.ConcentrationBreak",
+        icon: '<skjaald-icon src="systems/skjaald/icons/svg/break-concentration.svg"></skjaald-icon>',
         condition: () => this.actor.concentration?.items.has(item),
         callback: () => this.actor.endConcentration(item),
         group: "state"
@@ -35421,7 +35421,7 @@ class InventoryElement extends HTMLElement {
     // Toggle Attunement State
     if ( item.system.attunement ) {
       options.push({
-        name: item.system.attuned ? "DND5E.ContextMenuActionUnattune" : "DND5E.ContextMenuActionAttune",
+        name: item.system.attuned ? "SKJAALD.ContextMenuActionUnattune" : "SKJAALD.ContextMenuActionAttune",
         icon: "<i class='fas fa-sun fa-fw'></i>",
         condition: () => item.isOwner,
         callback: li => this._onAction(li[0], "attune"),
@@ -35431,7 +35431,7 @@ class InventoryElement extends HTMLElement {
 
     // Toggle Equipped State
     if ( "equipped" in item.system ) options.push({
-      name: item.system.equipped ? "DND5E.ContextMenuActionUnequip" : "DND5E.ContextMenuActionEquip",
+      name: item.system.equipped ? "SKJAALD.ContextMenuActionUnequip" : "SKJAALD.ContextMenuActionEquip",
       icon: "<i class='fas fa-shield-alt fa-fw'></i>",
       condition: () => item.isOwner,
       callback: li => this._onAction(li[0], "equip"),
@@ -35440,7 +35440,7 @@ class InventoryElement extends HTMLElement {
 
     // Toggle Prepared State
     else if ( ("preparation" in item.system) && (item.system.preparation?.mode === "prepared") ) options.push({
-      name: item.system?.preparation?.prepared ? "DND5E.ContextMenuActionUnprepare" : "DND5E.ContextMenuActionPrepare",
+      name: item.system?.preparation?.prepared ? "SKJAALD.ContextMenuActionUnprepare" : "SKJAALD.ContextMenuActionPrepare",
       icon: "<i class='fas fa-sun fa-fw'></i>",
       condition: () => item.isOwner,
       callback: li => this._onAction(li[0], "prepare"),
@@ -35449,7 +35449,7 @@ class InventoryElement extends HTMLElement {
 
     // Identification
     if ( "identified" in item.system ) options.push({
-      name: "DND5E.Identify",
+      name: "SKJAALD.Identify",
       icon: '<i class="fas fa-magnifying-glass"></i>',
       condition: () => item.isOwner && !item.system.identified,
       callback: () => item.update({ "system.identified": true }),
@@ -35461,7 +35461,7 @@ class InventoryElement extends HTMLElement {
       const uuid = item.getRelativeUUID(this.actor);
       const isFavorited = this.actor.system.hasFavorite(uuid);
       options.push({
-        name: isFavorited ? "DND5E.FavoriteRemove" : "DND5E.Favorite",
+        name: isFavorited ? "SKJAALD.FavoriteRemove" : "SKJAALD.Favorite",
         icon: "<i class='fas fa-star fa-fw'></i>",
         condition: () => item.isOwner,
         callback: li => this._onAction(li[0], isFavorited ? "unfavorite" : "favorite"),
@@ -35601,14 +35601,14 @@ class InventoryElement extends HTMLElement {
     delete dataset.tooltip;
 
     // Check to make sure the newly created class doesn't take player over level cap
-    if ( type === "class" && (this.actor.system.details.level + 1 > CONFIG.DND5E.maxLevel) ) {
-      const err = game.i18n.format("DND5E.MaxCharacterLevelExceededWarn", {max: CONFIG.DND5E.maxLevel});
+    if ( type === "class" && (this.actor.system.details.level + 1 > CONFIG.SKJAALD.maxLevel) ) {
+      const err = game.i18n.format("SKJAALD.MaxCharacterLevelExceededWarn", {max: CONFIG.SKJAALD.maxLevel});
       ui.notifications.error(err);
       return null;
     }
 
     const itemData = {
-      name: game.i18n.format("DND5E.ItemNew", {type: game.i18n.localize(CONFIG.Item.typeLabels[type])}),
+      name: game.i18n.format("SKJAALD.ItemNew", {type: game.i18n.localize(CONFIG.Item.typeLabels[type])}),
       type,
       system: foundry.utils.expandObject({ ...dataset })
     };
@@ -35632,7 +35632,7 @@ class InventoryElement extends HTMLElement {
     } else {
       const enrichment = {secrets: this.document.isOwner};
       const chatData = item.system.getCardData ? item.system.getCardData(enrichment) : item.getChatData(enrichment);
-      const summary = $(await renderTemplate("systems/dnd5e/templates/items/parts/item-summary.hbs", await chatData));
+      const summary = $(await renderTemplate("systems/skjaald/templates/items/parts/item-summary.hbs", await chatData));
       $(li).append(summary.hide());
       summary.slideDown(200);
       this._app._expanded.add(item.id);
@@ -35651,7 +35651,7 @@ class InventoryElement extends HTMLElement {
     // Parts of ContextMenu doesn't play well with promises, so don't show menus for containers in packs
     if ( !item || (item instanceof Promise) ) return;
     ui.context.menuItems = this._getContextOptions(item);
-    Hooks.call("dnd5e.getItemContextOptions", item, ui.context.menuItems);
+    Hooks.call("skjaald.getItemContextOptions", item, ui.context.menuItems);
   }
 }
 
@@ -35794,7 +35794,7 @@ class ItemListControlsElement extends HTMLElement {
    * @type {TabPreferences5e}
    */
   get prefs() {
-    return game.user.getFlag("dnd5e", `sheetPrefs.${this.app.object.type}.tabs.${this.tab}`);
+    return game.user.getFlag("skjaald", `sheetPrefs.${this.app.object.type}.tabs.${this.tab}`);
   }
 
   /**
@@ -35836,8 +35836,8 @@ class ItemListControlsElement extends HTMLElement {
       <input type="text" placeholder="${this.getAttribute("label")}">
       <ul class="unlist controls">
         <li>
-          <button type="button" class="unbutton filter-control" data-action="clear" data-tooltip="DND5E.FilterClear"
-                  aria-label="${game.i18n.localize("DND5E.FilterClear")}">
+          <button type="button" class="unbutton filter-control" data-action="clear" data-tooltip="SKJAALD.FilterClear"
+                  aria-label="${game.i18n.localize("SKJAALD.FilterClear")}">
             <i class="fas fa-xmark"></i>        
           </button>
         </li>
@@ -35852,7 +35852,7 @@ class ItemListControlsElement extends HTMLElement {
       item.classList.add("dropdown");
       item.innerHTML = `
         <button type="button" class="unbutton filter-control filter" data-action="filter"
-                aria-label="${game.i18n.localize("DND5E.Filter")}">
+                aria-label="${game.i18n.localize("SKJAALD.Filter")}">
           <i class="fas fa-filter"></i>
         </button>
         <ul class="filter-list unlist"></ul>
@@ -36040,7 +36040,7 @@ class ItemListControlsElement extends HTMLElement {
   async _onToggleMode(event) {
     const { action } = event.currentTarget.dataset;
     const flag = `sheetPrefs.${this.app.object.type}.tabs.${this.tab}.${action}`;
-    const current = game.user.getFlag("dnd5e", flag);
+    const current = game.user.getFlag("skjaald", flag);
     let value;
     if ( action === "group" ) value = current === false;
     else if ( action === "sort" ) {
@@ -36048,7 +36048,7 @@ class ItemListControlsElement extends HTMLElement {
       const index = values.indexOf(current);
       value = values[index + 1] ?? values[0];
     }
-    await game.user.setFlag("dnd5e", flag, value);
+    await game.user.setFlag("skjaald", flag, value);
     if ( action === "group" ) {
       this._initGrouping();
       this._applyGrouping();
@@ -36104,8 +36104,8 @@ class ProficiencyCycleElement extends AdoptedStyleSheetMixin(HTMLElement) {
   /** @inheritDoc */
   static CSS = `
     :host { display: inline-block; }
-    div { --_fill: var(--proficiency-cycle-enabled-color, var(--dnd5e-color-blue)); }
-    div:has(:disabled, :focus-visible) { --_fill: var(--proficiency-cycle-disabled-color, var(--dnd5e-color-gold)); }
+    div { --_fill: var(--proficiency-cycle-enabled-color, var(--skjaald-color-blue)); }
+    div:has(:disabled, :focus-visible) { --_fill: var(--proficiency-cycle-disabled-color, var(--skjaald-color-gold)); }
     div:not(:has(:disabled)) { cursor: pointer; }
 
     div {
@@ -36302,7 +36302,7 @@ class ProficiencyCycleElement extends AdoptedStyleSheetMixin(HTMLElement) {
     const input = this.#shadowRoot.querySelector("input");
     input.setAttribute("value", this.#value);
     this.#internals.ariaValueNow = this.#value;
-    this.#internals.ariaValueText = CONFIG.DND5E.proficiencyLevels[this.#value];
+    this.#internals.ariaValueText = CONFIG.SKJAALD.proficiencyLevels[this.#value];
     this.#internals.setFormValue(this.#value);
   }
 
@@ -36503,9 +36503,9 @@ class SlideToggleElement extends HTMLElement {
 }
 
 window.customElements.define("damage-application", DamageApplicationElement);
-window.customElements.define("dnd5e-effects", EffectsElement);
-window.customElements.define("dnd5e-icon", IconElement);
-window.customElements.define("dnd5e-inventory", InventoryElement);
+window.customElements.define("skjaald-effects", EffectsElement);
+window.customElements.define("skjaald-icon", IconElement);
+window.customElements.define("skjaald-inventory", InventoryElement);
 window.customElements.define("enchantment-application", EnchantmentApplicationElement);
 window.customElements.define("filigree-box", FiligreeBoxElement);
 window.customElements.define("item-list-controls", ItemListControlsElement);
@@ -36745,9 +36745,9 @@ class EnchantmentConfig extends DocumentSheet {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "enchantment-config"],
+      classes: ["skjaald", "enchantment-config"],
       dragDrop: [{ dropSelector: "form" }],
-      template: "systems/dnd5e/templates/apps/enchantment-config.hbs",
+      template: "systems/skjaald/templates/apps/enchantment-config.hbs",
       width: 500,
       height: "auto",
       sheetConfig: false,
@@ -36771,7 +36771,7 @@ class EnchantmentConfig extends DocumentSheet {
 
   /** @inheritDoc */
   get title() {
-    return `${game.i18n.localize("DND5E.Enchantment.Configuration")}: ${this.document.name}`;
+    return `${game.i18n.localize("SKJAALD.Enchantment.Configuration")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -36793,7 +36793,7 @@ class EnchantmentConfig extends DocumentSheet {
     const effects = [];
     context.enchantments = [];
     for ( const effect of this.document.effects ) {
-      if ( effect.getFlag("dnd5e", "type") !== "enchantment" ) effects.push(effect);
+      if ( effect.getFlag("skjaald", "type") !== "enchantment" ) effects.push(effect);
       else if ( !effect.isAppliedEnchantment ) context.enchantments.push(effect);
     }
     context.enchantments = context.enchantments.map(effect => ({
@@ -36803,9 +36803,9 @@ class EnchantmentConfig extends DocumentSheet {
       flags: effect.flags,
       collapsed: this.expandedEnchantments.get(effect.id) ? "" : "collapsed",
       riderEffects: effects.map(({ id, name }) => ({
-        id, name, selected: effect.flags.dnd5e?.enchantment?.riders?.effect?.includes(id) ? "selected" : ""
+        id, name, selected: effect.flags.skjaald?.enchantment?.riders?.effect?.includes(id) ? "selected" : ""
       })),
-      riderItems: effect.flags.dnd5e?.enchantment?.riders?.item?.join(",") ?? ""
+      riderItems: effect.flags.skjaald?.enchantment?.riders?.item?.join(",") ?? ""
     }));
 
     return context;
@@ -36853,17 +36853,17 @@ class EnchantmentConfig extends DocumentSheet {
     const effectsChanges = Object.entries(effects ?? {}).map(([_id, changes]) => {
       const updates = { _id, ...changes };
       // Fix bug with <multi-select> in V11
-      if ( !foundry.utils.hasProperty(updates, "flags.dnd5e.enchantment.riders.effect") ) {
-        foundry.utils.setProperty(updates, "flags.dnd5e.enchantment.riders.effect", []);
+      if ( !foundry.utils.hasProperty(updates, "flags.skjaald.enchantment.riders.effect") ) {
+        foundry.utils.setProperty(updates, "flags.skjaald.enchantment.riders.effect", []);
       }
       // End bug fix
-      riderIds.add(...(foundry.utils.getProperty(updates, "flags.dnd5e.enchantment.riders.effect") ?? []));
+      riderIds.add(...(foundry.utils.getProperty(updates, "flags.skjaald.enchantment.riders.effect") ?? []));
       return updates;
     });
     for ( const effect of this.document.effects ) {
-      if ( effect.getFlag("dnd5e", "type") === "enchantment" ) continue;
-      if ( riderIds.has(effect.id) ) effectsChanges.push({ _id: effect.id, "flags.dnd5e.rider": true });
-      else effectsChanges.push({ _id: effect.id, "flags.dnd5e.-=rider": null });
+      if ( effect.getFlag("skjaald", "type") === "enchantment" ) continue;
+      if ( riderIds.has(effect.id) ) effectsChanges.push({ _id: effect.id, "flags.skjaald.rider": true });
+      else effectsChanges.push({ _id: effect.id, "flags.skjaald.-=rider": null });
     }
     if ( effectsChanges.length ) await this.document.updateEmbeddedDocuments("ActiveEffect", effectsChanges);
 
@@ -36873,7 +36873,7 @@ class EnchantmentConfig extends DocumentSheet {
         const effect = await ActiveEffect.implementation.create({
           name: this.document.name,
           icon: this.document.img,
-          "flags.dnd5e.type": "enchantment"
+          "flags.skjaald.type": "enchantment"
         }, { parent: this.document });
         effect.sheet.render(true);
         break;
@@ -36895,9 +36895,9 @@ class StartingEquipmentConfig extends DocumentSheet {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "starting-equipment"],
+      classes: ["skjaald", "starting-equipment"],
       dragDrop: [{ dragSelector: ".drag-bar", dropSelector: "form" }],
-      template: "systems/dnd5e/templates/apps/starting-equipment-config.hbs",
+      template: "systems/skjaald/templates/apps/starting-equipment-config.hbs",
       width: 480,
       height: "auto",
       sheetConfig: false,
@@ -36913,7 +36913,7 @@ class StartingEquipmentConfig extends DocumentSheet {
 
   /** @inheritDoc */
   get title() {
-    return `${game.i18n.localize("DND5E.StartingEquipment.Action.Configure")}: ${this.document.name}`;
+    return `${game.i18n.localize("SKJAALD.StartingEquipment.Action.Configure")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -37050,7 +37050,7 @@ class StartingEquipmentConfig extends DocumentSheet {
 
     // Validate that this is a physical item
     if ( !item.system.constructor._schemaTemplates?.includes(PhysicalItemTemplate) ) {
-      ui.notifications.error(game.i18n.format("DND5E.StartingEquipment.Warning.ItemTypeInvalid", {
+      ui.notifications.error(game.i18n.format("SKJAALD.StartingEquipment.Warning.ItemTypeInvalid", {
         type: game.i18n.localize(CONFIG.Item.typeLabels[item.type])
       }));
       return null;
@@ -37102,7 +37102,7 @@ class StartingEquipmentConfig extends DocumentSheet {
         if ( dragEntry.children.some(c => c.type in EquipmentEntryData.GROUPING_TYPES) ) depth += 1;
       }
       if ( depth > 3 ) {
-        ui.notifications.warn("DND5E.StartingEquipment.Warning.Depth", { localize: true });
+        ui.notifications.warn("SKJAALD.StartingEquipment.Warning.Depth", { localize: true });
         return;
       }
       updateData = { [`startingEquipment.${dragEntry._id}.group`]: dropEntry._id };
@@ -37151,9 +37151,9 @@ class SummoningConfig extends DocumentSheet {
   /** @inheritDoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["dnd5e", "summoning-config"],
+      classes: ["skjaald", "summoning-config"],
       dragDrop: [{ dropSelector: "form" }],
-      template: "systems/dnd5e/templates/apps/summoning-config.hbs",
+      template: "systems/skjaald/templates/apps/summoning-config.hbs",
       width: 500,
       height: "auto",
       sheetConfig: false,
@@ -37187,7 +37187,7 @@ class SummoningConfig extends DocumentSheet {
 
   /** @inheritDoc */
   get title() {
-    return `${game.i18n.localize("DND5E.Summoning.Configuration")}: ${this.document.name}`;
+    return `${game.i18n.localize("SKJAALD.Summoning.Configuration")}: ${this.document.name}`;
   }
 
   /* -------------------------------------------- */
@@ -37206,11 +37206,11 @@ class SummoningConfig extends DocumentSheet {
       (lhs.name || lhs.document?.name || "").localeCompare(rhs.name || rhs.document?.name || "", game.i18n.lang)
     );
     context.summons = this.document.system.summons;
-    context.creatureSizes = Object.entries(CONFIG.DND5E.actorSizes).reduce((obj, [k, c]) => {
+    context.creatureSizes = Object.entries(CONFIG.SKJAALD.actorSizes).reduce((obj, [k, c]) => {
       obj[k] = { label: c.label, selected: context.summons?.creatureSizes.has(k) ? "selected" : "" };
       return obj;
     }, {});
-    context.creatureTypes = Object.entries(CONFIG.DND5E.creatureTypes).reduce((obj, [k, c]) => {
+    context.creatureTypes = Object.entries(CONFIG.SKJAALD.creatureTypes).reduce((obj, [k, c]) => {
       obj[k] = { label: c.label, selected: context.summons?.creatureTypes.has(k) ? "selected" : "" };
       return obj;
     }, {});
@@ -37328,7 +37328,7 @@ class ItemSheet5e extends ItemSheet {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       width: 560,
-      classes: ["dnd5e", "sheet", "item"],
+      classes: ["skjaald", "sheet", "item"],
       resizable: true,
       scrollY: [
         ".tab[data-tab=details]",
@@ -37345,7 +37345,7 @@ class ItemSheet5e extends ItemSheet {
         headingSelector: ".description-header", contentSelector: ".editor"
       }],
       elements: {
-        effects: "dnd5e-effects"
+        effects: "skjaald-effects"
       }
     });
   }
@@ -37370,7 +37370,7 @@ class ItemSheet5e extends ItemSheet {
 
   /** @inheritdoc */
   get template() {
-    return `systems/dnd5e/templates/items/${this.item.type}.hbs`;
+    return `systems/skjaald/templates/items/${this.item.type}.hbs`;
   }
 
   /* -------------------------------------------- */
@@ -37392,7 +37392,7 @@ class ItemSheet5e extends ItemSheet {
     const source = item.toObject();
 
     // Game system configuration
-    context.config = CONFIG.DND5E;
+    context.config = CONFIG.SKJAALD;
 
     // Item rendering data
     foundry.utils.mergeObject(context, {
@@ -37415,8 +37415,8 @@ class ItemSheet5e extends ItemSheet {
       isHealing: item.system.actionType === "heal",
       isFlatDC: item.system.save?.scaling === "flat",
       isLine: ["line", "wall"].includes(item.system.target?.type),
-      isFormulaRecharge: !!CONFIG.DND5E.limitedUsePeriods[item.system.uses?.per]?.formula,
-      isCostlessAction: item.system.activation?.type in CONFIG.DND5E.staticAbilityActivationTypes,
+      isFormulaRecharge: !!CONFIG.SKJAALD.limitedUsePeriods[item.system.uses?.per]?.formula,
+      isCostlessAction: item.system.activation?.type in CONFIG.SKJAALD.staticAbilityActivationTypes,
 
       // Identified state
       isIdentifiable: "identified" in item.system,
@@ -37448,12 +37448,12 @@ class ItemSheet5e extends ItemSheet {
     context.abilityConsumptionTargets = this._getItemConsumptionTargets();
     if ( !item.isEmbedded && foundry.utils.isEmpty(context.abilityConsumptionTargets) ) {
       context.abilityConsumptionHint = (this.item.system.consume?.type === "attribute")
-        ? "DND5E.ConsumeHint.Attribute" : "DND5E.ConsumeHint.Item";
+        ? "SKJAALD.ConsumeHint.Attribute" : "SKJAALD.ConsumeHint.Item";
     }
 
-    if ( ("properties" in item.system) && (item.type in CONFIG.DND5E.validProperties) ) {
+    if ( ("properties" in item.system) && (item.type in CONFIG.SKJAALD.validProperties) ) {
       context.properties = item.system.validProperties.reduce((obj, k) => {
-        const v = CONFIG.DND5E.itemProperties[k];
+        const v = CONFIG.SKJAALD.itemProperties[k];
         obj[k] = {
           label: v.label,
           selected: item.system.properties.has(k)
@@ -37466,7 +37466,7 @@ class ItemSheet5e extends ItemSheet {
     // Handle item subtypes.
     if ( ["feat", "loot", "consumable"].includes(item.type) ) {
       const name = item.type === "feat" ? "feature" : item.type;
-      const itemTypes = CONFIG.DND5E[`${name}Types`][item.system.type.value];
+      const itemTypes = CONFIG.SKJAALD[`${name}Types`][item.system.type.value];
       if ( itemTypes ) {
         context.itemType = itemTypes.label;
         context.itemSubtypes = itemTypes.subtypes;
@@ -37550,9 +37550,9 @@ class ItemSheet5e extends ItemSheet {
    */
   async _getItemBaseTypes() {
     const baseIds = this.item.type === "equipment" ? {
-      ...CONFIG.DND5E.armorIds,
-      ...CONFIG.DND5E.shieldIds
-    } : CONFIG.DND5E[`${this.item.type}Ids`];
+      ...CONFIG.SKJAALD.armorIds,
+      ...CONFIG.SKJAALD.shieldIds
+    } : CONFIG.SKJAALD[`${this.item.type}Ids`];
     if ( baseIds === undefined ) return {};
 
     const baseType = this.item.system.type.value;
@@ -37599,9 +37599,9 @@ class ItemSheet5e extends ItemSheet {
     // Hit Dice
     else if ( consume.type === "hitDice" ) {
       return {
-        smallest: game.i18n.localize("DND5E.ConsumeHitDiceSmallest"),
-        ...CONFIG.DND5E.hitDieTypes.reduce((obj, hd) => { obj[hd] = hd; return obj; }, {}),
-        largest: game.i18n.localize("DND5E.ConsumeHitDiceLargest")
+        smallest: game.i18n.localize("SKJAALD.ConsumeHitDiceSmallest"),
+        ...CONFIG.SKJAALD.hitDieTypes.reduce((obj, hd) => { obj[hd] = hd; return obj; }, {}),
+        largest: game.i18n.localize("SKJAALD.ConsumeHitDiceLargest")
       };
     }
 
@@ -37622,15 +37622,15 @@ class ItemSheet5e extends ItemSheet {
         // Limited-use items
         const uses = i.system.uses || {};
         if ( uses.per && uses.max ) {
-          const label = CONFIG.DND5E.limitedUsePeriods[uses.per]?.formula
-            ? ` (${game.i18n.format("DND5E.AbilityUseChargesLabel", {value: uses.value})})`
-            : ` (${game.i18n.format("DND5E.AbilityUseConsumableLabel", {max: uses.max, per: uses.per})})`;
+          const label = CONFIG.SKJAALD.limitedUsePeriods[uses.per]?.formula
+            ? ` (${game.i18n.format("SKJAALD.AbilityUseChargesLabel", {value: uses.value})})`
+            : ` (${game.i18n.format("SKJAALD.AbilityUseConsumableLabel", {max: uses.max, per: uses.per})})`;
           obj[i.id] = i.name + label;
         }
 
         // Recharging items
         const recharge = i.system.recharge || {};
-        if ( recharge.value ) obj[i.id] = `${i.name} (${game.i18n.format("DND5E.Recharge")})`;
+        if ( recharge.value ) obj[i.id] = `${i.name} (${game.i18n.format("SKJAALD.Recharge")})`;
         return obj;
       }, {});
     }
@@ -37647,17 +37647,17 @@ class ItemSheet5e extends ItemSheet {
   _getItemStatus() {
     switch ( this.item.type ) {
       case "class":
-        return game.i18n.format("DND5E.LevelCount", {ordinal: this.item.system.levels.ordinalString()});
+        return game.i18n.format("SKJAALD.LevelCount", {ordinal: this.item.system.levels.ordinalString()});
       case "equipment":
       case "weapon":
-        return game.i18n.localize(this.item.system.equipped ? "DND5E.Equipped" : "DND5E.Unequipped");
+        return game.i18n.localize(this.item.system.equipped ? "SKJAALD.Equipped" : "SKJAALD.Unequipped");
       case "feat":
       case "consumable":
         return this.item.system.type.label;
       case "spell":
-        return CONFIG.DND5E.spellPreparationModes[this.item.system.preparation.mode]?.label;
+        return CONFIG.SKJAALD.spellPreparationModes[this.item.system.preparation.mode]?.label;
       case "tool":
-        return CONFIG.DND5E.proficiencyLevels[this.item.system.prof?.multiplier || 0];
+        return CONFIG.SKJAALD.proficiencyLevels[this.item.system.prof?.multiplier || 0];
     }
     return null;
   }
@@ -37698,14 +37698,14 @@ class ItemSheet5e extends ItemSheet {
       case "consumable":
       case "weapon":
         if ( this.item.isMountable ) props.push(labels.armor);
-        const ip = CONFIG.DND5E.itemProperties;
-        const vp = CONFIG.DND5E.validProperties[this.item.type];
+        const ip = CONFIG.SKJAALD.itemProperties;
+        const vp = CONFIG.SKJAALD.validProperties[this.item.type];
         this.item.system.properties.forEach(k => {
           if ( vp.has(k) ) props.push(ip[k].label);
         });
         break;
       case "equipment":
-        props.push(CONFIG.DND5E.equipmentTypes[this.item.system.type.value]);
+        props.push(CONFIG.SKJAALD.equipmentTypes[this.item.system.type.value]);
         if ( this.item.isArmor || this.item.isMountable ) props.push(labels.armor);
         break;
       case "feat":
@@ -37718,7 +37718,7 @@ class ItemSheet5e extends ItemSheet {
 
     // Action type
     if ( this.item.system.actionType ) {
-      props.push(CONFIG.DND5E.itemActionTypes[this.item.system.actionType]);
+      props.push(CONFIG.SKJAALD.itemActionTypes[this.item.system.actionType]);
     }
 
     // Action usage
@@ -37781,8 +37781,8 @@ class ItemSheet5e extends ItemSheet {
       if ( !maxRoll.isDeterministic ) {
         uses.max = this.item._source.system.uses.max;
         this.form.querySelector("input[name='system.uses.max']").value = uses.max;
-        ui.notifications.error(game.i18n.format("DND5E.FormulaCannotContainDiceError", {
-          name: game.i18n.localize("DND5E.LimitedUses")
+        ui.notifications.error(game.i18n.format("SKJAALD.FormulaCannotContainDiceError", {
+          name: game.i18n.localize("SKJAALD.LimitedUses")
         }));
         return null;
       }
@@ -37795,18 +37795,18 @@ class ItemSheet5e extends ItemSheet {
       if ( !durationRoll.isDeterministic ) {
         duration.value = this.item._source.system.duration.value;
         this.form.querySelector("input[name='system.duration.value']").value = duration.value;
-        ui.notifications.error(game.i18n.format("DND5E.FormulaCannotContainDiceError", {
-          name: game.i18n.localize("DND5E.Duration")
+        ui.notifications.error(game.i18n.format("SKJAALD.FormulaCannotContainDiceError", {
+          name: game.i18n.localize("SKJAALD.Duration")
         }));
         return null;
       }
     }
 
     // Check class identifier
-    if ( formData.system?.identifier && !dnd5e.utils.validators.isValidIdentifier(formData.system.identifier) ) {
+    if ( formData.system?.identifier && !skjaald.utils.validators.isValidIdentifier(formData.system.identifier) ) {
       formData.system.identifier = this.item._source.system.identifier;
       this.form.querySelector("input[name='system.identifier']").value = formData.system.identifier;
-      ui.notifications.error("DND5E.IdentifierError", {localize: true});
+      ui.notifications.error("SKJAALD.IdentifierError", {localize: true});
       return null;
     }
 
@@ -37836,11 +37836,11 @@ class ItemSheet5e extends ItemSheet {
       for ( const override of this._getItemOverrides() ) {
         for ( const element of html[0].querySelectorAll(`[name="${override}"]`) ) {
           element.disabled = true;
-          element.dataset.tooltip = "DND5E.Enchantment.Warning.Override";
+          element.dataset.tooltip = "SKJAALD.Enchantment.Warning.Override";
         }
         for ( const element of html[0].querySelectorAll(`[data-target="${override}"]`) ) {
           element.ariaDisabled = true;
-          element.dataset.tooltip = "DND5E.Enchantment.Warning.Override";
+          element.dataset.tooltip = "SKJAALD.Enchantment.Warning.Override";
         }
         if ( override === "damage-control" ) html[0].querySelectorAll(".damage-control").forEach(e => e.remove());
       }
@@ -37851,12 +37851,12 @@ class ItemSheet5e extends ItemSheet {
     const contextOptions = this._getAdvancementContextMenuOptions();
     /**
      * A hook event that fires when the context menu for the advancements list is constructed.
-     * @function dnd5e.getItemAdvancementContext
+     * @function skjaald.getItemAdvancementContext
      * @memberof hookEvents
      * @param {jQuery} html                      The HTML element to which the context options are attached.
      * @param {ContextMenuEntry[]} entryOptions  The context menu entries.
      */
-    Hooks.call("dnd5e.getItemAdvancementContext", html, contextOptions);
+    Hooks.call("skjaald.getItemAdvancementContext", html, contextOptions);
     if ( contextOptions ) new ContextMenu(html, ".advancement-item", contextOptions);
   }
 
@@ -37871,13 +37871,13 @@ class ItemSheet5e extends ItemSheet {
     const condition = li => (this.advancementConfigurationMode || !this.isEmbedded) && this.isEditable;
     return [
       {
-        name: "DND5E.AdvancementControlEdit",
+        name: "SKJAALD.AdvancementControlEdit",
         icon: "<i class='fas fa-edit fa-fw'></i>",
         condition,
         callback: li => this._onAdvancementAction(li[0], "edit")
       },
       {
-        name: "DND5E.AdvancementControlDuplicate",
+        name: "SKJAALD.AdvancementControlDuplicate",
         icon: "<i class='fas fa-copy fa-fw'></i>",
         condition: li => {
           const id = li[0].closest(".advancement-item")?.dataset.id;
@@ -37887,7 +37887,7 @@ class ItemSheet5e extends ItemSheet {
         callback: li => this._onAdvancementAction(li[0], "duplicate")
       },
       {
-        name: "DND5E.AdvancementControlDelete",
+        name: "SKJAALD.AdvancementControlDelete",
         icon: "<i class='fas fa-trash fa-fw' style='color: rgb(255, 65, 65);'></i>",
         condition,
         callback: li => this._onAdvancementAction(li[0], "delete")
@@ -38042,14 +38042,14 @@ class ItemSheet5e extends ItemSheet {
 
     /**
      * A hook event that fires when some useful data is dropped onto an ItemSheet5e.
-     * @function dnd5e.dropItemSheetData
+     * @function skjaald.dropItemSheetData
      * @memberof hookEvents
      * @param {Item5e} item                  The Item5e
      * @param {ItemSheet5e} sheet            The ItemSheet5e application
      * @param {object} data                  The data that has been dropped onto the sheet
      * @returns {boolean}                    Explicitly return `false` to prevent normal drop handling.
      */
-    const allowed = Hooks.call("dnd5e.dropItemSheetData", item, this, data);
+    const allowed = Hooks.call("skjaald.dropItemSheetData", item, this, data);
     if ( allowed === false ) return;
 
     switch ( data.type ) {
@@ -38079,7 +38079,7 @@ class ItemSheet5e extends ItemSheet {
     let keepOrigin = false;
 
     // Validate against the enchantment's restraints on the origin item
-    if ( effect.getFlag("dnd5e", "type") === "enchantment" ) {
+    if ( effect.getFlag("skjaald", "type") === "enchantment" ) {
       const errors = effect.parent.system.enchantment?.canEnchant(this.item);
       if ( errors?.length ) {
         errors.forEach(err => ui.notifications.error(err.message));
@@ -38116,7 +38116,7 @@ class ItemSheet5e extends ItemSheet {
       return false;
     }
     advancements = advancements.filter(a => {
-      const validItemTypes = CONFIG.DND5E.advancementTypes[a.constructor.typeName]?.validItemTypes
+      const validItemTypes = CONFIG.SKJAALD.advancementTypes[a.constructor.typeName]?.validItemTypes
         ?? a.metadata.validItemTypes;
       return !this.item.advancement.byId[a.id]
         && validItemTypes.has(this.item.type)
@@ -38133,7 +38133,7 @@ class ItemSheet5e extends ItemSheet {
     }
 
     if ( !advancements.length ) return false;
-    if ( this.item.actor?.system.metadata?.supportsAdvancement && !game.settings.get("dnd5e", "disableAdvancements") ) {
+    if ( this.item.actor?.system.metadata?.supportsAdvancement && !game.settings.get("skjaald", "disableAdvancements") ) {
       const manager = AdvancementManager.forNewAdvancement(this.item.actor, this.item.id, advancements);
       if ( manager.steps.length ) return manager.render(true);
     }
@@ -38158,11 +38158,11 @@ class ItemSheet5e extends ItemSheet {
     let manager;
     if ( ["edit", "delete", "duplicate"].includes(action) && !advancement ) return;
     switch (action) {
-      case "add": return game.dnd5e.applications.advancement.AdvancementSelection.createDialog(this.item);
+      case "add": return game.skjaald.applications.advancement.AdvancementSelection.createDialog(this.item);
       case "edit": return new advancement.constructor.metadata.apps.config(advancement).render(true);
       case "delete":
         if ( this.item.actor?.system.metadata?.supportsAdvancement
-            && !game.settings.get("dnd5e", "disableAdvancements") ) {
+            && !game.settings.get("skjaald", "disableAdvancements") ) {
           manager = AdvancementManager.forDeletedAdvancement(this.item.actor, this.item.id, id);
           if ( manager.steps.length ) return manager.render(true);
         }
@@ -38206,7 +38206,7 @@ class ContainerSheet extends ItemSheet5e {
     return foundry.utils.mergeObject(super.defaultOptions, {
       width: 600,
       height: 540,
-      scrollY: ["dnd5e-inventory .inventory-list"],
+      scrollY: ["skjaald-inventory .inventory-list"],
       tabs: [{navSelector: ".tabs", contentSelector: ".sheet-body", initial: "contents"}],
       dragDrop: [
         {dragSelector: "[data-effect-id]", dropSelector: ".effects-list"},
@@ -38214,7 +38214,7 @@ class ContainerSheet extends ItemSheet5e {
         {dragSelector: ".items-list .item", dropSelector: null}
       ],
       elements: {
-        inventory: "dnd5e-inventory"
+        inventory: "skjaald-inventory"
       }
     });
   }
@@ -38223,7 +38223,7 @@ class ContainerSheet extends ItemSheet5e {
 
   /** @inheritdoc */
   get template() {
-    return "systems/dnd5e/templates/items/container.hbs";
+    return "systems/skjaald/templates/items/container.hbs";
   }
 
   /* -------------------------------------------- */
@@ -38257,7 +38257,7 @@ class ContainerSheet extends ItemSheet5e {
     context.isContainer = true;
     context.inventory = {
       contents: {
-        label: "DND5E.Contents",
+        label: "SKJAALD.Contents",
         items: context.items
       }
     };
@@ -38292,7 +38292,7 @@ class ContainerSheet extends ItemSheet5e {
     const data = TextEditor.getDragEventData(event);
     if ( !["Item", "Folder"].includes(data.type) ) return super._onDrop(event, data);
 
-    if ( Hooks.call("dnd5e.dropItemSheetData", this.item, this, data) === false ) return;
+    if ( Hooks.call("skjaald.dropItemSheetData", this.item, this, data) === false ) return;
 
     if ( data.type === "Folder" ) return this._onDropFolder(event, data);
     return this._onDropItem(event, data);
@@ -38327,7 +38327,7 @@ class ContainerSheet extends ItemSheet5e {
     items = items.filter(i => i && !containers.has(i.system.container));
 
     // Display recursive warning, but continue with any remaining items
-    if ( recursiveWarning ) ui.notifications.warn("DND5E.ContainerRecursiveError", { localize: true });
+    if ( recursiveWarning ) ui.notifications.warn("SKJAALD.ContainerRecursiveError", { localize: true });
     if ( !items.length ) return [];
 
     // Create any remaining items
@@ -38360,7 +38360,7 @@ class ContainerSheet extends ItemSheet5e {
     // Prevent dropping containers within themselves
     const parentContainers = await this.item.system.allContainers();
     if ( (this.item.uuid === item.uuid) || parentContainers.includes(item) ) {
-      ui.notifications.error("DND5E.ContainerRecursiveError", { localize: true });
+      ui.notifications.error("SKJAALD.ContainerRecursiveError", { localize: true });
       return;
     }
 
@@ -38514,7 +38514,7 @@ class JournalEditor extends DocumentSheet {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       classes: ["journal-editor"],
-      template: "systems/dnd5e/templates/journal/journal-editor.hbs",
+      template: "systems/skjaald/templates/journal/journal-editor.hbs",
       width: 550,
       height: 640,
       textKeyPath: null,
@@ -38575,7 +38575,7 @@ class JournalClassPageSheet extends JournalPageSheet {
 
   /** @inheritdoc */
   get template() {
-    return `systems/dnd5e/templates/journal/page-${this.document.type}-${this.isEditable ? "edit" : "view"}.hbs`;
+    return `systems/skjaald/templates/journal/page-${this.document.type}-${this.isEditable ? "edit" : "view"}.hbs`;
   }
 
   /* -------------------------------------------- */
@@ -38708,9 +38708,9 @@ class JournalClassPageSheet extends JournalPageSheet {
     const scaleValues = (item.advancement.byType.ScaleValue ?? []);
     const spellProgression = await this._getSpellProgression(item);
 
-    const headers = [[{content: game.i18n.localize("DND5E.Level")}]];
-    if ( item.type === "class" ) headers[0].push({content: game.i18n.localize("DND5E.ProficiencyBonus")});
-    if ( hasFeatures ) headers[0].push({content: game.i18n.localize("DND5E.Features")});
+    const headers = [[{content: game.i18n.localize("SKJAALD.Level")}]];
+    if ( item.type === "class" ) headers[0].push({content: game.i18n.localize("SKJAALD.ProficiencyBonus")});
+    if ( hasFeatures ) headers[0].push({content: game.i18n.localize("SKJAALD.Features")});
     headers[0].push(...scaleValues.map(a => ({content: a.title})));
     if ( spellProgression ) {
       if ( spellProgression.headers.length > 1 ) {
@@ -38729,12 +38729,12 @@ class JournalClassPageSheet extends JournalPageSheet {
     if ( spellProgression ) cols.push(...spellProgression.cols);
 
     const rows = [];
-    for ( const level of Array.fromRange((CONFIG.DND5E.maxLevel - (initialLevel - 1)), initialLevel) ) {
+    for ( const level of Array.fromRange((CONFIG.SKJAALD.maxLevel - (initialLevel - 1)), initialLevel) ) {
       const features = [];
       for ( const advancement of item.advancement.byLevel[level] ) {
         switch ( advancement.constructor.typeName ) {
           case "AbilityScoreImprovement":
-            features.push(game.i18n.localize("DND5E.AdvancementAbilityScoreImprovementTitle"));
+            features.push(game.i18n.localize("SKJAALD.AdvancementAbilityScoreImprovementTitle"));
             continue;
           case "ItemGrant":
             if ( advancement.configuration.optional ) continue;
@@ -38775,11 +38775,11 @@ class JournalClassPageSheet extends JournalPageSheet {
 
     if ( spellcasting.type === "leveled" ) {
       const spells = {};
-      const maxSpellLevel = CONFIG.DND5E.SPELL_SLOT_TABLE[CONFIG.DND5E.SPELL_SLOT_TABLE.length - 1].length;
+      const maxSpellLevel = CONFIG.SKJAALD.SPELL_SLOT_TABLE[CONFIG.SKJAALD.SPELL_SLOT_TABLE.length - 1].length;
       Array.fromRange(maxSpellLevel, 1).forEach(l => spells[`spell${l}`] = {});
 
       let largestSlot;
-      for ( const level of Array.fromRange(CONFIG.DND5E.maxLevel, 1).reverse() ) {
+      for ( const level of Array.fromRange(CONFIG.SKJAALD.maxLevel, 1).reverse() ) {
         const progression = { slot: 0 };
         spellcasting.levels = level;
         Actor5e.computeClassProgression(progression, item, { spellcasting });
@@ -38797,7 +38797,7 @@ class JournalClassPageSheet extends JournalPageSheet {
 
       // Prepare headers & columns
       table.headers = [
-        [{content: game.i18n.localize("JOURNALENTRYPAGE.DND5E.Class.SpellSlotsPerSpellLevel"), colSpan: largestSlot}],
+        [{content: game.i18n.localize("JOURNALENTRYPAGE.SKJAALD.Class.SpellSlotsPerSpellLevel"), colSpan: largestSlot}],
         Array.fromRange(largestSlot, 1).map(spellLevel => ({content: spellLevel.ordinalString()}))
       ];
       table.cols = [{class: "spellcasting", span: largestSlot}];
@@ -38808,13 +38808,13 @@ class JournalClassPageSheet extends JournalPageSheet {
       const spells = { pact: {} };
 
       table.headers = [[
-        { content: game.i18n.localize("JOURNALENTRYPAGE.DND5E.Class.SpellSlots") },
-        { content: game.i18n.localize("JOURNALENTRYPAGE.DND5E.Class.SpellSlotLevel") }
+        { content: game.i18n.localize("JOURNALENTRYPAGE.SKJAALD.Class.SpellSlots") },
+        { content: game.i18n.localize("JOURNALENTRYPAGE.SKJAALD.Class.SpellSlotLevel") }
       ]];
       table.cols = [{class: "spellcasting", span: 2}];
 
       // Loop through each level, gathering "Spell Slots" & "Slot Level" for each one
-      for ( const level of Array.fromRange(CONFIG.DND5E.maxLevel, 1) ) {
+      for ( const level of Array.fromRange(CONFIG.SKJAALD.maxLevel, 1) ) {
         const progression = { pact: 0 };
         spellcasting.levels = level;
         Actor5e.computeClassProgression(progression, item, { spellcasting });
@@ -38829,15 +38829,15 @@ class JournalClassPageSheet extends JournalPageSheet {
     else {
       /**
        * A hook event that fires to generate the table for custom spellcasting types.
-       * The actual hook names include the spellcasting type (e.g. `dnd5e.buildPsionicSpellcastingTable`).
+       * The actual hook names include the spellcasting type (e.g. `skjaald.buildPsionicSpellcastingTable`).
        * @param {object} table                          Table definition being built. *Will be mutated.*
        * @param {Item5e} item                           Class for which the spellcasting table is being built.
        * @param {SpellcastingDescription} spellcasting  Spellcasting descriptive object.
-       * @function dnd5e.buildSpellcastingTable
+       * @function skjaald.buildSpellcastingTable
        * @memberof hookEvents
        */
       Hooks.callAll(
-        `dnd5e.build${spellcasting.type.capitalize()}SpellcastingTable`, table, item, spellcasting
+        `skjaald.build${spellcasting.type.capitalize()}SpellcastingTable`, table, item, spellcasting
       );
     }
 
@@ -38853,8 +38853,8 @@ class JournalClassPageSheet extends JournalPageSheet {
    */
   async _getOptionalTable(item) {
     const headers = [[
-      { content: game.i18n.localize("DND5E.Level") },
-      { content: game.i18n.localize("DND5E.Features") }
+      { content: game.i18n.localize("SKJAALD.Level") },
+      { content: game.i18n.localize("SKJAALD.Features") }
     ]];
 
     const cols = [
@@ -38863,7 +38863,7 @@ class JournalClassPageSheet extends JournalPageSheet {
     ];
 
     const rows = [];
-    for ( const level of Array.fromRange(CONFIG.DND5E.maxLevel, 1) ) {
+    for ( const level of Array.fromRange(CONFIG.SKJAALD.maxLevel, 1) ) {
       const features = [];
       for ( const advancement of item.advancement.byLevel[level] ) {
         switch ( advancement.constructor.typeName ) {
@@ -39099,7 +39099,7 @@ class JournalRulePageSheet extends JournalTextPageSheet {
   /** @inheritdoc */
   get template() {
     return this.isEditable
-      ? "systems/dnd5e/templates/journal/page-rule-edit.hbs"
+      ? "systems/skjaald/templates/journal/page-rule-edit.hbs"
       : "templates/journal/page-text-view.html";
   }
 
@@ -39108,7 +39108,7 @@ class JournalRulePageSheet extends JournalTextPageSheet {
   /** @inheritdoc */
   async getData(options) {
     const context = await super.getData(options);
-    context.CONFIG = CONFIG.DND5E;
+    context.CONFIG = CONFIG.SKJAALD;
     context.enrichedTooltip = await TextEditor.enrichHTML(this.object.system.tooltip, {
       relativeTo: this.object,
       secrets: this.object.isOwner,
@@ -39125,7 +39125,7 @@ class JournalSheet5e extends JournalSheet {
   /** @inheritDoc */
   static get defaultOptions() {
     const options = super.defaultOptions;
-    options.classes.push("dnd5e2-journal");
+    options.classes.push("skjaald2-journal");
     return options;
   }
 
@@ -39176,7 +39176,7 @@ class JournalSheet5e extends JournalSheet {
       let element;
       if ( context.editable ) element = jQuery[0];
       else element = jQuery[0].parentElement;
-      element?.classList.add("dnd5e2-journal");
+      element?.classList.add("skjaald2-journal");
     }
   }
 }
@@ -39189,7 +39189,7 @@ class TableOfContentsCompendium extends Compendium {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       classes: ["table-of-contents"],
-      template: "systems/dnd5e/templates/journal/table-of-contents.hbs",
+      template: "systems/skjaald/templates/journal/table-of-contents.hbs",
       width: 800,
       height: 950,
       resizable: true,
@@ -39221,7 +39221,7 @@ class TableOfContentsCompendium extends Compendium {
     context.chapters = [];
     const specialEntries = [];
     for ( const entry of documents ) {
-      const flags = entry.flags?.dnd5e;
+      const flags = entry.flags?.skjaald;
       if ( !flags ) continue;
       const type = flags.type ?? "chapter";
 
@@ -39240,7 +39240,7 @@ class TableOfContentsCompendium extends Compendium {
         name: flags.title ?? entry.name,
         pages: Array.from(entry.pages).map(({ flags, id, name, sort }) => ({
           id, sort, flags,
-          name: flags.dnd5e?.title ?? name,
+          name: flags.skjaald?.title ?? name,
           entryId: entry.id
         }))
       };
@@ -39361,24 +39361,24 @@ class TokenSystemFlags extends foundry.abstract.DataModel {
       }),
       previousActorData: new ObjectField({required: false, initial: undefined}),
       tokenRing: new SchemaField$4({
-        enabled: new BooleanField$4({label: "DND5E.TokenRings.Enabled"}),
+        enabled: new BooleanField$4({label: "SKJAALD.TokenRings.Enabled"}),
         colors: new SchemaField$4({
-          ring: new ColorField({required: false, label: "DND5E.TokenRings.RingColor"}),
-          background: new ColorField({required: false, label: "DND5E.TokenRings.RingColor"})
+          ring: new ColorField({required: false, label: "SKJAALD.TokenRings.RingColor"}),
+          background: new ColorField({required: false, label: "SKJAALD.TokenRings.RingColor"})
         }, {required: false, initial: undefined}),
         effects: new NumberField$6({
-          initial: 1, min: 0, max: 8388607, integer: true, label: "DND5E.TokenRings.Effects.Label"
+          initial: 1, min: 0, max: 8388607, integer: true, label: "SKJAALD.TokenRings.Effects.Label"
         }),
         scaleCorrection: new NumberField$6({
-          required: false, initial: 1, min: 0, label: "DND5E.TokenRings.ScaleCorrection"
+          required: false, initial: 1, min: 0, label: "SKJAALD.TokenRings.ScaleCorrection"
         }),
         textures: new SchemaField$4({
           subject: new FilePathField({
-            required: false, categories: ["IMAGE"], label: "DND5E.TokenRings.Subject.Label",
-            hint: "DND5E.TokenRings.Subject.Hint"
+            required: false, categories: ["IMAGE"], label: "SKJAALD.TokenRings.Subject.Label",
+            hint: "SKJAALD.TokenRings.Subject.Hint"
           })
         }, {required: false, initial: undefined})
-      }, {required: false, initial: undefined, label: "DND5E.TokenRings.Title"})
+      }, {required: false, initial: undefined, label: "SKJAALD.TokenRings.Title"})
     };
   }
 }
@@ -39397,7 +39397,7 @@ class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
    * @type {boolean}
    */
   get hasDynamicRing() {
-    if ( game.release.generation < 12 ) return !!this.getFlag("dnd5e", "tokenRing.enabled");
+    if ( game.release.generation < 12 ) return !!this.getFlag("skjaald", "tokenRing.enabled");
     return this.ring.enabled;
   }
 
@@ -39411,7 +39411,7 @@ class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
    */
   get subjectPath() {
     if ( game.release.generation >= 12 ) return this.ring.subject.texture;
-    const subject = this.getFlag("dnd5e", "tokenRing")?.textures?.subject;
+    const subject = this.getFlag("skjaald", "tokenRing")?.textures?.subject;
     if ( subject ) return subject;
     this.#subjectPath ??= this.constructor.inferSubjectPath(this.texture.src);
     return this.#subjectPath;
@@ -39469,7 +39469,7 @@ class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
    * @returns {string[]}
    */
   static getConsumedAttributes(data) {
-    return CONFIG.DND5E.consumableResources;
+    return CONFIG.SKJAALD.consumableResources;
   }
 
   /* -------------------------------------------- */
@@ -39498,11 +39498,11 @@ class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
     }
 
     // Add new groups to choices.
-    if ( abilities.length ) groups[game.i18n.localize("DND5E.AbilityScorePl")] = abilities;
-    if ( movement.length ) groups[game.i18n.localize("DND5E.MovementSpeeds")] = movement;
-    if ( senses.length ) groups[game.i18n.localize("DND5E.Senses")] = senses;
-    if ( skills.length ) groups[game.i18n.localize("DND5E.SkillPassives")] = skills;
-    if ( slots.length ) groups[game.i18n.localize("JOURNALENTRYPAGE.DND5E.Class.SpellSlots")] = slots;
+    if ( abilities.length ) groups[game.i18n.localize("SKJAALD.AbilityScorePl")] = abilities;
+    if ( movement.length ) groups[game.i18n.localize("SKJAALD.MovementSpeeds")] = movement;
+    if ( senses.length ) groups[game.i18n.localize("SKJAALD.Senses")] = senses;
+    if ( skills.length ) groups[game.i18n.localize("SKJAALD.SkillPassives")] = skills;
+    if ( slots.length ) groups[game.i18n.localize("JOURNALENTRYPAGE.SKJAALD.Class.SpellSlots")] = slots;
     return groups;
   }
 
@@ -39578,7 +39578,7 @@ class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
       if ( deltaSize ) size = deltaSize;
     }
     if ( !size ) return;
-    const dts = CONFIG.DND5E.actorSizes[size].dynamicTokenScale ?? 1;
+    const dts = CONFIG.SKJAALD.actorSizes[size].dynamicTokenScale ?? 1;
     this.texture.scaleX = this._source.texture.scaleX * dts;
     this.texture.scaleY = this._source.texture.scaleY * dts;
   }
@@ -39603,7 +39603,7 @@ class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
   getRingColors() {
     const colors = {};
     if ( this.hasStatusEffect(CONFIG.specialStatusEffects.DEFEATED) ) {
-      colors.ring = CONFIG.DND5E.tokenRingColors.defeated;
+      colors.ring = CONFIG.SKJAALD.tokenRingColors.defeated;
     }
     return colors;
   }
@@ -39630,7 +39630,7 @@ class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
    */
   flashRing(type) {
     if ( !this.rendered ) return;
-    const color = CONFIG.DND5E.tokenRingColors[type];
+    const color = CONFIG.SKJAALD.tokenRingColors[type];
     if ( !color ) return;
     const options = {};
     if ( type === "damage" ) {
@@ -39648,7 +39648,7 @@ class TokenDocument5e extends SystemFlagsMixin(TokenDocument) {
   _onDelete(options, userId) {
     super._onDelete(options, userId);
 
-    const origin = this.actor?.getFlag("dnd5e", "summon.origin");
+    const origin = this.actor?.getFlag("skjaald", "summon.origin");
     // TODO: Replace with parseUuid once V11 support is dropped
     if ( origin ) SummonsData.untrackSummon(origin.split(".Item.")[0], this.actor.uuid);
   }
@@ -39673,7 +39673,7 @@ class TokenConfig5e extends TokenConfig {
    * Template used to render the dynamic ring tab.
    * @type {string}
    */
-  static dynamicRingTemplate = "systems/dnd5e/templates/apps/parts/dynamic-ring.hbs";
+  static dynamicRingTemplate = "systems/skjaald/templates/apps/parts/dynamic-ring.hbs";
 
   /* -------------------------------------------- */
 
@@ -39715,10 +39715,10 @@ class TokenConfig5e extends TokenConfig {
     tokenTab.replaceChildren(...tab.children);
 
     let ringTab = document.createElement("div");
-    const flags = this.document.getFlag("dnd5e", "tokenRing") ?? {};
+    const flags = this.document.getFlag("skjaald", "tokenRing") ?? {};
     ringTab.innerHTML = await renderTemplate(this.constructor.dynamicRingTemplate, {
       flags: foundry.utils.mergeObject({ scaleCorrection: 1 }, flags, { inplace: false }),
-      effects: Object.entries(CONFIG.DND5E.tokenRings.effects).reduce((obj, [key, label]) => {
+      effects: Object.entries(CONFIG.SKJAALD.tokenRings.effects).reduce((obj, [key, label]) => {
         const mask = CONFIG.Token.ringClass.effects[key];
         obj[key] = { label, checked: (flags.effects & mask) > 0 };
         return obj;
@@ -39736,7 +39736,7 @@ class TokenConfig5e extends TokenConfig {
           <i class="fa-solid fa-expand"></i> ${game.i18n.localize("Token")}
         </a>
         <a class="item" data-tab="ring" data-group="appearance">
-          <i class="fa-solid fa-ring"></i> ${game.i18n.localize("DND5E.TokenRings.Title")}
+          <i class="fa-solid fa-ring"></i> ${game.i18n.localize("SKJAALD.TokenRings.Title")}
         </a>
       </nav>
     `);
@@ -39760,7 +39760,7 @@ class TokenConfig5e extends TokenConfig {
       return arr;
     }, []) ?? [];
     if ( items.length ) {
-      const group = game.i18n.localize("DND5E.ConsumeCharges");
+      const group = game.i18n.localize("SKJAALD.ConsumeCharges");
       items.sort(([, a], [, b]) => a.localeCompare(b, game.i18n.lang));
       if ( game.release.generation < 12 ) attributes[group] = items.map(i => i[0]);
       else attributes.push(...items.map(([value, label]) => ({ group, value, label })));
@@ -39800,9 +39800,9 @@ class TokenConfig5e extends TokenConfig {
   _getSubmitData(updateData={}) {
     const formData = super._getSubmitData(updateData);
 
-    formData["flags.dnd5e.tokenRing.effects"] = Object.keys(CONFIG.DND5E.tokenRings.effects).reduce((number, key) => {
-      const checked = formData[`flags.dnd5e.tokenRing.effects.${key}`];
-      delete formData[`flags.dnd5e.tokenRing.effects.${key}`];
+    formData["flags.skjaald.tokenRing.effects"] = Object.keys(CONFIG.SKJAALD.tokenRings.effects).reduce((number, key) => {
+      const checked = formData[`flags.skjaald.tokenRing.effects.${key}`];
+      delete formData[`flags.skjaald.tokenRing.effects.${key}`];
       if ( checked ) number |= CONFIG.Token.ringClass.effects[key];
       return number;
     }, 0x1);
@@ -39815,7 +39815,7 @@ class TokenConfig5e extends TokenConfig {
   /** @inheritDoc */
   _previewChanges(change) {
     if ( change && (this.preview instanceof TokenDocument5e) && (game.release.generation < 12) ) {
-      const flags = foundry.utils.getProperty(foundry.utils.expandObject(change), "flags.dnd5e.tokenRing") ?? {};
+      const flags = foundry.utils.getProperty(foundry.utils.expandObject(change), "flags.skjaald.tokenRing") ?? {};
       const redraw = ("textures" in flags) || ("enabled" in flags);
       if ( redraw ) this.preview.object.renderFlags.set({ redraw });
       else this.preview.object.ring.configureVisuals({...flags});
@@ -39881,7 +39881,7 @@ class AbilityTemplate extends MeasuredTemplate {
    */
   static fromItem(item, options={}) {
     const target = item.system.target ?? {};
-    const templateShape = dnd5e.config.areaTargetTypes[target.type]?.template;
+    const templateShape = skjaald.config.areaTargetTypes[target.type]?.template;
     if ( !templateShape ) return null;
 
     // Prepare template data
@@ -39893,7 +39893,7 @@ class AbilityTemplate extends MeasuredTemplate {
       x: 0,
       y: 0,
       fillColor: game.user.color,
-      flags: { dnd5e: { origin: item.uuid, spellLevel: item.system.level } }
+      flags: { skjaald: { origin: item.uuid, spellLevel: item.system.level } }
     }, options);
 
     // Additional type-specific data
@@ -39903,7 +39903,7 @@ class AbilityTemplate extends MeasuredTemplate {
         break;
       case "rect": // 5e rectangular AoEs are always cubes
         templateData.width = target.value;
-        if ( game.settings.get("dnd5e", "gridAlignedSquareTemplates") ) {
+        if ( game.settings.get("skjaald", "gridAlignedSquareTemplates") ) {
           templateData.distance = Math.hypot(target.value, target.value);
           templateData.direction = 45;
         } else {
@@ -39918,13 +39918,13 @@ class AbilityTemplate extends MeasuredTemplate {
 
     /**
      * A hook event that fires before a template is created for an Item.
-     * @function dnd5e.preCreateItemTemplate
+     * @function skjaald.preCreateItemTemplate
      * @memberof hookEvents
      * @param {Item5e} item                     Item for which the template is being placed.
      * @param {object} templateData             Data used to create the new template.
      * @returns {boolean}                       Explicitly return false to prevent the template from being placed.
      */
-    if ( Hooks.call("dnd5e.preCreateItemTemplate", item, templateData) === false ) return null;
+    if ( Hooks.call("skjaald.preCreateItemTemplate", item, templateData) === false ) return null;
 
     // Return the template constructed from the item data
     const cls = CONFIG.MeasuredTemplate.documentClass;
@@ -39935,12 +39935,12 @@ class AbilityTemplate extends MeasuredTemplate {
 
     /**
      * A hook event that fires after a template is created for an Item.
-     * @function dnd5e.createItemTemplate
+     * @function skjaald.createItemTemplate
      * @memberof hookEvents
      * @param {Item5e} item                Item for which the template is being placed.
      * @param {AbilityTemplate} template   The template being placed.
      */
-    Hooks.callAll("dnd5e.createItemTemplate", item, object);
+    Hooks.callAll("skjaald.createItemTemplate", item, object);
 
     return object;
   }
@@ -40077,7 +40077,7 @@ class DetectionModeBlindsight extends DetectionMode {
   constructor() {
     super({
       id: "blindsight",
-      label: "DND5E.SenseBlindsight",
+      label: "SKJAALD.SenseBlindsight",
       type: DetectionMode.DETECTION_TYPES.OTHER,
       walls: true,
       angle: false
@@ -40350,11 +40350,11 @@ class Token5e extends Token {
     // Allocate percentages of the total
     const tempPct = Math.clamp(temp, 0, displayMax) / displayMax;
     const colorPct = Math.clamp(value, 0, effectiveMax) / displayMax;
-    const hpColor = dnd5e.documents.Actor5e.getHPColor(value, effectiveMax);
+    const hpColor = skjaald.documents.Actor5e.getHPColor(value, effectiveMax);
 
     // Determine colors to use
     const blk = 0x000000;
-    const c = CONFIG.DND5E.tokenHPColors;
+    const c = CONFIG.SKJAALD.tokenHPColors;
 
     // Determine the container size (logic borrowed from core)
     const w = this.w;
@@ -40404,10 +40404,10 @@ class Token5e extends Token {
     if ( shapeChange ) this.ring.configureNames();
 
     // Do we have some token ring flag changes?
-    if ( !foundry.utils.hasProperty(data, "flags.dnd5e.tokenRing") ) return;
+    if ( !foundry.utils.hasProperty(data, "flags.skjaald.tokenRing") ) return;
 
     // Do we need to trigger a full redraw? We need to do so if a token ring texture has been updated
-    const dataFlag = data.flags.dnd5e.tokenRing;
+    const dataFlag = data.flags.skjaald.tokenRing;
     const redraw = ("textures" in dataFlag) || ("enabled" in dataFlag);
     if ( redraw ) return this.renderFlags.set({redraw});
 
@@ -40415,7 +40415,7 @@ class Token5e extends Token {
     if ( ("scaleCorrection" in dataFlag) && !shapeChange ) this.ring.configureUVs(dataFlag.scaleCorrection);
 
     // If we don't need a full redraw, we're just updating the visuals properties
-    const tokenRingFlag = this.document.getFlag("dnd5e", "tokenRing") || {};
+    const tokenRingFlag = this.document.getFlag("skjaald", "tokenRing") || {};
     this.ring.configureVisuals({...tokenRingFlag});
   }
 
@@ -40436,7 +40436,7 @@ class Token5e extends Token {
     if ( applicableEffects.includes(statusId) ) {
       if ( game.release.generation < 12 ) {
         if ( this.ring.enabled ) {
-          const tokenRingFlag = this.document.getFlag("dnd5e", "tokenRing") || {};
+          const tokenRingFlag = this.document.getFlag("skjaald", "tokenRing") || {};
           this.ring.configureVisuals(foundry.utils.deepClone(tokenRingFlag));
         }
       } else if ( this.hasDynamicRing ) this.renderFlags.set({refreshRingVisuals: true});
@@ -40552,7 +40552,7 @@ class TokenRing {
 
     // Configure token ring textures and visuals
     if ( this.enabled ) {
-      const tokenRingFlag = this.token.document.getFlag("dnd5e", "tokenRing");
+      const tokenRingFlag = this.token.document.getFlag("skjaald", "tokenRing");
       this._configureTexture({mesh, ...tokenRingFlag});
       this.configureVisuals({...tokenRingFlag});
     }
@@ -40671,7 +40671,7 @@ class TokenRing {
     if ( !this.enabled || Number.isNaN(color) ) return;
 
     const originalColor = Color.from(foundry.utils.mergeObject(
-      this.token.document.getFlag("dnd5e", "tokenRing.colors") ?? {},
+      this.token.document.getFlag("skjaald", "tokenRing.colors") ?? {},
       this.token.document.getRingColors(),
       { inplace: false }
     ).ring ?? 0xFFFFFF).littleEndian;
@@ -40800,7 +40800,7 @@ class TokenRing {
       if ( module.active ) Object.assign(this.subjectPaths, mappings);
     }
 
-    this.tokenRingSamplerShader = CONFIG.DND5E.tokenRings.shaderClass;
+    this.tokenRingSamplerShader = CONFIG.SKJAALD.tokenRings.shaderClass;
     if ( game.release.generation >= 12 ) {
       PrimaryBaseSamplerShader.classPluginName = this.tokenRingSamplerShader.classPluginName;
     }
@@ -40826,7 +40826,7 @@ class TokenRing {
    * @param {string[]} additionalSources
    */
   static pushToLoad(additionalSources) {
-    additionalSources.push(CONFIG.DND5E.tokenRings.spriteSheet);
+    additionalSources.push(CONFIG.SKJAALD.tokenRings.spriteSheet);
     for ( const tokenDocument of canvas.scene.tokens ) {
       const subjectSrc = tokenDocument.subjectPath;
       if ( tokenDocument.hasDynamicRing && subjectSrc ) additionalSources.push(subjectSrc);
@@ -40841,7 +40841,7 @@ class TokenRing {
   static createAssetsUVs() {
     if ( !this.enabled ) return;
 
-    const spritesheet = TextureLoader.loader.getCache(CONFIG.DND5E.tokenRings.spriteSheet);
+    const spritesheet = TextureLoader.loader.getCache(CONFIG.SKJAALD.tokenRings.spriteSheet);
     this.baseTexture = spritesheet.baseTexture;
     this.texturesData = {};
     this.#ringData = [];
@@ -41286,7 +41286,7 @@ const { ArrayField, ForeignDocumentField: ForeignDocumentField$1, HTMLField: HTM
  */
 
 /**
- * A data model and API layer which handles the schema and functionality of "group" type Actors in the dnd5e system.
+ * A data model and API layer which handles the schema and functionality of "group" type Actors in the skjaald system.
  * @mixes CurrencyTemplate
  *
  * @property {object} type
@@ -41305,7 +41305,7 @@ const { ArrayField, ForeignDocumentField: ForeignDocumentField$1, HTMLField: HTM
  * @property {number} details.xp.value           XP currently available to be distributed to a party.
  *
  * @example Create a new Group
- * const g = new dnd5e.documents.Actor5e({
+ * const g = new skjaald.documents.Actor5e({
  *  type: "group",
  *  name: "Test Group",
  *  system: {
@@ -41318,33 +41318,33 @@ class GroupActor extends ActorDataModel.mixin(CurrencyTemplate) {
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
       type: new SchemaField$3({
-        value: new StringField$6({initial: "party", label: "DND5E.Group.Type"})
+        value: new StringField$6({initial: "party", label: "SKJAALD.Group.Type"})
       }),
       description: new SchemaField$3({
-        full: new HTMLField$1({label: "DND5E.Description"}),
-        summary: new HTMLField$1({label: "DND5E.DescriptionSummary"})
+        full: new HTMLField$1({label: "SKJAALD.Description"}),
+        summary: new HTMLField$1({label: "SKJAALD.DescriptionSummary"})
       }),
       members: new ArrayField(new SchemaField$3({
         actor: new ForeignDocumentField$1(foundry.documents.BaseActor),
         quantity: new SchemaField$3({
-          value: new NumberField$5({initial: 1, integer: true, min: 0, label: "DND5E.Quantity"}),
-          formula: new FormulaField({label: "DND5E.QuantityFormula"})
+          value: new NumberField$5({initial: 1, integer: true, min: 0, label: "SKJAALD.Quantity"}),
+          formula: new FormulaField({label: "SKJAALD.QuantityFormula"})
         })
-      }), {label: "DND5E.GroupMembers"}),
+      }), {label: "SKJAALD.GroupMembers"}),
       attributes: new SchemaField$3({
         movement: new SchemaField$3({
-          land: new NumberField$5({nullable: false, min: 0, step: 0.1, initial: 0, label: "DND5E.MovementLand"}),
-          water: new NumberField$5({nullable: false, min: 0, step: 0.1, initial: 0, label: "DND5E.MovementWater"}),
-          air: new NumberField$5({nullable: false, min: 0, step: 0.1, initial: 0, label: "DND5E.MovementAir"})
+          land: new NumberField$5({nullable: false, min: 0, step: 0.1, initial: 0, label: "SKJAALD.MovementLand"}),
+          water: new NumberField$5({nullable: false, min: 0, step: 0.1, initial: 0, label: "SKJAALD.MovementWater"}),
+          air: new NumberField$5({nullable: false, min: 0, step: 0.1, initial: 0, label: "SKJAALD.MovementAir"})
         })
-      }, {label: "DND5E.Attributes"}),
+      }, {label: "SKJAALD.Attributes"}),
       details: new SchemaField$3({
         xp: new foundry.data.fields.SchemaField({
           value: new foundry.data.fields.NumberField({
-            integer: true, min: 0, label: "DND5E.ExperiencePointsCurrent"
+            integer: true, min: 0, label: "SKJAALD.ExperiencePointsCurrent"
           })
-        }, {label: "DND5E.ExperiencePoints"})
-      }, {label: "DND5E.Details"})
+        }, {label: "SKJAALD.ExperiencePoints"})
+      }, {label: "SKJAALD.Details"})
     });
   }
 
@@ -41557,12 +41557,12 @@ class GroupActor extends ActorDataModel.mixin(CurrencyTemplate) {
 
     /**
      * A hook event that fires when the rest process is completed for a group.
-     * @function dnd5e.groupRestCompleted
+     * @function skjaald.groupRestCompleted
      * @memberof hookEvents
      * @param {Actor5e} group                         The group that just completed resting.
      * @param {Map<Actor5e, RestResult|null>} result  Details on the rests completed.
      */
-    Hooks.callAll("dnd5e.groupRestCompleted", this.parent, results);
+    Hooks.callAll("skjaald.groupRestCompleted", this.parent, results);
 
     return false;
   }
@@ -41581,9 +41581,9 @@ class GroupActor extends ActorDataModel.mixin(CurrencyTemplate) {
    */
   _onUpdate(changed, options, userId) {
     if ( !foundry.utils.hasProperty(changed, "system.type.value") || (game.user !== game.users.activeGM)
-      || (game.settings.get("dnd5e", "primaryParty")?.actor !== this.parent)
+      || (game.settings.get("skjaald", "primaryParty")?.actor !== this.parent)
       || (foundry.utils.getProperty(changed, "system.type.value") === "party") ) return;
-    game.settings.set("dnd5e", "primaryParty", { actor: null });
+    game.settings.set("skjaald", "primaryParty", { actor: null });
   }
 }
 
@@ -41650,74 +41650,74 @@ class NPCData extends CreatureTemplate {
         ...AttributesFields.common,
         ...AttributesFields.creature,
         ac: new SchemaField$2({
-          flat: new NumberField$4({integer: true, min: 0, label: "DND5E.ArmorClassFlat"}),
-          calc: new StringField$5({initial: "default", label: "DND5E.ArmorClassCalculation"}),
-          formula: new FormulaField({deterministic: true, label: "DND5E.ArmorClassFormula"})
-        }, {label: "DND5E.ArmorClass"}),
+          flat: new NumberField$4({integer: true, min: 0, label: "SKJAALD.ArmorClassFlat"}),
+          calc: new StringField$5({initial: "default", label: "SKJAALD.ArmorClassCalculation"}),
+          formula: new FormulaField({deterministic: true, label: "SKJAALD.ArmorClassFormula"})
+        }, {label: "SKJAALD.ArmorClass"}),
         hd: new SchemaField$2({
           spent: new NumberField$4({integer: true, min: 0, initial: 0})
-        }, {label: "DND5E.HitDice"}),
+        }, {label: "SKJAALD.HitDice"}),
         hp: new SchemaField$2({
           value: new NumberField$4({
-            nullable: false, integer: true, min: 0, initial: 10, label: "DND5E.HitPointsCurrent"
+            nullable: false, integer: true, min: 0, initial: 10, label: "SKJAALD.HitPointsCurrent"
           }),
           max: new NumberField$4({
-            nullable: false, integer: true, min: 0, initial: 10, label: "DND5E.HitPointsMax"
+            nullable: false, integer: true, min: 0, initial: 10, label: "SKJAALD.HitPointsMax"
           }),
-          temp: new NumberField$4({integer: true, initial: 0, min: 0, label: "DND5E.HitPointsTemp"}),
-          tempmax: new NumberField$4({integer: true, initial: 0, label: "DND5E.HitPointsTempMax"}),
-          formula: new FormulaField({required: true, label: "DND5E.HPFormula"})
-        }, {label: "DND5E.HitPoints"}),
+          temp: new NumberField$4({integer: true, initial: 0, min: 0, label: "SKJAALD.HitPointsTemp"}),
+          tempmax: new NumberField$4({integer: true, initial: 0, label: "SKJAALD.HitPointsTempMax"}),
+          formula: new FormulaField({required: true, label: "SKJAALD.HPFormula"})
+        }, {label: "SKJAALD.HitPoints"}),
         death: new RollConfigField({
           success: new NumberField$4({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.DeathSaveSuccesses"
+            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.DeathSaveSuccesses"
           }),
           failure: new NumberField$4({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.DeathSaveFailures"
+            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.DeathSaveFailures"
           })
-        }, {label: "DND5E.DeathSave"})
-      }, {label: "DND5E.Attributes"}),
+        }, {label: "SKJAALD.DeathSave"})
+      }, {label: "SKJAALD.Attributes"}),
       details: new SchemaField$2({
         ...DetailsField.common,
         ...DetailsField.creature,
         type: new CreatureTypeField(),
-        environment: new StringField$5({required: true, label: "DND5E.Environment"}),
+        environment: new StringField$5({required: true, label: "SKJAALD.Environment"}),
         cr: new NumberField$4({
-          required: true, nullable: false, min: 0, initial: 1, label: "DND5E.ChallengeRating"
+          required: true, nullable: false, min: 0, initial: 1, label: "SKJAALD.ChallengeRating"
         }),
         spellLevel: new NumberField$4({
-          required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.SpellcasterLevel"
+          required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.SpellcasterLevel"
         }),
         source: new SourceField()
-      }, {label: "DND5E.Details"}),
+      }, {label: "SKJAALD.Details"}),
       resources: new SchemaField$2({
         legact: new SchemaField$2({
           value: new NumberField$4({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.LegActRemaining"
+            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.LegActRemaining"
           }),
           max: new NumberField$4({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.LegActMax"
+            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.LegActMax"
           })
-        }, {label: "DND5E.LegAct"}),
+        }, {label: "SKJAALD.LegAct"}),
         legres: new SchemaField$2({
           value: new NumberField$4({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.LegResRemaining"
+            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.LegResRemaining"
           }),
           max: new NumberField$4({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "DND5E.LegResMax"
+            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.LegResMax"
           })
-        }, {label: "DND5E.LegRes"}),
+        }, {label: "SKJAALD.LegRes"}),
         lair: new SchemaField$2({
-          value: new BooleanField$3({required: true, label: "DND5E.LairAct"}),
+          value: new BooleanField$3({required: true, label: "SKJAALD.LairAct"}),
           initiative: new NumberField$4({
-            required: true, integer: true, label: "DND5E.LairActionInitiative"
+            required: true, integer: true, label: "SKJAALD.LairActionInitiative"
           })
-        }, {label: "DND5E.LairActionLabel"})
-      }, {label: "DND5E.Resources"}),
+        }, {label: "SKJAALD.LairActionLabel"})
+      }, {label: "SKJAALD.Resources"}),
       traits: new SchemaField$2({
         ...TraitsField.common,
         ...TraitsField.creature
-      }, {label: "DND5E.Traits"})
+      }, {label: "SKJAALD.Traits"})
     });
   }
 
@@ -41767,7 +41767,7 @@ class NPCData extends CreatureTemplate {
 
       // Match a known creature type
       const typeLc = match.groups.type.trim().toLowerCase();
-      const typeMatch = Object.entries(CONFIG.DND5E.creatureTypes).find(([k, v]) => {
+      const typeMatch = Object.entries(CONFIG.SKJAALD.creatureTypes).find(([k, v]) => {
         return (typeLc === k)
           || (typeLc === game.i18n.localize(v.label).toLowerCase())
           || (typeLc === game.i18n.localize(`${v.label}Pl`).toLowerCase());
@@ -41782,7 +41782,7 @@ class NPCData extends CreatureTemplate {
       // Match a swarm
       if ( match.groups.size ) {
         const sizeLc = match.groups.size ? match.groups.size.trim().toLowerCase() : "tiny";
-        const sizeMatch = Object.entries(CONFIG.DND5E.actorSizes).find(([k, v]) => {
+        const sizeMatch = Object.entries(CONFIG.SKJAALD.actorSizes).find(([k, v]) => {
           return (sizeLc === k) || (sizeLc === game.i18n.localize(v.label).toLowerCase());
         });
         source.type.swarm = sizeMatch ? sizeMatch[0] : "tiny";
@@ -41809,7 +41809,7 @@ class NPCData extends CreatureTemplate {
     // Determine hit dice denomination & max from hit points formula
     const [, max, denomination] = this.attributes.hp.formula?.match(/(\d*)d(\d+)/i) ?? [];
     this.attributes.hd.max = Number(max ?? 0);
-    this.attributes.hd.denomination = Number(denomination ?? CONFIG.DND5E.actorSizes[this.traits.size]?.hitDie ?? 4);
+    this.attributes.hd.denomination = Number(denomination ?? CONFIG.SKJAALD.actorSizes[this.traits.size]?.hitDie ?? 4);
 
     for ( const item of this.parent.items ) {
       // Class levels & hit dice
@@ -41849,10 +41849,10 @@ class NPCData extends CreatureTemplate {
       AttributesFields.prepareRace.call(this, this.details.race, { force: true });
       this.details.type = this.details.race.system.type;
     }
-    for ( const key of Object.keys(CONFIG.DND5E.movementTypes) ) this.attributes.movement[key] ??= 0;
-    for ( const key of Object.keys(CONFIG.DND5E.senses) ) this.attributes.senses[key] ??= 0;
-    this.attributes.movement.units ??= Object.keys(CONFIG.DND5E.movementUnits)[0];
-    this.attributes.senses.units ??= Object.keys(CONFIG.DND5E.movementUnits)[0];
+    for ( const key of Object.keys(CONFIG.SKJAALD.movementTypes) ) this.attributes.movement[key] ??= 0;
+    for ( const key of Object.keys(CONFIG.SKJAALD.senses) ) this.attributes.senses[key] ??= 0;
+    this.attributes.movement.units ??= Object.keys(CONFIG.SKJAALD.movementUnits)[0];
+    this.attributes.senses.units ??= Object.keys(CONFIG.SKJAALD.movementUnits)[0];
   }
 
   /* -------------------------------------------- */
@@ -41875,7 +41875,7 @@ class NPCData extends CreatureTemplate {
     // Hit Points
     const hpOptions = {
       advancement: Object.values(this.parent.classes).map(c => c.advancement.byType.HitPoints?.[0]).filter(a => a),
-      mod: this.abilities[CONFIG.DND5E.defaultAbilities.hitPoints ?? "con"]?.mod ?? 0
+      mod: this.abilities[CONFIG.SKJAALD.defaultAbilities.hitPoints ?? "con"]?.mod ?? 0
     };
     AttributesFields.prepareHitPoints.call(this, this.attributes.hp, hpOptions);
   }
@@ -41884,7 +41884,7 @@ class NPCData extends CreatureTemplate {
 /**
  * System data definition for Vehicles.
  *
- * @property {string} vehicleType                      Type of vehicle as defined in `DND5E.vehicleTypes`.
+ * @property {string} vehicleType                      Type of vehicle as defined in `SKJAALD.vehicleTypes`.
  * @property {object} attributes
  * @property {object} attributes.ac
  * @property {number} attributes.ac.flat               Flat value used for flat or natural armor calculation.
@@ -41927,73 +41927,73 @@ class VehicleData extends CommonTemplate {
   /** @inheritdoc */
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
-      vehicleType: new foundry.data.fields.StringField({required: true, initial: "water", label: "DND5E.VehicleType"}),
+      vehicleType: new foundry.data.fields.StringField({required: true, initial: "water", label: "SKJAALD.VehicleType"}),
       attributes: new foundry.data.fields.SchemaField({
         ...AttributesFields.common,
         ac: new foundry.data.fields.SchemaField({
-          flat: new foundry.data.fields.NumberField({integer: true, min: 0, label: "DND5E.ArmorClassFlat"}),
-          calc: new foundry.data.fields.StringField({initial: "default", label: "DND5E.ArmorClassCalculation"}),
-          formula: new FormulaField({deterministic: true, label: "DND5E.ArmorClassFormula"}),
-          motionless: new foundry.data.fields.StringField({required: true, label: "DND5E.ArmorClassMotionless"})
-        }, {label: "DND5E.ArmorClass"}),
+          flat: new foundry.data.fields.NumberField({integer: true, min: 0, label: "SKJAALD.ArmorClassFlat"}),
+          calc: new foundry.data.fields.StringField({initial: "default", label: "SKJAALD.ArmorClassCalculation"}),
+          formula: new FormulaField({deterministic: true, label: "SKJAALD.ArmorClassFormula"}),
+          motionless: new foundry.data.fields.StringField({required: true, label: "SKJAALD.ArmorClassMotionless"})
+        }, {label: "SKJAALD.ArmorClass"}),
         hp: new foundry.data.fields.SchemaField({
           value: new foundry.data.fields.NumberField({
-            nullable: true, integer: true, min: 0, initial: null, label: "DND5E.HitPointsCurrent"
+            nullable: true, integer: true, min: 0, initial: null, label: "SKJAALD.HitPointsCurrent"
           }),
           max: new foundry.data.fields.NumberField({
-            nullable: true, integer: true, min: 0, initial: null, label: "DND5E.HitPointsMax"
+            nullable: true, integer: true, min: 0, initial: null, label: "SKJAALD.HitPointsMax"
           }),
-          temp: new foundry.data.fields.NumberField({integer: true, initial: 0, min: 0, label: "DND5E.HitPointsTemp"}),
-          tempmax: new foundry.data.fields.NumberField({integer: true, initial: 0, label: "DND5E.HitPointsTempMax"}),
+          temp: new foundry.data.fields.NumberField({integer: true, initial: 0, min: 0, label: "SKJAALD.HitPointsTemp"}),
+          tempmax: new foundry.data.fields.NumberField({integer: true, initial: 0, label: "SKJAALD.HitPointsTempMax"}),
           dt: new foundry.data.fields.NumberField({
-            required: true, integer: true, min: 0, label: "DND5E.DamageThreshold"
+            required: true, integer: true, min: 0, label: "SKJAALD.DamageThreshold"
           }),
           mt: new foundry.data.fields.NumberField({
-            required: true, integer: true, min: 0, label: "DND5E.VehicleMishapThreshold"
+            required: true, integer: true, min: 0, label: "SKJAALD.VehicleMishapThreshold"
           })
-        }, {label: "DND5E.HitPoints"}),
+        }, {label: "SKJAALD.HitPoints"}),
         actions: new foundry.data.fields.SchemaField({
-          stations: new foundry.data.fields.BooleanField({required: true, label: "DND5E.VehicleActionStations"}),
+          stations: new foundry.data.fields.BooleanField({required: true, label: "SKJAALD.VehicleActionStations"}),
           value: new foundry.data.fields.NumberField({
-            required: true, nullable: false, integer: true, initial: 0, min: 0, label: "DND5E.VehicleActionMax"
+            required: true, nullable: false, integer: true, initial: 0, min: 0, label: "SKJAALD.VehicleActionMax"
           }),
           thresholds: new foundry.data.fields.SchemaField({
             2: new foundry.data.fields.NumberField({
-              required: true, integer: true, min: 0, label: "DND5E.VehicleActionThresholdsFull"
+              required: true, integer: true, min: 0, label: "SKJAALD.VehicleActionThresholdsFull"
             }),
             1: new foundry.data.fields.NumberField({
-              required: true, integer: true, min: 0, label: "DND5E.VehicleActionThresholdsMid"
+              required: true, integer: true, min: 0, label: "SKJAALD.VehicleActionThresholdsMid"
             }),
             0: new foundry.data.fields.NumberField({
-              required: true, integer: true, min: 0, label: "DND5E.VehicleActionThresholdsMin"
+              required: true, integer: true, min: 0, label: "SKJAALD.VehicleActionThresholdsMin"
             })
-          }, {label: "DND5E.VehicleActionThresholds"})
-        }, {label: "DND5E.VehicleActions"}),
+          }, {label: "SKJAALD.VehicleActionThresholds"})
+        }, {label: "SKJAALD.VehicleActions"}),
         capacity: new foundry.data.fields.SchemaField({
-          creature: new foundry.data.fields.StringField({required: true, label: "DND5E.VehicleCreatureCapacity"}),
+          creature: new foundry.data.fields.StringField({required: true, label: "SKJAALD.VehicleCreatureCapacity"}),
           cargo: new foundry.data.fields.NumberField({
-            required: true, nullable: false, integer: true, initial: 0, min: 0, label: "DND5E.VehicleCargoCapacity"
+            required: true, nullable: false, integer: true, initial: 0, min: 0, label: "SKJAALD.VehicleCargoCapacity"
           })
-        }, {label: "DND5E.VehicleCargoCrew"})
-      }, {label: "DND5E.Attributes"}),
+        }, {label: "SKJAALD.VehicleCargoCrew"})
+      }, {label: "SKJAALD.Attributes"}),
       details: new foundry.data.fields.SchemaField({
         ...DetailsField.common,
         source: new SourceField()
-      }, {label: "DND5E.Details"}),
+      }, {label: "SKJAALD.Details"}),
       traits: new foundry.data.fields.SchemaField({
         ...TraitsField.common,
-        size: new foundry.data.fields.StringField({required: true, initial: "lg", label: "DND5E.Size"}),
-        di: TraitsField.makeDamageTrait({label: "DND5E.DamImm"}, {initial: ["poison", "psychic"]}),
-        ci: TraitsField.makeSimpleTrait({label: "DND5E.ConImm"}, {initial: [
+        size: new foundry.data.fields.StringField({required: true, initial: "lg", label: "SKJAALD.Size"}),
+        di: TraitsField.makeDamageTrait({label: "SKJAALD.DamImm"}, {initial: ["poison", "psychic"]}),
+        ci: TraitsField.makeSimpleTrait({label: "SKJAALD.ConImm"}, {initial: [
           "blinded", "charmed", "deafened", "frightened", "paralyzed",
           "petrified", "poisoned", "stunned", "unconscious"
         ]}),
-        dimensions: new foundry.data.fields.StringField({required: true, label: "DND5E.Dimensions"})
-      }, {label: "DND5E.Traits"}),
+        dimensions: new foundry.data.fields.StringField({required: true, label: "SKJAALD.Dimensions"})
+      }, {label: "SKJAALD.Traits"}),
       cargo: new foundry.data.fields.SchemaField({
-        crew: new foundry.data.fields.ArrayField(makePassengerData(), {label: "DND5E.VehicleCrew"}),
-        passengers: new foundry.data.fields.ArrayField(makePassengerData(), {label: "DND5E.VehiclePassengers"})
-      }, {label: "DND5E.VehicleCrewPassengers"})
+        crew: new foundry.data.fields.ArrayField(makePassengerData(), {label: "SKJAALD.VehicleCrew"}),
+        passengers: new foundry.data.fields.ArrayField(makePassengerData(), {label: "SKJAALD.VehiclePassengers"})
+      }, {label: "SKJAALD.VehicleCrewPassengers"})
     });
   }
 
@@ -42038,7 +42038,7 @@ class VehicleData extends CommonTemplate {
 
     this.prepareAbilities({ rollData, originalSaves });
     AttributesFields.prepareEncumbrance.call(this, rollData, { validateItem: item =>
-      (item.flags.dnd5e?.vehicleCargo === true) || !["weapon", "equipment"].includes(item.type)
+      (item.flags.skjaald?.vehicleCargo === true) || !["weapon", "equipment"].includes(item.type)
     });
     AttributesFields.prepareHitPoints.call(this, this.attributes.hp);
   }
@@ -42061,9 +42061,9 @@ class VehicleData extends CommonTemplate {
  */
 function makePassengerData(schemaOptions={}) {
   return new foundry.data.fields.SchemaField({
-    name: new foundry.data.fields.StringField({required: true, label: "DND5E.VehiclePassengerName"}),
+    name: new foundry.data.fields.StringField({required: true, label: "SKJAALD.VehiclePassengerName"}),
     quantity: new foundry.data.fields.NumberField({
-      required: true, nullable: false, integer: true, initial: 0, min: 0, label: "DND5E.VehiclePassengerQuantity"
+      required: true, nullable: false, integer: true, initial: 0, min: 0, label: "SKJAALD.VehiclePassengerQuantity"
     })
   }, schemaOptions);
 }
@@ -42123,8 +42123,8 @@ class BackgroundData extends ItemDataModel.mixin(ItemDescriptionTemplate, Starti
   /** @inheritdoc */
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
-      identifier: new IdentifierField({required: true, label: "DND5E.Identifier"}),
-      advancement: new foundry.data.fields.ArrayField(new AdvancementField(), {label: "DND5E.AdvancementTitle"})
+      identifier: new IdentifierField({required: true, label: "SKJAALD.Identifier"}),
+      advancement: new foundry.data.fields.ArrayField(new AdvancementField(), {label: "SKJAALD.AdvancementTitle"})
     });
   }
 
@@ -42192,12 +42192,12 @@ class ConsumableData extends ItemDataModel.mixin(
   /** @inheritdoc */
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
-      type: new ItemTypeField({value: "potion", baseItem: false}, {label: "DND5E.ItemConsumableType"}),
-      magicalBonus: new NumberField$3({min: 0, integer: true, label: "DND5E.MagicalBonus"}),
-      properties: new SetField$3(new StringField$4(), { label: "DND5E.ItemAmmoProperties" }),
+      type: new ItemTypeField({value: "potion", baseItem: false}, {label: "SKJAALD.ItemConsumableType"}),
+      magicalBonus: new NumberField$3({min: 0, integer: true, label: "SKJAALD.MagicalBonus"}),
+      properties: new SetField$3(new StringField$4(), { label: "SKJAALD.ItemAmmoProperties" }),
       uses: new ActivatedEffectTemplate.ItemUsesField({
-        autoDestroy: new BooleanField$2({required: true, label: "DND5E.ItemDestroyEmpty"})
-      }, {label: "DND5E.LimitedUses"})
+        autoDestroy: new BooleanField$2({required: true, label: "SKJAALD.ItemDestroyEmpty"})
+      }, {label: "SKJAALD.LimitedUses"})
     });
   }
 
@@ -42239,7 +42239,7 @@ class ConsumableData extends ItemDataModel.mixin(
   prepareDerivedData() {
     super.prepareDerivedData();
     if ( !this.type.value ) return;
-    const config = CONFIG.DND5E.consumableTypes[this.type.value];
+    const config = CONFIG.SKJAALD.consumableTypes[this.type.value];
     if ( config ) {
       this.type.label = config.subtypes?.[this.type.subtype] ?? config.label;
     } else {
@@ -42277,7 +42277,7 @@ class ConsumableData extends ItemDataModel.mixin(
   get chatProperties() {
     return [
       this.type.label,
-      this.hasLimitedUses ? `${this.uses.value}/${this.uses.max} ${game.i18n.localize("DND5E.Charges")}` : null,
+      this.hasLimitedUses ? `${this.uses.value}/${this.uses.max} ${game.i18n.localize("SKJAALD.Charges")}` : null,
       this.priceLabel
     ];
   }
@@ -42297,7 +42297,7 @@ class ConsumableData extends ItemDataModel.mixin(
    * @returns {number}
    */
   get proficiencyMultiplier() {
-    const isProficient = this.parent?.actor?.getFlag("dnd5e", "tavernBrawlerFeat");
+    const isProficient = this.parent?.actor?.getFlag("skjaald", "tavernBrawlerFeat");
     return isProficient ? 1 : 0;
   }
 
@@ -42306,10 +42306,10 @@ class ConsumableData extends ItemDataModel.mixin(
   /** @inheritdoc */
   get validProperties() {
     const valid = super.validProperties;
-    if ( this.type.value === "ammo" ) Object.entries(CONFIG.DND5E.itemProperties).forEach(([k, v]) => {
+    if ( this.type.value === "ammo" ) Object.entries(CONFIG.SKJAALD.itemProperties).forEach(([k, v]) => {
       if ( v.isPhysical ) valid.add(k);
     });
-    else if ( this.type.value === "scroll" ) CONFIG.DND5E.validProperties.spell
+    else if ( this.type.value === "scroll" ) CONFIG.SKJAALD.validProperties.spell
       .filter(p => p !== "material").forEach(p => valid.add(p));
     return valid;
   }
@@ -42337,25 +42337,25 @@ class FeatData extends ItemDataModel.mixin(
 ) {
 
   /** @override */
-  static LOCALIZATION_PREFIXES = ["DND5E.Enchantment", "DND5E.Prerequisites"];
+  static LOCALIZATION_PREFIXES = ["SKJAALD.Enchantment", "SKJAALD.Prerequisites"];
 
   /** @inheritdoc */
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
-      type: new ItemTypeField({baseItem: false}, {label: "DND5E.ItemFeatureType"}),
+      type: new ItemTypeField({baseItem: false}, {label: "SKJAALD.ItemFeatureType"}),
       prerequisites: new SchemaField$1({
         level: new NumberField$2({integer: true, min: 0})
       }),
       properties: new SetField$2(new StringField$3(), {
-        label: "DND5E.ItemFeatureProperties"
+        label: "SKJAALD.ItemFeatureProperties"
       }),
-      requirements: new StringField$3({required: true, nullable: true, label: "DND5E.Requirements"}),
+      requirements: new StringField$3({required: true, nullable: true, label: "SKJAALD.Requirements"}),
       recharge: new SchemaField$1({
         value: new NumberField$2({
-          required: true, integer: true, min: 1, label: "DND5E.FeatureRechargeOn"
+          required: true, integer: true, min: 1, label: "SKJAALD.FeatureRechargeOn"
         }),
-        charged: new BooleanField$1({required: true, label: "DND5E.Charged"})
-      }, {label: "DND5E.FeatureActionRecharge"})
+        charged: new BooleanField$1({required: true, label: "SKJAALD.Charged"})
+      }, {label: "SKJAALD.FeatureActionRecharge"})
     });
   }
 
@@ -42368,7 +42368,7 @@ class FeatData extends ItemDataModel.mixin(
     super.prepareDerivedData();
 
     if ( this.type.value ) {
-      const config = CONFIG.DND5E.featureTypes[this.type.value];
+      const config = CONFIG.SKJAALD.featureTypes[this.type.value];
       if ( config ) this.type.label = config.subtypes?.[this.type.subtype] ?? null;
       else this.type.label = game.i18n.localize(CONFIG.Item.typeLabels.feat);
     }
@@ -42492,9 +42492,9 @@ class LootData extends ItemDataModel.mixin(
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
       properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
-        label: "DND5E.ItemLootProperties"
+        label: "SKJAALD.ItemLootProperties"
       }),
-      type: new ItemTypeField({baseItem: false}, {label: "DND5E.ItemLootType"})
+      type: new ItemTypeField({baseItem: false}, {label: "SKJAALD.ItemLootType"})
     });
   }
 
@@ -42514,7 +42514,7 @@ class LootData extends ItemDataModel.mixin(
   /** @inheritDoc */
   prepareDerivedData() {
     super.prepareDerivedData();
-    this.type.label = CONFIG.DND5E.lootTypes[this.type.value]?.label ?? game.i18n.localize(CONFIG.Item.typeLabels.loot);
+    this.type.label = CONFIG.SKJAALD.lootTypes[this.type.value]?.label ?? game.i18n.localize(CONFIG.Item.typeLabels.loot);
   }
 
   /* -------------------------------------------- */
@@ -42528,7 +42528,7 @@ class LootData extends ItemDataModel.mixin(
   get chatProperties() {
     return [
       this.type.label,
-      this.weight ? `${this.weight.value} ${game.i18n.localize("DND5E.AbbreviationLbs")}` : null,
+      this.weight ? `${this.weight.value} ${game.i18n.localize("SKJAALD.AbbreviationLbs")}` : null,
       this.priceLabel
     ];
   }
@@ -42558,8 +42558,8 @@ class RaceData extends ItemDataModel.mixin(ItemDescriptionTemplate) {
   /** @inheritdoc */
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
-      identifier: new IdentifierField({label: "DND5E.Identifier"}),
-      advancement: new foundry.data.fields.ArrayField(new AdvancementField(), {label: "DND5E.AdvancementTitle"}),
+      identifier: new IdentifierField({label: "SKJAALD.Identifier"}),
+      advancement: new foundry.data.fields.ArrayField(new AdvancementField(), {label: "SKJAALD.AdvancementTitle"}),
       movement: new MovementField(),
       senses: new SensesField(),
       type: new CreatureTypeField({ swarm: false }, { initial: { value: "humanoid" } })
@@ -42582,8 +42582,8 @@ class RaceData extends ItemDataModel.mixin(ItemDescriptionTemplate) {
    * @returns {Object<string>}
    */
   get movementLabels() {
-    const units = CONFIG.DND5E.movementUnits[this.movement.units || Object.keys(CONFIG.DND5E.movementUnits)[0]];
-    return Object.entries(CONFIG.DND5E.movementTypes).reduce((obj, [k, label]) => {
+    const units = CONFIG.SKJAALD.movementUnits[this.movement.units || Object.keys(CONFIG.SKJAALD.movementUnits)[0]];
+    return Object.entries(CONFIG.SKJAALD.movementTypes).reduce((obj, [k, label]) => {
       const value = this.movement[k];
       if ( value ) obj[k] = `${label} ${value} ${units}`;
       return obj;
@@ -42597,8 +42597,8 @@ class RaceData extends ItemDataModel.mixin(ItemDescriptionTemplate) {
    * @returns {Object<string>}
    */
   get sensesLabels() {
-    const units = CONFIG.DND5E.movementUnits[this.senses.units || Object.keys(CONFIG.DND5E.movementUnits)[0]];
-    return Object.entries(CONFIG.DND5E.senses).reduce((arr, [k, label]) => {
+    const units = CONFIG.SKJAALD.movementUnits[this.senses.units || Object.keys(CONFIG.SKJAALD.movementUnits)[0]];
+    return Object.entries(CONFIG.SKJAALD.senses).reduce((arr, [k, label]) => {
       const value = this.senses[k];
       if ( value ) arr.push(`${label} ${value} ${units}`);
       return arr;
@@ -42635,7 +42635,7 @@ class RaceData extends ItemDataModel.mixin(ItemDescriptionTemplate) {
       { type: "Trait", configuration: { grants: ["languages:standard:common"] } }
     ];
     this.parent.updateSource({"system.advancement": toCreate.map(c => {
-      const config = CONFIG.DND5E.advancementTypes[c.type];
+      const config = CONFIG.SKJAALD.advancementTypes[c.type];
       const cls = config.documentClass ?? config;
       return new cls(c, { parent: this.parent }).toObject();
     })});
@@ -42680,24 +42680,24 @@ class RaceData extends ItemDataModel.mixin(ItemDescriptionTemplate) {
  * @property {string} classIdentifier  Identifier slug for the class with which this subclass should be associated.
  * @property {object[]} advancement    Advancement objects for this subclass.
  * @property {object} spellcasting              Details on subclass's spellcasting ability.
- * @property {string} spellcasting.progression  Spell progression granted by class as from `DND5E.spellProgression`.
+ * @property {string} spellcasting.progression  Spell progression granted by class as from `SKJAALD.spellProgression`.
  * @property {string} spellcasting.ability      Ability score to use for spellcasting.
  */
 class SubclassData extends ItemDataModel.mixin(ItemDescriptionTemplate) {
   /** @inheritdoc */
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
-      identifier: new IdentifierField({required: true, label: "DND5E.Identifier"}),
+      identifier: new IdentifierField({required: true, label: "SKJAALD.Identifier"}),
       classIdentifier: new IdentifierField({
-        required: true, label: "DND5E.ClassIdentifier", hint: "DND5E.ClassIdentifierHint"
+        required: true, label: "SKJAALD.ClassIdentifier", hint: "SKJAALD.ClassIdentifierHint"
       }),
-      advancement: new foundry.data.fields.ArrayField(new AdvancementField(), {label: "DND5E.AdvancementTitle"}),
+      advancement: new foundry.data.fields.ArrayField(new AdvancementField(), {label: "SKJAALD.AdvancementTitle"}),
       spellcasting: new foundry.data.fields.SchemaField({
         progression: new foundry.data.fields.StringField({
-          required: true, initial: "none", blank: false, label: "DND5E.SpellProgression"
+          required: true, initial: "none", blank: false, label: "SKJAALD.SpellProgression"
         }),
-        ability: new foundry.data.fields.StringField({required: true, label: "DND5E.SpellAbility"})
-      }, {label: "DND5E.Spellcasting"})
+        ability: new foundry.data.fields.StringField({required: true, label: "SKJAALD.SpellAbility"})
+      }, {label: "SKJAALD.Spellcasting"})
     });
   }
 }
@@ -42713,7 +42713,7 @@ class SubclassData extends ItemDataModel.mixin(ItemDescriptionTemplate) {
  *
  * @property {string} ability     Default ability when this tool is being used.
  * @property {string} chatFlavor  Additional text added to chat when this tool is used.
- * @property {number} proficient  Level of proficiency in this tool as defined in `DND5E.proficiencyLevels`.
+ * @property {number} proficient  Level of proficiency in this tool as defined in `SKJAALD.proficiencyLevels`.
  * @property {string} bonus       Bonus formula added to tool rolls.
  */
 class ToolData extends ItemDataModel.mixin(
@@ -42723,18 +42723,18 @@ class ToolData extends ItemDataModel.mixin(
   /** @inheritdoc */
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
-      type: new ItemTypeField({subtype: false}, {label: "DND5E.ItemToolType"}),
+      type: new ItemTypeField({subtype: false}, {label: "SKJAALD.ItemToolType"}),
       ability: new foundry.data.fields.StringField({
-        required: true, blank: true, label: "DND5E.DefaultAbilityCheck"
+        required: true, blank: true, label: "SKJAALD.DefaultAbilityCheck"
       }),
-      chatFlavor: new foundry.data.fields.StringField({required: true, label: "DND5E.ChatFlavor"}),
+      chatFlavor: new foundry.data.fields.StringField({required: true, label: "SKJAALD.ChatFlavor"}),
       proficient: new foundry.data.fields.NumberField({
-        required: true, initial: null, min: 0, max: 2, step: 0.5, label: "DND5E.ItemToolProficiency"
+        required: true, initial: null, min: 0, max: 2, step: 0.5, label: "SKJAALD.ItemToolProficiency"
       }),
       properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
-        label: "DND5E.ItemToolProperties"
+        label: "SKJAALD.ItemToolProperties"
       }),
-      bonus: new FormulaField({required: true, label: "DND5E.ItemToolBonus"})
+      bonus: new FormulaField({required: true, label: "SKJAALD.ItemToolBonus"})
     });
   }
 
@@ -42774,7 +42774,7 @@ class ToolData extends ItemDataModel.mixin(
   /** @inheritDoc */
   prepareDerivedData() {
     super.prepareDerivedData();
-    this.type.label = CONFIG.DND5E.toolTypes[this.type.value] ?? game.i18n.localize(CONFIG.Item.typeLabels.tool);
+    this.type.label = CONFIG.SKJAALD.toolTypes[this.type.value] ?? game.i18n.localize(CONFIG.Item.typeLabels.tool);
   }
 
   /* -------------------------------------------- */
@@ -42803,7 +42803,7 @@ class ToolData extends ItemDataModel.mixin(
    * @type {string[]}
    */
   get chatProperties() {
-    return [CONFIG.DND5E.abilities[this.ability]?.label];
+    return [CONFIG.SKJAALD.abilities[this.ability]?.label];
   }
 
   /* -------------------------------------------- */
@@ -42813,7 +42813,7 @@ class ToolData extends ItemDataModel.mixin(
    * @type {string[]}
    */
   get cardProperties() {
-    return [CONFIG.DND5E.abilities[this.ability]?.label];
+    return [CONFIG.SKJAALD.abilities[this.ability]?.label];
   }
 
   /* -------------------------------------------- */
@@ -42867,11 +42867,11 @@ class WeaponData extends ItemDataModel.mixin(
   /** @inheritdoc */
   static defineSchema() {
     return this.mergeSchema(super.defineSchema(), {
-      type: new ItemTypeField({value: "simpleM", subtype: false}, {label: "DND5E.ItemWeaponType"}),
-      magicalBonus: new NumberField$1({min: 0, integer: true, label: "DND5E.MagicalBonus"}),
-      properties: new SetField$1(new StringField$2(), {label: "DND5E.ItemWeaponProperties"}),
+      type: new ItemTypeField({value: "simpleM", subtype: false}, {label: "SKJAALD.ItemWeaponType"}),
+      magicalBonus: new NumberField$1({min: 0, integer: true, label: "SKJAALD.MagicalBonus"}),
+      properties: new SetField$1(new StringField$2(), {label: "SKJAALD.ItemWeaponProperties"}),
       proficient: new NumberField$1({
-        required: true, min: 0, max: 1, integer: true, initial: null, label: "DND5E.ProficiencyLevel"
+        required: true, min: 0, max: 1, integer: true, initial: null, label: "SKJAALD.ProficiencyLevel"
       })
     });
   }
@@ -42924,7 +42924,7 @@ class WeaponData extends ItemDataModel.mixin(
   /** @inheritDoc */
   prepareDerivedData() {
     super.prepareDerivedData();
-    this.type.label = CONFIG.DND5E.weaponTypes[this.type.value] ?? game.i18n.localize(CONFIG.Item.typeLabels.weapon);
+    this.type.label = CONFIG.SKJAALD.weaponTypes[this.type.value] ?? game.i18n.localize(CONFIG.Item.typeLabels.weapon);
   }
 
   /* -------------------------------------------- */
@@ -42940,7 +42940,7 @@ class WeaponData extends ItemDataModel.mixin(
   /** @inheritDoc */
   async getFavoriteData() {
     return foundry.utils.mergeObject(await super.getFavoriteData(), {
-      subtitle: CONFIG.DND5E.itemActionTypes[this.actionType],
+      subtitle: CONFIG.SKJAALD.itemActionTypes[this.actionType],
       modifier: this.parent.labels.modifier,
       range: this.range
     });
@@ -42986,7 +42986,7 @@ class WeaponData extends ItemDataModel.mixin(
 
   /** @inheritdoc */
   get _typeCriticalThreshold() {
-    return this.parent?.actor?.flags.dnd5e?.weaponCriticalThreshold ?? Infinity;
+    return this.parent?.actor?.flags.skjaald?.weaponCriticalThreshold ?? Infinity;
   }
 
   /* -------------------------------------------- */
@@ -43011,11 +43011,11 @@ class WeaponData extends ItemDataModel.mixin(
     const actor = this.parent.actor;
     if ( !actor ) return 0;
     if ( actor.type === "npc" ) return 1; // NPCs are always considered proficient with any weapon in their stat block.
-    const config = CONFIG.DND5E.weaponProficienciesMap;
+    const config = CONFIG.SKJAALD.weaponProficienciesMap;
     const itemProf = config[this.type.value];
     const actorProfs = actor.system.traits?.weaponProf?.value ?? new Set();
     const natural = this.type.value === "natural";
-    const improvised = (this.type.value === "improv") && !!actor.getFlag("dnd5e", "tavernBrawlerFeat");
+    const improvised = (this.type.value === "improv") && !!actor.getFlag("skjaald", "tavernBrawlerFeat");
     const isProficient = natural || improvised || actorProfs.has(itemProf) || actorProfs.has(this.type.baseItem);
     return Number(isProficient);
   }
@@ -43085,34 +43085,34 @@ class ClassJournalPageData extends foundry.abstract.DataModel {
   /** @inheritDoc */
   static defineSchema() {
     return {
-      item: new foundry.data.fields.StringField({required: true, label: "JOURNALENTRYPAGE.DND5E.Class.Item"}),
+      item: new foundry.data.fields.StringField({required: true, label: "JOURNALENTRYPAGE.SKJAALD.Class.Item"}),
       description: new foundry.data.fields.SchemaField({
         value: new foundry.data.fields.HTMLField({
-          label: "JOURNALENTRYPAGE.DND5E.Class.Description",
-          hint: "JOURNALENTRYPAGE.DND5E.Class.DescriptionHint"
+          label: "JOURNALENTRYPAGE.SKJAALD.Class.Description",
+          hint: "JOURNALENTRYPAGE.SKJAALD.Class.DescriptionHint"
         }),
         additionalHitPoints: new foundry.data.fields.HTMLField({
-          label: "JOURNALENTRYPAGE.DND5E.Class.AdditionalHitPoints",
-          hint: "JOURNALENTRYPAGE.DND5E.Class.AdditionalHitPointsHint"
+          label: "JOURNALENTRYPAGE.SKJAALD.Class.AdditionalHitPoints",
+          hint: "JOURNALENTRYPAGE.SKJAALD.Class.AdditionalHitPointsHint"
         }),
         additionalTraits: new foundry.data.fields.HTMLField({
-          label: "JOURNALENTRYPAGE.DND5E.Class.AdditionalTraits",
-          hint: "JOURNALENTRYPAGE.DND5E.Class.AdditionalTraitsHint"
+          label: "JOURNALENTRYPAGE.SKJAALD.Class.AdditionalTraits",
+          hint: "JOURNALENTRYPAGE.SKJAALD.Class.AdditionalTraitsHint"
         }),
         additionalEquipment: new foundry.data.fields.HTMLField({
-          label: "JOURNALENTRYPAGE.DND5E.Class.AdditionalEquipment",
-          hint: "JOURNALENTRYPAGE.DND5E.Class.AdditionalEquipmentHint"
+          label: "JOURNALENTRYPAGE.SKJAALD.Class.AdditionalEquipment",
+          hint: "JOURNALENTRYPAGE.SKJAALD.Class.AdditionalEquipmentHint"
         }),
         subclass: new foundry.data.fields.HTMLField({
-          label: "JOURNALENTRYPAGE.DND5E.Class.SubclassDescription",
-          hint: "JOURNALENTRYPAGE.DND5E.Class.SubclassDescriptionHint"
+          label: "JOURNALENTRYPAGE.SKJAALD.Class.SubclassDescription",
+          hint: "JOURNALENTRYPAGE.SKJAALD.Class.SubclassDescriptionHint"
         })
       }),
       subclassHeader: new foundry.data.fields.StringField({
-        label: "JOURNALENTRYPAGE.DND5E.Class.SubclassHeader"
+        label: "JOURNALENTRYPAGE.SKJAALD.Class.SubclassHeader"
       }),
       subclassItems: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
-        label: "JOURNALENTRYPAGE.DND5E.Class.SubclassItems"
+        label: "JOURNALENTRYPAGE.SKJAALD.Class.SubclassItems"
       })
     };
   }
@@ -43154,8 +43154,8 @@ class MapLocationJournalPageData extends foundry.abstract.DataModel {
   getControlIcon(options) {
     if ( !this.code ) return;
     const style = foundry.utils.mergeObject(
-      CONFIG.DND5E.mapLocationMarker.default,
-      CONFIG.DND5E.mapLocationMarker[this.parent.getFlag("dnd5e", "mapMarkerStyle")] ?? {},
+      CONFIG.SKJAALD.mapLocationMarker.default,
+      CONFIG.SKJAALD.mapLocationMarker[this.parent.getFlag("skjaald", "mapMarkerStyle")] ?? {},
       {inplace: false}
     );
     return new MapLocationControlIcon({code: this.code, ...options, ...style});
@@ -43168,15 +43168,15 @@ const { HTMLField, StringField: StringField$1 } = foundry.data.fields;
  * Data definition for Rule journal entry pages.
  *
  * @property {string} tooltip  Content to display in tooltip in place of page's text content.
- * @property {string} type     Type of rule represented. Should match an entry defined in `CONFIG.DND5E.ruleTypes`.
+ * @property {string} type     Type of rule represented. Should match an entry defined in `CONFIG.SKJAALD.ruleTypes`.
  */
 class RuleJournalPageData extends foundry.abstract.DataModel {
 
   /** @inheritDoc */
   static defineSchema() {
     return {
-      tooltip: new HTMLField({label: "DND5E.Rule.Tooltip"}),
-      type: new StringField$1({blank: false, initial: "rule", label: "DND5E.Rule.Type.Label"})
+      tooltip: new HTMLField({label: "SKJAALD.Rule.Tooltip"}),
+      type: new StringField$1({blank: false, initial: "rule", label: "SKJAALD.Rule.Type.Label"})
     };
   }
 
@@ -43190,14 +43190,14 @@ class RuleJournalPageData extends foundry.abstract.DataModel {
   async richTooltip(enrichmentOptions={}) {
     const context = {
       page: this.parent,
-      type: CONFIG.DND5E.ruleTypes[this.type].label,
+      type: CONFIG.SKJAALD.ruleTypes[this.type].label,
       content: await TextEditor.enrichHTML(this.tooltip || this.parent.text.content, {
         secrets: false, async: true, relativeTo: this.parent, ...enrichmentOptions
       })
     };
     return {
-      content: await renderTemplate("systems/dnd5e/templates/journal/page-rule-tooltip.hbs", context),
-      classes: ["dnd5e-tooltip", "rule-tooltip"]
+      content: await renderTemplate("systems/skjaald/templates/journal/page-rule-tooltip.hbs", context),
+      classes: ["skjaald-tooltip", "rule-tooltip"]
     };
   }
 }
@@ -43213,11 +43213,11 @@ class SubclassJournalPageData extends foundry.abstract.DataModel {
   /** @inheritDoc */
   static defineSchema() {
     return {
-      item: new foundry.data.fields.StringField({required: true, label: "JOURNALENTRYPAGE.DND5E.Subclass.Item"}),
+      item: new foundry.data.fields.StringField({required: true, label: "JOURNALENTRYPAGE.SKJAALD.Subclass.Item"}),
       description: new foundry.data.fields.SchemaField({
         value: new foundry.data.fields.HTMLField({
-          label: "JOURNALENTRYPAGE.DND5E.Class.Description",
-          hint: "JOURNALENTRYPAGE.DND5E.Class.DescriptionHint"
+          label: "JOURNALENTRYPAGE.SKJAALD.Class.Description",
+          hint: "JOURNALENTRYPAGE.SKJAALD.Class.DescriptionHint"
         })
       })
     };
@@ -43342,7 +43342,7 @@ class ChatMessage5e extends ChatMessage {
    * @type {boolean}
    */
   get canApplyDamage() {
-    const type = this.flags.dnd5e?.roll?.type;
+    const type = this.flags.skjaald?.roll?.type;
     if ( type && (type !== "damage") ) return false;
     return this.isRoll && this.isContentVisible && !!canvas.tokens?.controlled.length;
   }
@@ -43354,7 +43354,7 @@ class ChatMessage5e extends ChatMessage {
    * @type {boolean}
    */
   get canSelectTargets() {
-    if ( this.flags.dnd5e?.roll?.type !== "attack" ) return false;
+    if ( this.flags.skjaald?.roll?.type !== "attack" ) return false;
     return this.isRoll && this.isContentVisible;
   }
 
@@ -43366,7 +43366,7 @@ class ChatMessage5e extends ChatMessage {
    */
   get shouldDisplayChallenge() {
     if ( game.user.isGM || (this.user === game.user) ) return true;
-    switch ( game.settings.get("dnd5e", "challengeVisibility") ) {
+    switch ( game.settings.get("skjaald", "challengeVisibility") ) {
       case "all": return true;
       case "player": return !this.user.isGM;
       default: return false;
@@ -43383,7 +43383,7 @@ class ChatMessage5e extends ChatMessage {
 
     this._displayChatActionButtons(html);
     this._highlightCriticalSuccessFailure(html);
-    if ( game.settings.get("dnd5e", "autoCollapseItemCards") ) {
+    if ( game.settings.get("skjaald", "autoCollapseItemCards") ) {
       html.find(".description.collapsible").each((i, el) => el.classList.add("collapsed"));
     }
 
@@ -43391,13 +43391,13 @@ class ChatMessage5e extends ChatMessage {
     this._collapseTrays(html[0]);
 
     /**
-     * A hook event that fires after dnd5e-specific chat message modifications have completed.
-     * @function dnd5e.renderChatMessage
+     * A hook event that fires after skjaald-specific chat message modifications have completed.
+     * @function skjaald.renderChatMessage
      * @memberof hookEvents
      * @param {ChatMessage5e} message  Chat message being rendered.
      * @param {HTMLElement} html       HTML contents of the message.
      */
-    Hooks.callAll("dnd5e.renderChatMessage", this, html[0]);
+    Hooks.callAll("skjaald.renderChatMessage", this, html[0]);
 
     return html;
   }
@@ -43410,7 +43410,7 @@ class ChatMessage5e extends ChatMessage {
    */
   _collapseTrays(html) {
     let collapse;
-    switch ( game.settings.get("dnd5e", "autoCollapseChatTrays") ) {
+    switch ( game.settings.get("skjaald", "autoCollapseChatTrays") ) {
       case "always": collapse = true; break;
       case "never": collapse = false; break;
       // Collapse chat message trays older than 5 minutes
@@ -43432,7 +43432,7 @@ class ChatMessage5e extends ChatMessage {
    * @protected
    */
   _displayChatActionButtons(html) {
-    const chatCard = html.find(".dnd5e.chat-card, .dnd5e2.chat-card");
+    const chatCard = html.find(".skjaald.chat-card, .skjaald2.chat-card");
     if ( chatCard.length > 0 ) {
       const flavor = html.find(".flavor-text");
       if ( flavor.text() === html.find(".item-name").text() ) flavor.remove();
@@ -43453,8 +43453,8 @@ class ChatMessage5e extends ChatMessage {
         };
         optionallyHide('button[data-action="summon"]', !SummonsData.canSummon);
         optionallyHide('button[data-action="placeTemplate"]', !game.user.can("TEMPLATE_CREATE"));
-        optionallyHide('button[data-action="consumeUsage"]', this.getFlag("dnd5e", "use.consumedUsage"));
-        optionallyHide('button[data-action="consumeResource"]', this.getFlag("dnd5e", "use.consumedResource"));
+        optionallyHide('button[data-action="consumeUsage"]', this.getFlag("skjaald", "use.consumedUsage"));
+        optionallyHide('button[data-action="consumeResource"]', this.getFlag("skjaald", "use.consumedResource"));
         return;
       }
 
@@ -43476,7 +43476,7 @@ class ChatMessage5e extends ChatMessage {
    */
   _highlightCriticalSuccessFailure(html) {
     if ( !this.isContentVisible || !this.rolls.length ) return;
-    const originatingMessage = game.messages.get(this.getFlag("dnd5e", "originatingMessage")) ?? this;
+    const originatingMessage = game.messages.get(this.getFlag("skjaald", "originatingMessage")) ?? this;
     const displayChallenge = originatingMessage?.shouldDisplayChallenge;
 
     // Highlight rolls where the first part is a d20 roll
@@ -43485,7 +43485,7 @@ class ChatMessage5e extends ChatMessage {
       const d0 = d20Roll.dice[0];
       if ( (d0?.faces !== 20) || (d0?.values.length !== 1) ) continue;
 
-      d20Roll = dnd5e.dice.D20Roll.fromRoll(d20Roll);
+      d20Roll = skjaald.dice.D20Roll.fromRoll(d20Roll);
       const d = d20Roll.dice[0];
 
       const isModifiedRoll = ("success" in d.results[0]) || d.options.marginSuccess || d.options.marginFailure;
@@ -43549,31 +43549,31 @@ class ChatMessage5e extends ChatMessage {
     const metadata = html.querySelector(".message-metadata");
     metadata.querySelector(".message-delete")?.remove();
     const anchor = document.createElement("a");
-    anchor.setAttribute("aria-label", game.i18n.localize("DND5E.AdditionalControls"));
+    anchor.setAttribute("aria-label", game.i18n.localize("SKJAALD.AdditionalControls"));
     anchor.classList.add("chat-control");
     anchor.dataset.contextMenu = "";
     anchor.innerHTML = '<i class="fas fa-ellipsis-vertical fa-fw"></i>';
     metadata.appendChild(anchor);
 
     // SVG icons
-    html.querySelectorAll("i.dnd5e-icon").forEach(el => {
-      const icon = document.createElement("dnd5e-icon");
+    html.querySelectorAll("i.skjaald-icon").forEach(el => {
+      const icon = document.createElement("skjaald-icon");
       icon.src = el.dataset.src;
       el.replaceWith(icon);
     });
 
     // Enriched roll flavor
-    const roll = this.getFlag("dnd5e", "roll");
+    const roll = this.getFlag("skjaald", "roll");
     const item = fromUuidSync(roll?.itemUuid);
     if ( this.isContentVisible && item ) {
       const isCritical = (roll.type === "damage") && this.rolls[0]?.options?.critical;
       const subtitle = roll.type === "damage"
-        ? isCritical ? game.i18n.localize("DND5E.CriticalHit") : game.i18n.localize("DND5E.DamageRoll")
+        ? isCritical ? game.i18n.localize("SKJAALD.CriticalHit") : game.i18n.localize("SKJAALD.DamageRoll")
         : roll.type === "attack"
-          ? game.i18n.localize(`DND5E.Action${item.system.actionType.toUpperCase()}`)
+          ? game.i18n.localize(`SKJAALD.Action${item.system.actionType.toUpperCase()}`)
           : item.system.type?.label ?? game.i18n.localize(CONFIG.Item.typeLabels[item.type]);
       const flavor = document.createElement("div");
-      flavor.classList.add("dnd5e2", "chat-card");
+      flavor.classList.add("skjaald2", "chat-card");
       flavor.innerHTML = `
         <section class="card-header description ${isCritical ? "critical" : ""}">
           <header class="summary">
@@ -43642,10 +43642,10 @@ class ChatMessage5e extends ChatMessage {
    */
   _enrichAttackTargets(html) {
     const attackRoll = this.rolls[0];
-    const targets = this.getFlag("dnd5e", "targets");
-    if ( !game.user.isGM || !(attackRoll instanceof dnd5e.dice.D20Roll) || !targets?.length ) return;
+    const targets = this.getFlag("skjaald", "targets");
+    if ( !game.user.isGM || !(attackRoll instanceof skjaald.dice.D20Roll) || !targets?.length ) return;
     const evaluation = document.createElement("ul");
-    evaluation.classList.add("dnd5e2", "evaluation");
+    evaluation.classList.add("skjaald2", "evaluation");
     evaluation.innerHTML = targets.map(({ name, img, ac, uuid }) => {
       const isMiss = !attackRoll.isCritical && ((attackRoll.total < ac) || attackRoll.isFumble);
       return [`
@@ -43694,7 +43694,7 @@ class ChatMessage5e extends ChatMessage {
     roll.classList.add("dice-roll");
 
     const tooltipContents = Object.entries(breakdown).reduce((str, [type, { total, constant, dice }]) => {
-      const config = CONFIG.DND5E.damageTypes[type] ?? CONFIG.DND5E.healingTypes[type];
+      const config = CONFIG.SKJAALD.damageTypes[type] ?? CONFIG.SKJAALD.healingTypes[type];
       return `${str}
         <section class="tooltip-part">
           <div class="dice">
@@ -43731,7 +43731,7 @@ class ChatMessage5e extends ChatMessage {
 
     if ( game.user.isGM ) {
       const damageApplication = document.createElement("damage-application");
-      damageApplication.classList.add("dnd5e2");
+      damageApplication.classList.add("skjaald2");
       damageApplication.damages = aggregateDamageRolls(rolls, { respectProperties: true }).map(roll => ({
         value: roll.total,
         type: roll.options.type,
@@ -43776,16 +43776,16 @@ class ChatMessage5e extends ChatMessage {
    * @protected
    */
   _enrichEnchantmentTooltip(html) {
-    const enchantmentProfile = this.getFlag("dnd5e", "use.enchantmentProfile");
+    const enchantmentProfile = this.getFlag("skjaald", "use.enchantmentProfile");
     if ( !enchantmentProfile ) return;
 
     // Ensure concentration is still being maintained
-    const concentrationId = this.getFlag("dnd5e", "use.concentrationId");
+    const concentrationId = this.getFlag("skjaald", "use.concentrationId");
     if ( concentrationId && !this.getAssociatedActor()?.effects.get(concentrationId) ) return;
 
     // Create the enchantment tray
     const enchantmentApplication = document.createElement("enchantment-application");
-    enchantmentApplication.classList.add("dnd5e2");
+    enchantmentApplication.classList.add("skjaald2");
     const afterElement = html.querySelector(".card-footer") ?? html.querySelector(".effects-tray");
     afterElement.insertAdjacentElement("beforebegin", enchantmentApplication);
   }
@@ -43808,49 +43808,49 @@ class ChatMessage5e extends ChatMessage {
     const canTarget = ([li]) => game.messages.get(li.dataset.messageId)?.canSelectTargets;
     options.push(
       {
-        name: game.i18n.localize("DND5E.ChatContextDamage"),
+        name: game.i18n.localize("SKJAALD.ChatContextDamage"),
         icon: '<i class="fas fa-user-minus"></i>',
         condition: canApply,
         callback: li => game.messages.get(li.data("messageId"))?.applyChatCardDamage(li, 1),
         group: "damage"
       },
       {
-        name: game.i18n.localize("DND5E.ChatContextHealing"),
+        name: game.i18n.localize("SKJAALD.ChatContextHealing"),
         icon: '<i class="fas fa-user-plus"></i>',
         condition: canApply,
         callback: li => game.messages.get(li.data("messageId"))?.applyChatCardDamage(li, -1),
         group: "damage"
       },
       {
-        name: game.i18n.localize("DND5E.ChatContextTempHP"),
+        name: game.i18n.localize("SKJAALD.ChatContextTempHP"),
         icon: '<i class="fas fa-user-clock"></i>',
         condition: canApply,
         callback: li => game.messages.get(li.data("messageId"))?.applyChatCardTemp(li),
         group: "damage"
       },
       {
-        name: game.i18n.localize("DND5E.ChatContextDoubleDamage"),
+        name: game.i18n.localize("SKJAALD.ChatContextDoubleDamage"),
         icon: '<i class="fas fa-user-injured"></i>',
         condition: canApply,
         callback: li => game.messages.get(li.data("messageId"))?.applyChatCardDamage(li, 2),
         group: "damage"
       },
       {
-        name: game.i18n.localize("DND5E.ChatContextHalfDamage"),
+        name: game.i18n.localize("SKJAALD.ChatContextHalfDamage"),
         icon: '<i class="fas fa-user-shield"></i>',
         condition: canApply,
         callback: li => game.messages.get(li.data("messageId"))?.applyChatCardDamage(li, 0.5),
         group: "damage"
       },
       {
-        name: game.i18n.localize("DND5E.ChatContextSelectHit"),
+        name: game.i18n.localize("SKJAALD.ChatContextSelectHit"),
         icon: '<i class="fas fa-bullseye"></i>',
         condition: canTarget,
         callback: ([li]) => game.messages.get(li.dataset.messageId)?.selectTargets(li, "hit"),
         group: "attack"
       },
       {
-        name: game.i18n.localize("DND5E.ChatContextSelectMiss"),
+        name: game.i18n.localize("SKJAALD.ChatContextSelectMiss"),
         icon: '<i class="fas fa-bullseye"></i>',
         condition: canTarget,
         callback: ([li]) => game.messages.get(li.dataset.messageId)?.selectTargets(li, "miss"),
@@ -44004,7 +44004,7 @@ class ChatMessage5e extends ChatMessage {
    * @param {jQuery} html  The chat log HTML.
    */
   static onRenderChatLog([html]) {
-    if ( !game.settings.get("dnd5e", "autoCollapseItemCards") ) {
+    if ( !game.settings.get("skjaald", "autoCollapseItemCards") ) {
       requestAnimationFrame(() => {
         // FIXME: Allow time for transitions to complete. Adding a transitionend listener does not appear to work, so
         // the transition time is hard-coded for now.
@@ -44039,10 +44039,10 @@ class ChatMessage5e extends ChatMessage {
   getAssociatedItem() {
     const actor = this.getAssociatedActor();
     if ( !actor ) return;
-    const storedData = this.getFlag("dnd5e", "itemData");
+    const storedData = this.getFlag("skjaald", "itemData");
     return storedData
       ? new Item.implementation(storedData, { parent: actor })
-      : actor.items.get(this.getFlag("dnd5e", "use.itemId"));
+      : actor.items.get(this.getFlag("skjaald", "use.itemId"));
   }
 }
 
@@ -44109,7 +44109,7 @@ class Combatant5e extends Combatant {
   refreshDynamicRing() {
     if ( !this.token?.hasDynamicRing ) return;
     if ( game.release.generation < 12 ) {
-      this.token.object?.ring.configureVisuals(foundry.utils.deepClone(this.token.getFlag("dnd5e", "tokenRing") ?? {}));
+      this.token.object?.ring.configureVisuals(foundry.utils.deepClone(this.token.getFlag("skjaald", "tokenRing") ?? {}));
     } else this.token.object?.renderFlags.set({refreshRingVisuals: true});
   }
 
@@ -44194,7 +44194,7 @@ const migrateWorld = async function() {
         });
       }
     } catch(err) {
-      err.message = `Failed dnd5e system migration for Actor ${actor.name}: ${err.message}`;
+      err.message = `Failed skjaald system migration for Actor ${actor.name}: ${err.message}`;
       console.error(err);
     }
   }
@@ -44217,7 +44217,7 @@ const migrateWorld = async function() {
         });
       }
     } catch(err) {
-      err.message = `Failed dnd5e system migration for Item ${item.name}: ${err.message}`;
+      err.message = `Failed skjaald system migration for Item ${item.name}: ${err.message}`;
       console.error(err);
     }
   }
@@ -44231,7 +44231,7 @@ const migrateWorld = async function() {
         await m.update(updateData, {enforceTypes: false, render: false});
       }
     } catch(err) {
-      err.message = `Failed dnd5e system migration for Macro ${m.name}: ${err.message}`;
+      err.message = `Failed skjaald system migration for Macro ${m.name}: ${err.message}`;
       console.error(err);
     }
   }
@@ -44245,7 +44245,7 @@ const migrateWorld = async function() {
         await table.update(updateData, { enforceTypes: false, render: false });
       }
     } catch(err) {
-      err.message = `Failed dnd5e system migration for RollTable ${table.name}: ${err.message}`;
+      err.message = `Failed skjaald system migration for RollTable ${table.name}: ${err.message}`;
       console.error(err);
     }
   }
@@ -44259,7 +44259,7 @@ const migrateWorld = async function() {
         await s.update(updateData, {enforceTypes: false, render: false});
       }
     } catch(err) {
-      err.message = `Failed dnd5e system migration for Scene ${s.name}: ${err.message}`;
+      err.message = `Failed skjaald system migration for Scene ${s.name}: ${err.message}`;
       console.error(err);
     }
 
@@ -44288,7 +44288,7 @@ const migrateWorld = async function() {
           });
         }
       } catch(err) {
-        err.message = `Failed dnd5e system migration for ActorDelta [${token.id}]: ${err.message}`;
+        err.message = `Failed skjaald system migration for ActorDelta [${token.id}]: ${err.message}`;
         console.error(err);
       }
     }
@@ -44302,7 +44302,7 @@ const migrateWorld = async function() {
   }
 
   // Set the migration as complete
-  game.settings.set("dnd5e", "systemMigrationVersion", game.system.version);
+  game.settings.set("skjaald", "systemMigrationVersion", game.system.version);
   ui.notifications.info(game.i18n.format("MIGRATION.5eComplete", {version}), {permanent: true});
 };
 
@@ -44322,7 +44322,7 @@ const migrateCompendium = async function(pack) {
   // Unlock the pack for editing
   const wasLocked = pack.locked;
   await pack.configure({locked: false});
-  dnd5e.moduleArt.suppressArt = true;
+  skjaald.moduleArt.suppressArt = true;
 
   // Begin by requesting server-side data model migration and get the migrated content
   await pack.migrate();
@@ -44363,14 +44363,14 @@ const migrateCompendium = async function(pack) {
 
     // Handle migration failures
     catch(err) {
-      err.message = `Failed dnd5e system migration for document ${doc.name} in pack ${pack.collection}: ${err.message}`;
+      err.message = `Failed skjaald system migration for document ${doc.name} in pack ${pack.collection}: ${err.message}`;
       console.error(err);
     }
   }
 
   // Apply the original locked status for the pack
   await pack.configure({locked: wasLocked});
-  dnd5e.moduleArt.suppressArt = false;
+  skjaald.moduleArt.suppressArt = false;
   console.log(`Migrated all ${documentName} documents from Compendium ${pack.collection}`);
 };
 
@@ -44431,7 +44431,7 @@ async function refreshAllCompendiums() {
  */
 async function refreshCompendium(pack) {
   if ( !pack?.documentName ) return;
-  dnd5e.moduleArt.suppressArt = true;
+  skjaald.moduleArt.suppressArt = true;
   const DocumentClass = CONFIG[pack.documentName].documentClass;
   const wasLocked = pack.locked;
   await pack.configure({locked: false});
@@ -44445,7 +44445,7 @@ async function refreshCompendium(pack) {
     await DocumentClass.create(data, {keepId: true, keepEmbeddedIds: true, pack: pack.collection});
   }
   await pack.configure({locked: wasLocked});
-  dnd5e.moduleArt.suppressArt = false;
+  skjaald.moduleArt.suppressArt = false;
   ui.notifications.info(`Refreshed all documents from Compendium ${pack.collection}`);
 }
 
@@ -44464,7 +44464,7 @@ const migrateArmorClass = async function(pack) {
   await pack.configure({locked: false});
   const actors = await pack.getDocuments();
   const updates = [];
-  const armor = new Set(Object.keys(CONFIG.DND5E.armorTypes));
+  const armor = new Set(Object.keys(CONFIG.SKJAALD.armorTypes));
 
   for ( const actor of actors ) {
     try {
@@ -44588,18 +44588,18 @@ function migrateItemData(item, migrationData, flags={}) {
   }
 
   // Migrate properties
-  const migratedProperties = foundry.utils.getProperty(item, "flags.dnd5e.migratedProperties");
+  const migratedProperties = foundry.utils.getProperty(item, "flags.skjaald.migratedProperties");
   if ( migratedProperties?.length ) {
     flags.persistSourceMigration = true;
     const properties = new Set(foundry.utils.getProperty(item, "system.properties") ?? [])
       .union(new Set(migratedProperties));
     updateData["system.properties"] = Array.from(properties);
-    updateData["flags.dnd5e.-=migratedProperties"] = null;
+    updateData["flags.skjaald.-=migratedProperties"] = null;
   }
 
-  if ( foundry.utils.getProperty(item, "flags.dnd5e.persistSourceMigration") ) {
+  if ( foundry.utils.getProperty(item, "flags.skjaald.persistSourceMigration") ) {
     flags.persistSourceMigration = true;
-    updateData["flags.dnd5e.-=persistSourceMigration"] = null;
+    updateData["flags.skjaald.-=persistSourceMigration"] = null;
   }
 
   return updateData;
@@ -44744,8 +44744,8 @@ const migrateSceneData = function(scene, migrationData) {
 const getMigrationData = async function() {
   const data = {};
   try {
-    const icons = await fetch("systems/dnd5e/json/icon-migration.json");
-    const spellIcons = await fetch("systems/dnd5e/json/spell-icon-migration.json");
+    const icons = await fetch("systems/skjaald/json/icon-migration.json");
+    const spellIcons = await fetch("systems/skjaald/json/spell-icon-migration.json");
     data.iconMap = {...await icons.json(), ...await spellIcons.json()};
   } catch(err) {
     console.warn(`Failed to retrieve icon migration data: ${err.message}`);
@@ -44831,11 +44831,11 @@ function _migrateActorAC(actorData, updateData) {
  */
 function _migrateActorMovementSenses(actorData, updateData) {
   if ( actorData._stats?.systemVersion && foundry.utils.isNewerVersion("2.4.0", actorData._stats.systemVersion) ) {
-    for ( const key of Object.keys(CONFIG.DND5E.movementTypes) ) {
+    for ( const key of Object.keys(CONFIG.SKJAALD.movementTypes) ) {
       const keyPath = `system.attributes.movement.${key}`;
       if ( foundry.utils.getProperty(actorData, keyPath) === 0 ) updateData[keyPath] = null;
     }
-    for ( const key of Object.keys(CONFIG.DND5E.senses) ) {
+    for ( const key of Object.keys(CONFIG.SKJAALD.senses) ) {
       const keyPath = `system.attributes.senses.${key}`;
       if ( foundry.utils.getProperty(actorData, keyPath) === 0 ) updateData[keyPath] = null;
     }
@@ -44853,12 +44853,12 @@ function _migrateActorMovementSenses(actorData, updateData) {
  * @private
  */
 function _migrateTokenImage(actorData, updateData) {
-  const oldSystemPNG = /^systems\/dnd5e\/tokens\/([a-z]+)\/([A-z]+).png$/;
+  const oldSystemPNG = /^systems\/skjaald\/tokens\/([a-z]+)\/([A-z]+).png$/;
   for ( const path of ["texture.src", "prototypeToken.texture.src"] ) {
     const v = foundry.utils.getProperty(actorData, path);
     if ( oldSystemPNG.test(v) ) {
       const [type, fileName] = v.match(oldSystemPNG).slice(1);
-      updateData[path] = `systems/dnd5e/tokens/${type}/${fileName}.webp`;
+      updateData[path] = `systems/skjaald/tokens/${type}/${fileName}.webp`;
     }
   }
   return updateData;
@@ -44931,16 +44931,16 @@ function _migrateTransferEffect(effect, parent, updateData) {
 /* -------------------------------------------- */
 
 /**
- * Migrate macros from the old 'dnd5e.rollItemMacro' and 'dnd5e.macros' commands to the new location.
+ * Migrate macros from the old 'skjaald.rollItemMacro' and 'skjaald.macros' commands to the new location.
  * @param {object} macro       Macro data to migrate.
  * @param {object} updateData  Existing update to expand upon.
  * @returns {object}           The updateData to apply.
  */
 function _migrateMacroCommands(macro, updateData) {
-  if ( macro.command.includes("game.dnd5e.rollItemMacro") ) {
-    updateData.command = macro.command.replaceAll("game.dnd5e.rollItemMacro", "dnd5e.documents.macro.rollItem");
-  } else if ( macro.command.includes("game.dnd5e.macros.") ) {
-    updateData.command = macro.command.replaceAll("game.dnd5e.macros.", "dnd5e.documents.macro.");
+  if ( macro.command.includes("game.skjaald.rollItemMacro") ) {
+    updateData.command = macro.command.replaceAll("game.skjaald.rollItemMacro", "skjaald.documents.macro.rollItem");
+  } else if ( macro.command.includes("game.skjaald.macros.") ) {
+    updateData.command = macro.command.replaceAll("game.skjaald.macros.", "skjaald.documents.macro.");
   }
   return updateData;
 }
@@ -44954,8 +44954,8 @@ function _migrateMacroCommands(macro, updateData) {
  */
 async function purgeFlags(pack) {
   const cleanFlags = flags => {
-    const flags5e = flags.dnd5e || null;
-    return flags5e ? {dnd5e: flags5e} : {};
+    const flags5e = flags.skjaald || null;
+    return flags5e ? {skjaald: flags5e} : {};
   };
   await pack.configure({locked: false});
   const content = await pack.getDocuments();
@@ -45078,7 +45078,7 @@ class Tooltips5e {
     // Sheet-specific tooltips
     if ( loading?.dataset.uuid ) {
       const doc = await fromUuid(loading.dataset.uuid);
-      if ( doc instanceof dnd5e.documents.Actor5e ) return this._onHoverActor(doc);
+      if ( doc instanceof skjaald.documents.Actor5e ) return this._onHoverActor(doc);
       return this._onHoverContentLink(doc);
     }
 
@@ -45129,19 +45129,19 @@ class Tooltips5e {
    * @protected
    */
   async _onHoverPassive(skill, ability, dc) {
-    const skillConfig = CONFIG.DND5E.skills[skill];
-    const abilityConfig = CONFIG.DND5E.abilities[ability ?? skillConfig.ability];
+    const skillConfig = CONFIG.SKJAALD.skills[skill];
+    const abilityConfig = CONFIG.SKJAALD.abilities[ability ?? skillConfig.ability];
 
     let label;
     if ( skillConfig ) {
-      label = game.i18n.format("DND5E.SkillPassiveSpecificHint", { skill: skillConfig.label, ability: abilityConfig.label });
+      label = game.i18n.format("SKJAALD.SkillPassiveSpecificHint", { skill: skillConfig.label, ability: abilityConfig.label });
     } else {
       // If no skill was provided, we're doing a passive ability check.
       // This isn't technically a thing in the rules, but we can support it anyway if people want to use it.
-      label = game.i18n.format("DND5E.SkillPassiveHint", { skill: abilityConfig.label });
+      label = game.i18n.format("SKJAALD.SkillPassiveHint", { skill: abilityConfig.label });
     }
 
-    const party = game.settings.get("dnd5e", "primaryParty")?.actor;
+    const party = game.settings.get("skjaald", "primaryParty")?.actor;
     if ( !party ) {
       this.tooltip.innerHTML = label;
       return;
@@ -45170,8 +45170,8 @@ class Tooltips5e {
       context.party.push(data);
     }
 
-    this.tooltip.classList.add("dnd5e-tooltip", "passive-tooltip");
-    this.tooltip.innerHTML = await renderTemplate("systems/dnd5e/templates/journal/passive-tooltip.hbs", context);
+    this.tooltip.classList.add("skjaald-tooltip", "passive-tooltip");
+    this.tooltip.innerHTML = await renderTemplate("systems/skjaald/templates/journal/passive-tooltip.hbs", context);
     game.tooltip._setAnchor(TooltipManager.TOOLTIP_DIRECTIONS.DOWN);
   }
 
@@ -45236,9 +45236,9 @@ class Tooltips5e {
  * A system for playing the fifth edition of the world's most popular role-playing game.
  * Author: Atropos
  * Software License: MIT
- * Content License: https://www.dndbeyond.com/attachments/39j2li89/SRD5.1-CCBY4.0License.pdf
- * Repository: https://github.com/foundryvtt/dnd5e
- * Issue Tracker: https://github.com/foundryvtt/dnd5e/issues
+ * Content License: https://www.skjaaldbeyond.com/attachments/39j2li89/SRD5.1-CCBY4.0License.pdf
+ * Repository: https://github.com/foundryvtt/skjaald
+ * Issue Tracker: https://github.com/foundryvtt/skjaald/issues
  */
 
 
@@ -45246,10 +45246,10 @@ class Tooltips5e {
 /*  Define Module Structure                     */
 /* -------------------------------------------- */
 
-globalThis.dnd5e = {
+globalThis.skjaald = {
   applications,
   canvas: canvas$1,
-  config: DND5E,
+  config: SKJAALD,
   dataModels,
   dice,
   documents,
@@ -45263,8 +45263,8 @@ globalThis.dnd5e = {
 /* -------------------------------------------- */
 
 Hooks.once("init", function() {
-  globalThis.dnd5e = game.dnd5e = Object.assign(game.system, globalThis.dnd5e);
-  console.log(`D&D 5e | Initializing the D&D Fifth Game System - Version ${dnd5e.version}\n${DND5E.ASCII}`);
+  globalThis.skjaald = game.skjaald = Object.assign(game.system, globalThis.skjaald);
+  console.log(`D&D 5e | Initializing the D&D Fifth Game System - Version ${skjaald.version}\n${SKJAALD.ASCII}`);
 
   // TODO: Remove when v11 support is dropped.
   CONFIG.compatibility.excludePatterns.push(/filePicker|select/);
@@ -45276,7 +45276,7 @@ Hooks.once("init", function() {
   if ( game.release.generation < 12 ) Math.clamp = Math.clamped;
 
   // Record Configuration Values
-  CONFIG.DND5E = DND5E;
+  CONFIG.SKJAALD = SKJAALD;
   CONFIG.ActiveEffect.documentClass = ActiveEffect5e;
   CONFIG.ActiveEffect.legacyTransferral = false;
   CONFIG.Actor.documentClass = Actor5e;
@@ -45291,29 +45291,29 @@ Hooks.once("init", function() {
   CONFIG.Token.ringClass = TokenRing;
   CONFIG.User.documentClass = User5e;
   CONFIG.time.roundTime = 6;
-  Roll.TOOLTIP_TEMPLATE = "systems/dnd5e/templates/chat/roll-breakdown.hbs";
+  Roll.TOOLTIP_TEMPLATE = "systems/skjaald/templates/chat/roll-breakdown.hbs";
   CONFIG.Dice.DamageRoll = DamageRoll;
   CONFIG.Dice.D20Roll = D20Roll;
   CONFIG.MeasuredTemplate.defaults.angle = 53.13; // 5e cone RAW should be 53.13 degrees
   CONFIG.Note.objectClass = Note5e;
   CONFIG.ui.combat = CombatTracker5e;
-  CONFIG.ui.items = dnd5e.applications.item.ItemDirectory5e;
+  CONFIG.ui.items = skjaald.applications.item.ItemDirectory5e;
 
   // Register System Settings
   registerSystemSettings();
 
   // Configure module art
-  game.dnd5e.moduleArt = new ModuleArt();
+  game.skjaald.moduleArt = new ModuleArt();
 
   // Configure tooltips
-  game.dnd5e.tooltips = new Tooltips5e();
+  game.skjaald.tooltips = new Tooltips5e();
 
   // Set up status effects
   _configureStatusEffects();
 
   // Remove honor & sanity from configuration if they aren't enabled
-  if ( !game.settings.get("dnd5e", "honorScore") ) delete DND5E.abilities.hon;
-  if ( !game.settings.get("dnd5e", "sanityScore") ) delete DND5E.abilities.san;
+  if ( !game.settings.get("skjaald", "honorScore") ) delete SKJAALD.abilities.hon;
+  if ( !game.settings.get("skjaald", "sanityScore") ) delete SKJAALD.abilities.san;
 
   // Register Roll Extensions
   CONFIG.Dice.rolls.push(D20Roll);
@@ -45329,68 +45329,68 @@ Hooks.once("init", function() {
 
   // Register sheet application classes
   Actors.unregisterSheet("core", ActorSheet);
-  Actors.registerSheet("dnd5e", ActorSheet5eCharacter, {
+  Actors.registerSheet("skjaald", ActorSheet5eCharacter, {
     types: ["character"],
-    label: "DND5E.SheetClassCharacterLegacy"
+    label: "SKJAALD.SheetClassCharacterLegacy"
   });
-  DocumentSheetConfig.registerSheet(Actor, "dnd5e", ActorSheet5eCharacter2, {
+  DocumentSheetConfig.registerSheet(Actor, "skjaald", ActorSheet5eCharacter2, {
     types: ["character"],
     makeDefault: true,
-    label: "DND5E.SheetClassCharacter"
+    label: "SKJAALD.SheetClassCharacter"
   });
-  Actors.registerSheet("dnd5e", ActorSheet5eNPC, {
+  Actors.registerSheet("skjaald", ActorSheet5eNPC, {
     types: ["npc"],
     makeDefault: true,
-    label: "DND5E.SheetClassNPC"
+    label: "SKJAALD.SheetClassNPC"
   });
-  Actors.registerSheet("dnd5e", ActorSheet5eVehicle, {
+  Actors.registerSheet("skjaald", ActorSheet5eVehicle, {
     types: ["vehicle"],
     makeDefault: true,
-    label: "DND5E.SheetClassVehicle"
+    label: "SKJAALD.SheetClassVehicle"
   });
-  Actors.registerSheet("dnd5e", GroupActorSheet, {
+  Actors.registerSheet("skjaald", GroupActorSheet, {
     types: ["group"],
     makeDefault: true,
-    label: "DND5E.SheetClassGroup"
+    label: "SKJAALD.SheetClassGroup"
   });
 
   DocumentSheetConfig.unregisterSheet(Item, "core", ItemSheet);
-  DocumentSheetConfig.registerSheet(Item, "dnd5e", ItemSheet5e, {
+  DocumentSheetConfig.registerSheet(Item, "skjaald", ItemSheet5e, {
     makeDefault: true,
-    label: "DND5E.SheetClassItem"
+    label: "SKJAALD.SheetClassItem"
   });
-  DocumentSheetConfig.unregisterSheet(Item, "dnd5e", ItemSheet5e, { types: ["container"] });
-  DocumentSheetConfig.registerSheet(Item, "dnd5e", ContainerSheet, {
+  DocumentSheetConfig.unregisterSheet(Item, "skjaald", ItemSheet5e, { types: ["container"] });
+  DocumentSheetConfig.registerSheet(Item, "skjaald", ContainerSheet, {
     makeDefault: true,
     types: ["container"],
-    label: "DND5E.SheetClassContainer"
+    label: "SKJAALD.SheetClassContainer"
   });
 
-  DocumentSheetConfig.registerSheet(JournalEntry, "dnd5e", JournalSheet5e, {
+  DocumentSheetConfig.registerSheet(JournalEntry, "skjaald", JournalSheet5e, {
     makeDefault: true,
-    label: "DND5E.SheetClassJournalEntry"
+    label: "SKJAALD.SheetClassJournalEntry"
   });
-  DocumentSheetConfig.registerSheet(JournalEntryPage, "dnd5e", JournalClassPageSheet, {
-    label: "DND5E.SheetClassClassSummary",
+  DocumentSheetConfig.registerSheet(JournalEntryPage, "skjaald", JournalClassPageSheet, {
+    label: "SKJAALD.SheetClassClassSummary",
     types: ["class", "subclass"]
   });
-  DocumentSheetConfig.registerSheet(JournalEntryPage, "dnd5e", JournalMapLocationPageSheet, {
-    label: "DND5E.SheetClassMapLocation",
+  DocumentSheetConfig.registerSheet(JournalEntryPage, "skjaald", JournalMapLocationPageSheet, {
+    label: "SKJAALD.SheetClassMapLocation",
     types: ["map"]
   });
-  DocumentSheetConfig.registerSheet(JournalEntryPage, "dnd5e", JournalRulePageSheet, {
-    label: "DND5E.SheetClassRule",
+  DocumentSheetConfig.registerSheet(JournalEntryPage, "skjaald", JournalRulePageSheet, {
+    label: "SKJAALD.SheetClassRule",
     types: ["rule"]
   });
-  DocumentSheetConfig.registerSheet(JournalEntryPage, "dnd5e", JournalSpellListPageSheet, {
-    label: "DND5E.SheetClassSpellList",
+  DocumentSheetConfig.registerSheet(JournalEntryPage, "skjaald", JournalSpellListPageSheet, {
+    label: "SKJAALD.SheetClassSpellList",
     types: ["spells"]
   });
 
   CONFIG.Token.prototypeSheetClass = TokenConfig5e;
   DocumentSheetConfig.unregisterSheet(TokenDocument, "core", TokenConfig);
-  DocumentSheetConfig.registerSheet(TokenDocument, "dnd5e", TokenConfig5e, {
-    label: "DND5E.SheetClassToken"
+  DocumentSheetConfig.registerSheet(TokenDocument, "skjaald", TokenConfig5e, {
+    label: "SKJAALD.SheetClassToken"
   });
 
   // Preload Handlebars helpers & partials
@@ -45414,13 +45414,13 @@ function _configureTrackableAttributes() {
   const common = {
     bar: [],
     value: [
-      ...Object.keys(DND5E.abilities).map(ability => `abilities.${ability}.value`),
-      ...Object.keys(DND5E.movementTypes).map(movement => `attributes.movement.${movement}`),
+      ...Object.keys(SKJAALD.abilities).map(ability => `abilities.${ability}.value`),
+      ...Object.keys(SKJAALD.movementTypes).map(movement => `attributes.movement.${movement}`),
       "attributes.ac.value", "attributes.init.total"
     ]
   };
 
-  const altSpells = Object.entries(DND5E.spellPreparationModes).reduce((acc, [k, v]) => {
+  const altSpells = Object.entries(SKJAALD.spellPreparationModes).reduce((acc, [k, v]) => {
     if ( !["prepared", "always"].includes(k) && v.upcast ) acc.push(`spells.${k}`);
     return acc;
   }, []);
@@ -45430,12 +45430,12 @@ function _configureTrackableAttributes() {
       ...common.bar,
       "attributes.hp",
       ...altSpells,
-      ...Array.fromRange(Object.keys(DND5E.spellLevels).length - 1, 1).map(l => `spells.spell${l}`)
+      ...Array.fromRange(Object.keys(SKJAALD.spellLevels).length - 1, 1).map(l => `spells.spell${l}`)
     ],
     value: [
       ...common.value,
-      ...Object.keys(DND5E.skills).map(skill => `skills.${skill}.passive`),
-      ...Object.keys(DND5E.senses).map(sense => `attributes.senses.${sense}`),
+      ...Object.keys(SKJAALD.skills).map(skill => `skills.${skill}.passive`),
+      ...Object.keys(SKJAALD.senses).map(sense => `attributes.senses.${sense}`),
       "attributes.spelldc"
     ]
   };
@@ -45467,23 +45467,23 @@ function _configureTrackableAttributes() {
  * @internal
  */
 function _configureConsumableAttributes() {
-  const altSpells = Object.entries(DND5E.spellPreparationModes).reduce((acc, [k, v]) => {
+  const altSpells = Object.entries(SKJAALD.spellPreparationModes).reduce((acc, [k, v]) => {
     if ( !["prepared", "always"].includes(k) && v.upcast ) acc.push(`spells.${k}.value`);
     return acc;
   }, []);
 
-  CONFIG.DND5E.consumableResources = [
-    ...Object.keys(DND5E.abilities).map(ability => `abilities.${ability}.value`),
+  CONFIG.SKJAALD.consumableResources = [
+    ...Object.keys(SKJAALD.abilities).map(ability => `abilities.${ability}.value`),
     "attributes.ac.flat",
     "attributes.hp.value",
-    ...Object.keys(DND5E.senses).map(sense => `attributes.senses.${sense}`),
-    ...Object.keys(DND5E.movementTypes).map(type => `attributes.movement.${type}`),
-    ...Object.keys(DND5E.currencies).map(denom => `currency.${denom}`),
+    ...Object.keys(SKJAALD.senses).map(sense => `attributes.senses.${sense}`),
+    ...Object.keys(SKJAALD.movementTypes).map(type => `attributes.movement.${type}`),
+    ...Object.keys(SKJAALD.currencies).map(denom => `currency.${denom}`),
     "details.xp.value",
     "resources.primary.value", "resources.secondary.value", "resources.tertiary.value",
     "resources.legact.value", "resources.legres.value",
     ...altSpells,
-    ...Array.fromRange(Object.keys(DND5E.spellLevels).length - 1, 1).map(level => `spells.spell${level}.value`)
+    ...Array.fromRange(Object.keys(SKJAALD.spellLevels).length - 1, 1).map(level => `spells.spell${level}.value`)
   ];
 }
 
@@ -45497,20 +45497,20 @@ function _configureFonts() {
     Roboto: {
       editor: true,
       fonts: [
-        { urls: ["systems/dnd5e/fonts/roboto/Roboto-Regular.woff2"] },
-        { urls: ["systems/dnd5e/fonts/roboto/Roboto-Bold.woff2"], weight: "bold" },
-        { urls: ["systems/dnd5e/fonts/roboto/Roboto-Italic.woff2"], style: "italic" },
-        { urls: ["systems/dnd5e/fonts/roboto/Roboto-BoldItalic.woff2"], weight: "bold", style: "italic" }
+        { urls: ["systems/skjaald/fonts/roboto/Roboto-Regular.woff2"] },
+        { urls: ["systems/skjaald/fonts/roboto/Roboto-Bold.woff2"], weight: "bold" },
+        { urls: ["systems/skjaald/fonts/roboto/Roboto-Italic.woff2"], style: "italic" },
+        { urls: ["systems/skjaald/fonts/roboto/Roboto-BoldItalic.woff2"], weight: "bold", style: "italic" }
       ]
     },
     "Roboto Condensed": {
       editor: true,
       fonts: [
-        { urls: ["systems/dnd5e/fonts/roboto-condensed/RobotoCondensed-Regular.woff2"] },
-        { urls: ["systems/dnd5e/fonts/roboto-condensed/RobotoCondensed-Bold.woff2"], weight: "bold" },
-        { urls: ["systems/dnd5e/fonts/roboto-condensed/RobotoCondensed-Italic.woff2"], style: "italic" },
+        { urls: ["systems/skjaald/fonts/roboto-condensed/RobotoCondensed-Regular.woff2"] },
+        { urls: ["systems/skjaald/fonts/roboto-condensed/RobotoCondensed-Bold.woff2"], weight: "bold" },
+        { urls: ["systems/skjaald/fonts/roboto-condensed/RobotoCondensed-Italic.woff2"], style: "italic" },
         {
-          urls: ["systems/dnd5e/fonts/roboto-condensed/RobotoCondensed-BoldItalic.woff2"], weight: "bold",
+          urls: ["systems/skjaald/fonts/roboto-condensed/RobotoCondensed-BoldItalic.woff2"], weight: "bold",
           style: "italic"
         }
       ]
@@ -45518,8 +45518,8 @@ function _configureFonts() {
     "Roboto Slab": {
       editor: true,
       fonts: [
-        { urls: ["systems/dnd5e/fonts/roboto-slab/RobotoSlab-Regular.ttf"] },
-        { urls: ["systems/dnd5e/fonts/roboto-slab/RobotoSlab-Bold.ttf"], weight: "bold" }
+        { urls: ["systems/skjaald/fonts/roboto-slab/RobotoSlab-Regular.ttf"] },
+        { urls: ["systems/skjaald/fonts/roboto-slab/RobotoSlab-Bold.ttf"], weight: "bold" }
       ]
     }
   });
@@ -45533,7 +45533,7 @@ function _configureFonts() {
 function _configureStatusEffects() {
   const addEffect = (effects, {special, ...data}) => {
     data = foundry.utils.deepClone(data);
-    data._id = staticID(`dnd5e${data.id}`);
+    data._id = staticID(`skjaald${data.id}`);
     if ( foundry.utils.isNewerVersion(game.version, 12) ) {
       data.img = data.icon ?? data.img;
       delete data.icon;
@@ -45541,15 +45541,15 @@ function _configureStatusEffects() {
     effects.push(data);
     if ( special ) CONFIG.specialStatusEffects[special] = data.id;
   };
-  CONFIG.statusEffects = Object.entries(CONFIG.DND5E.statusEffects).reduce((arr, [id, data]) => {
+  CONFIG.statusEffects = Object.entries(CONFIG.SKJAALD.statusEffects).reduce((arr, [id, data]) => {
     const original = CONFIG.statusEffects.find(s => s.id === id);
     addEffect(arr, foundry.utils.mergeObject(original ?? {}, { id, ...data }, { inplace: false }));
     return arr;
   }, []);
-  for ( const [id, {label: name, ...data}] of Object.entries(CONFIG.DND5E.conditionTypes) ) {
+  for ( const [id, {label: name, ...data}] of Object.entries(CONFIG.SKJAALD.conditionTypes) ) {
     addEffect(CONFIG.statusEffects, { id, name, ...data });
   }
-  for ( const [id, data] of Object.entries(CONFIG.DND5E.encumbrance.effects) ) {
+  for ( const [id, data] of Object.entries(CONFIG.SKJAALD.encumbrance.effects) ) {
     addEffect(CONFIG.statusEffects, { id, ...data, hud: false });
   }
 }
@@ -45566,10 +45566,10 @@ Hooks.once("setup", function() {
   _configureTrackableAttributes();
   _configureConsumableAttributes();
 
-  CONFIG.DND5E.trackableAttributes = expandAttributeList(CONFIG.DND5E.trackableAttributes);
-  game.dnd5e.moduleArt.registerModuleArt();
+  CONFIG.SKJAALD.trackableAttributes = expandAttributeList(CONFIG.SKJAALD.trackableAttributes);
+  game.skjaald.moduleArt.registerModuleArt();
   Tooltips5e.activateListeners();
-  game.dnd5e.tooltips.observe();
+  game.skjaald.tooltips.observe();
 
   // Register settings after modules have had a chance to initialize
   registerDeferredSettings();
@@ -45584,7 +45584,7 @@ Hooks.once("setup", function() {
     .forEach(p => p.applicationClass = ItemCompendium5e);
 
   // Configure token rings
-  CONFIG.DND5E.tokenRings.shaderClass ??= TokenRingSamplerShaderV11;
+  CONFIG.SKJAALD.tokenRings.shaderClass ??= TokenRingSamplerShaderV11;
   CONFIG.Token.ringClass.initialize();
 });
 
@@ -45607,7 +45607,7 @@ function expandAttributeList(attributes) {
 /**
  * Perform one-time pre-localization and sorting of some configuration objects
  */
-Hooks.once("i18nInit", () => performPreLocalization(CONFIG.DND5E));
+Hooks.once("i18nInit", () => performPreLocalization(CONFIG.SKJAALD));
 
 /* -------------------------------------------- */
 /*  Foundry VTT Ready                           */
@@ -45627,14 +45627,14 @@ Hooks.once("ready", function() {
 
   // Determine whether a system migration is required and feasible
   if ( !game.user.isGM ) return;
-  const cv = game.settings.get("dnd5e", "systemMigrationVersion") || game.world.flags.dnd5e?.version;
+  const cv = game.settings.get("skjaald", "systemMigrationVersion") || game.world.flags.skjaald?.version;
   const totalDocuments = game.actors.size + game.scenes.size + game.items.size;
-  if ( !cv && totalDocuments === 0 ) return game.settings.set("dnd5e", "systemMigrationVersion", game.system.version);
+  if ( !cv && totalDocuments === 0 ) return game.settings.set("skjaald", "systemMigrationVersion", game.system.version);
   if ( cv && !foundry.utils.isNewerVersion(game.system.flags.needsMigrationVersion, cv) ) return;
 
   // Compendium pack folder migration.
   if ( foundry.utils.isNewerVersion("3.0.0", cv) ) {
-    reparentCompendiums("DnD5e SRD Content", "D&D SRD Content");
+    reparentCompendiums("Skjaald SRD Content", "D&D SRD Content");
   }
 
   // Perform the migration
@@ -45650,7 +45650,7 @@ Hooks.once("ready", function() {
 
 Hooks.on("canvasInit", gameCanvas => {
   if ( game.release.generation < 12 ) {
-    gameCanvas.grid.diagonalRule = game.settings.get("dnd5e", "diagonalMovement");
+    gameCanvas.grid.diagonalRule = game.settings.get("skjaald", "diagonalMovement");
     SquareGrid.prototype.measureDistances = measureDistances;
   }
   CONFIG.Token.ringClass.pushToLoad(gameCanvas.loadTexturesOptions.additionalSources);
@@ -45670,9 +45670,9 @@ Hooks.on("canvasDraw", gameCanvas => {
 /* -------------------------------------------- */
 
 Hooks.on("renderPause", (app, [html]) => {
-  html.classList.add("dnd5e2");
+  html.classList.add("skjaald2");
   const img = html.querySelector("img");
-  img.src = "systems/dnd5e/ui/official/ampersand.svg";
+  img.src = "systems/skjaald/ui/official/ampersand.svg";
   img.className = "";
 });
 
@@ -45682,24 +45682,24 @@ Hooks.on("renderSettings", (app, [html]) => {
   details.querySelector(".system").remove();
 
   const heading = document.createElement("div");
-  heading.classList.add("dnd5e2", "sidebar-heading");
+  heading.classList.add("skjaald2", "sidebar-heading");
   heading.innerHTML = `
     <h2>${game.i18n.localize("WORLD.GameSystem")}</h2>
     <ul class="links">
       <li>
-        <a href="https://github.com/foundryvtt/dnd5e/releases/latest" target="_blank">
-          ${game.i18n.localize("DND5E.Notes")}
+        <a href="https://github.com/foundryvtt/skjaald/releases/latest" target="_blank">
+          ${game.i18n.localize("SKJAALD.Notes")}
         </a>
       </li>
       <li>
-        <a href="https://github.com/foundryvtt/dnd5e/issues" target="_blank">${game.i18n.localize("DND5E.Issues")}</a>
+        <a href="https://github.com/foundryvtt/skjaald/issues" target="_blank">${game.i18n.localize("SKJAALD.Issues")}</a>
       </li>
       <li>
-        <a href="https://github.com/foundryvtt/dnd5e/wiki" target="_blank">${game.i18n.localize("DND5E.Wiki")}</a>
+        <a href="https://github.com/foundryvtt/skjaald/wiki" target="_blank">${game.i18n.localize("SKJAALD.Wiki")}</a>
       </li>
       <li>
         <a href="https://discord.com/channels/170995199584108546/670336046164213761" target="_blank">
-          ${game.i18n.localize("DND5E.Discord")}
+          ${game.i18n.localize("SKJAALD.Discord")}
         </a>
       </li>
     </ul>
@@ -45707,10 +45707,10 @@ Hooks.on("renderSettings", (app, [html]) => {
   details.insertAdjacentElement("afterend", heading);
 
   const badge = document.createElement("div");
-  badge.classList.add("dnd5e2", "system-badge");
+  badge.classList.add("skjaald2", "system-badge");
   badge.innerHTML = `
-    <img src="systems/dnd5e/ui/official/dnd-badge-32.webp" data-tooltip="${dnd5e.title}" alt="${dnd5e.title}">
-    <span class="system-info">${dnd5e.version}</span>
+    <img src="systems/skjaald/ui/official/skjaald-badge-32.webp" data-tooltip="${skjaald.title}" alt="${skjaald.title}">
+    <span class="system-info">${skjaald.version}</span>
   `;
   if ( pip ) badge.querySelector(".system-info").insertAdjacentElement("beforeend", pip);
   heading.insertAdjacentElement("afterend", badge);
@@ -45741,5 +45741,5 @@ Hooks.on("renderJournalPageSheet", JournalSheet5e.onRenderJournalPageSheet);
 
 Hooks.on("targetToken", Token5e.onTargetToken);
 
-export { DND5E, applications, canvas$1 as canvas, dataModels, dice, documents, enrichers, migrations, utils };
-//# sourceMappingURL=dnd5e-compiled.mjs.map
+export { SKJAALD, applications, canvas$1 as canvas, dataModels, dice, documents, enrichers, migrations, utils };
+//# sourceMappingURL=skjaald-compiled.mjs.map
