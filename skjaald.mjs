@@ -22690,7 +22690,7 @@ var _module$g = /*#__PURE__*/Object.freeze({
 const SKJAALD = {};
 
 // ASCII Artwork
-SKJAALD.ASCII = `
+SKJAALD.ASCII = `                               
   ____  _     _             _     _   ____                        
  / ___|| | __(_) __ _  __ _| | __| | / ___|  __ _  __ _  __ _ ___ 
  \___ \| |/ /| |/ _  |/ _  | |/ _  | \___ \ / _  |/ _  |/ _  / __|

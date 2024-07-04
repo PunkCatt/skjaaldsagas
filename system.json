@@ -2,7 +2,7 @@
     "id": "skjaald",
     "title": "Skjaald Sagas",
     "description": "A world where Dragons hold the key to magic. Full of exploration and danger the primary continent of Skjaald stands in a state of constantly changing power struggles of 6 kingdoms.",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "compatibility": {
         "minimum": "11.315",
         "verified": "12"
