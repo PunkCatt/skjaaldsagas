@@ -3,8 +3,10 @@
     "types": [
       "character",
       "npc",
-      "vehicle",
-      "group"
+      "vehicle-container",
+      "group", 
+      "monster",
+      "companion"
     ],
     "htmlFields": [
       "details.biography.value",
@@ -27,7 +29,10 @@
       "spell",
       "feat",
       "container",
-      "backpack"
+      "backpack", 
+      "movement",
+      "language",
+      "note"
     ],
     "htmlFields": [
       "description.value",
