@@ -22722,63 +22722,80 @@ SKJAALD.abilities = {
     abbreviation: "SKJAALD.AbilityStrAbbr",
     type: "physical",
     fullKey: "strength",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.nUPv6C66Ur64BIUH"
+    //reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.nUPv6C66Ur64BIUH"
   },
-  dex: {
-    label: "SKJAALD.AbilityDex",
-    abbreviation: "SKJAALD.AbilityDexAbbr",
+  dur: {
+    label: "SKJAALD.AbilityDur",
+    abbreviation: "SKJAALD.AbilityDurAbbr",
     type: "physical",
-    fullKey: "dexterity",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ER8CKDUWLsFXuARJ"
+    fullKey: "durability",
+    //reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ER8CKDUWLsFXuARJ"
   },
-  con: {
-    label: "SKJAALD.AbilityCon",
-    abbreviation: "SKJAALD.AbilityConAbbr",
+  Swi: {
+    label: "SKJAALD.AbilitySwi",
+    abbreviation: "SKJAALD.AbilitySwiAbbr",
     type: "physical",
-    fullKey: "constitution",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MpA4jnwD17Q0RPg7"
+    fullKey: "swiftness",
+    //reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MpA4jnwD17Q0RPg7"
   },
-  int: {
-    label: "SKJAALD.AbilityInt",
-    abbreviation: "SKJAALD.AbilityIntAbbr",
-    type: "mental",
-    fullKey: "intelligence",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.WzWWcTIppki35YvF",
-    defaults: { vehicle: 0 }
-  },
-  wis: {
-    label: "SKJAALD.AbilityWis",
-    abbreviation: "SKJAALD.AbilityWisAbbr",
-    type: "mental",
-    fullKey: "wisdom",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v3IPyTtqvXqN934s",
-    defaults: { vehicle: 0 }
+  cnt: {
+    label: "SKJAALD.AbilityCnt",
+    abbreviation: "SKJAALD.AbilityCntAbbr",
+    type: "physical",
+    fullKey: "control",
+    //reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.WzWWcTIppki35YvF",
+    //defaults: { vehicle: 0 }
   },
   cha: {
     label: "SKJAALD.AbilityCha",
     abbreviation: "SKJAALD.AbilityChaAbbr",
     type: "mental",
     fullKey: "charisma",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9FyghudYFV5QJOuG",
+    //reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9FyghudYFV5QJOuG",
     defaults: { vehicle: 0 }
   },
-  hon: {
-    label: "SKJAALD.AbilityHon",
-    abbreviation: "SKJAALD.AbilityHonAbbr",
+  res: {
+    label: "SKJAALD.AbilityRes",
+    abbreviation: "SKJAALD.AbilityResAbbr",
     type: "mental",
-    fullKey: "honor",
-    defaults: { npc: "cha", vehicle: 0 },
-    improvement: false
+    fullKey: "resolve",
+    //reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v3IPyTtqvXqN934s",
+    //defaults: { vehicle: 0 }
   },
-  san: {
-    label: "SKJAALD.AbilitySan",
-    abbreviation: "SKJAALD.AbilitySanAbbr",
+  ins: {
+    label: "SKJAALD.AbilityIns",
+    abbreviation: "SKJAALD.AbilityInsAbbr",
     type: "mental",
-    fullKey: "sanity",
-    defaults: { npc: "wis", vehicle: 0 },
-    improvement: false
+    fullKey: "instinct",
+    //defaults: { npc: "cha", vehicle: 0 },
+    //improvement: false
+  },
+  kwo: {
+    label: "SKJAALD.AbilityKno",
+    abbreviation: "SKJAALD.AbilityKnoAbbr",
+    type: "mental",
+    fullKey: "knowledge",
+    //defaults: { npc: "wis", vehicle: 0 },
+    //improvement: false
   }
+  // hon: {
+  //   label: "SKJAALD.AbilityHon",
+  //   abbreviation: "SKJAALD.AbilityHonAbbr",
+  //   type: "mental",
+  //   fullKey: "honor",
+  //   //defaults: { npc: "cha", vehicle: 0 },
+  //   improvement: false
+  // },
+  // san: {
+  //   label: "SKJAALD.AbilitySan",
+  //   abbreviation: "SKJAALD.AbilitySanAbbr",
+  //   type: "mental",
+  //   fullKey: "sanity",
+  //   //defaults: { npc: "wis", vehicle: 0 },
+  //   improvement: false
+  // }
 };
+
 preLocalize("abilities", { keys: ["label", "abbreviation"] });
 
 /**
@@ -22788,45 +22805,10 @@ preLocalize("abilities", { keys: ["label", "abbreviation"] });
  * @enum {string}
  */
 SKJAALD.defaultAbilities = {
-  initiative: "dex",
-  hitPoints: "con",
-  concentration: "con"
+  initiative: "swi",
+  hitPoints: "cnt",
+  concentration: "res"
 };
-
-Object.defineProperties(SKJAALD, {
-  hitPointsAbility: {
-    get: function() {
-      foundry.utils.logCompatibilityWarning(
-        "SKJAALD.hitPointsAbility has been deprecated and is now accessible through SKJAALD.defaultAbilities.hitPoints.",
-        { since: "Skjaald 3.1", until: "Skjaald 3.3" }
-      );
-      return SKJAALD.defaultAbilities.hitPoints;
-    },
-    set: function(value) {
-      foundry.utils.logCompatibilityWarning(
-        "SKJAALD.hitPointsAbility has been deprecated and is now accessible through SKJAALD.defaultAbilities.hitPoints.",
-        { since: "Skjaald 3.1", until: "Skjaald 3.3" }
-      );
-      SKJAALD.defaultAbilities.hitPoints = value;
-    }
-  },
-  initiativeAbility: {
-    get: function() {
-      foundry.utils.logCompatibilityWarning(
-        "SKJAALD.initiativeAbility has been deprecated and is now accessible through SKJAALD.defaultAbilities.initiative.",
-        { since: "Skjaald 3.1", until: "Skjaald 3.3" }
-      );
-      return SKJAALD.defaultAbilities.initiative;
-    },
-    set: function(value) {
-      foundry.utils.logCompatibilityWarning(
-        "SKJAALD.initiativeAbility has been deprecated and is now accessible through SKJAALD.defaultAbilities.initiative.",
-        { since: "Skjaald 3.1", until: "Skjaald 3.3" }
-      );
-      SKJAALD.defaultAbilities.initiative = value;
-    }
-  }
-});
 
 /* -------------------------------------------- */
 
@@ -22847,129 +22829,227 @@ Object.defineProperties(SKJAALD, {
 SKJAALD.skills = {
   acr: {
     label: "SKJAALD.SkillAcr",
-    ability: "dex",
+    ability: "str",
     fullKey: "acrobatics",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AvvBLEHNl7kuwPkN",
-    icon: "icons/equipment/feet/shoes-simple-leaf-green.webp"
+    //reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AvvBLEHNl7kuwPkN",
+    //icon: "icons/equipment/feet/shoes-simple-leaf-green.webp"
   },
   ani: {
     label: "SKJAALD.SkillAni",
-    ability: "wis",
+    ability: "str",
     fullKey: "animalHandling",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xb3MCjUvopOU4viE",
-    icon: "icons/environment/creatures/horse-brown.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xb3MCjUvopOU4viE",
+   // icon: "icons/environment/creatures/horse-brown.webp"
   },
   arc: {
     label: "SKJAALD.SkillArc",
-    ability: "int",
+    ability: "str",
     fullKey: "arcana",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.h3bYSPge8IOqne1N",
-    icon: "icons/sundries/books/book-embossed-jewel-silver-green.webp"
+    //reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.h3bYSPge8IOqne1N",
+    //icon: "icons/sundries/books/book-embossed-jewel-silver-green.webp"
+  },
+  alc: {
+    label: "SKJAALD.SkillAlc",
+    ability: "str",
+    fullKey: "alchemy",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
+   // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
   },
   ath: {
     label: "SKJAALD.SkillAth",
     ability: "str",
     fullKey: "athletics",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
-    icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
+   // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
+  },
+  com: {
+    label: "SKJAALD.SkillCom",
+    ability: "str",
+    fullKey: "communication",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
+   // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
+  },
+  cop: {
+    label: "SKJAALD.SkillCop",
+    ability: "str",
+    fullKey: "comprehension",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
+   // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
+  },
+  cra: {
+    label: "SKJAALD.SkillCra",
+    ability: "str",
+    fullKey: "crafting",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
+   // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
   },
   dec: {
     label: "SKJAALD.SkillDec",
-    ability: "cha",
+    ability: "str",
     fullKey: "deception",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.mqVZ2fz0L7a9VeKJ",
-    icon: "icons/magic/control/mouth-smile-deception-purple.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.mqVZ2fz0L7a9VeKJ",
+   // icon: "icons/magic/control/mouth-smile-deception-purple.webp"
   },
-  his: {
-    label: "SKJAALD.SkillHis",
-    ability: "int",
-    fullKey: "history",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kRBZbdWMGW9K3wdY",
-    icon: "icons/sundries/books/book-embossed-bound-brown.webp"
+  end: {
+    label: "SKJAALD.SkillEnd",
+    ability: "str",
+    fullKey: "endurance",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.mqVZ2fz0L7a9VeKJ",
+   // icon: "icons/magic/control/mouth-smile-deception-purple.webp"
   },
   ins: {
     label: "SKJAALD.SkillIns",
-    ability: "wis",
+    ability: "str",
     fullKey: "insight",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8R5SMbAGbECNgO8z",
-    icon: "icons/magic/perception/orb-crystal-ball-scrying-blue.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8R5SMbAGbECNgO8z",
+   // icon: "icons/magic/perception/orb-crystal-ball-scrying-blue.webp"
+  },
+  inp: {
+    label: "SKJAALD.SkillInp",
+    ability: "str",
+    fullKey: "inspiration",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8R5SMbAGbECNgO8z",
+   // icon: "icons/magic/perception/orb-crystal-ball-scrying-blue.webp"
   },
   itm: {
     label: "SKJAALD.SkillItm",
-    ability: "cha",
+    ability: "str",
     fullKey: "intimidation",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4VHHI2gJ1jEsppfg",
-    icon: "icons/skills/social/intimidation-impressing.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4VHHI2gJ1jEsppfg",
+   // icon: "icons/skills/social/intimidation-impressing.webp"
   },
   inv: {
     label: "SKJAALD.SkillInv",
-    ability: "int",
+    ability: "str",
     fullKey: "investigation",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Y7nmbQAruWOs7WRM",
-    icon: "icons/tools/scribal/magnifying-glass.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Y7nmbQAruWOs7WRM",
+   // icon: "icons/tools/scribal/magnifying-glass.webp"
   },
   med: {
     label: "SKJAALD.SkillMed",
     ability: "wis",
     fullKey: "medicine",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GeYmM7BVfSCAga4o",
-    icon: "icons/tools/cooking/mortar-herbs-yellow.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GeYmM7BVfSCAga4o",
+   // icon: "icons/tools/cooking/mortar-herbs-yellow.webp"
   },
-  nat: {
-    label: "SKJAALD.SkillNat",
-    ability: "int",
-    fullKey: "nature",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ueMx3uF2PQlcye31",
-    icon: "icons/magic/nature/plant-sprout-snow-green.webp"
-  },
-  prc: {
-    label: "SKJAALD.SkillPrc",
-    ability: "wis",
-    fullKey: "perception",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zjEeHCUqfuprfzhY",
-    icon: "icons/magic/perception/eye-ringed-green.webp"
+  lrn: {
+    label: "SKJAALD.SkillLrn",
+    ability: "str",
+    fullKey: "learning",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ueMx3uF2PQlcye31",
+   // icon: "icons/magic/nature/plant-sprout-snow-green.webp"
   },
   prf: {
     label: "SKJAALD.SkillPrf",
-    ability: "cha",
+    ability: "str",
     fullKey: "performance",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hYT7Z06yDNBcMtGe",
-    icon: "icons/tools/instruments/lute-gold-brown.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hYT7Z06yDNBcMtGe",
+   // icon: "icons/tools/instruments/lute-gold-brown.webp"
   },
   per: {
     label: "SKJAALD.SkillPer",
-    ability: "cha",
+    ability: "str",
     fullKey: "persuasion",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
-    icon: "icons/skills/social/diplomacy-handshake.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
+   // icon: "icons/skills/social/diplomacy-handshake.webp"
   },
-  rel: {
-    label: "SKJAALD.SkillRel",
-    ability: "int",
-    fullKey: "religion",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.CXVzERHdP4qLhJXM",
-    icon: "icons/magic/holy/saint-glass-portrait-halo.webp"
+  pla: {
+    label: "SKJAALD.SkillPla",
+    ability: "str",
+    fullKey: "plants",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
+   // icon: "icons/skills/social/diplomacy-handshake.webp"
+  },
+  prs: {
+    label: "SKJAALD.SkillPrs",
+    ability: "str",
+    fullKey: "presence",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
+   // icon: "icons/skills/social/diplomacy-handshake.webp"
+  },
+  prs: {
+    label: "SKJAALD.SkillRes",
+    ability: "str",
+    fullKey: "resilience",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
+   // icon: "icons/skills/social/diplomacy-handshake.webp"
   },
   slt: {
     label: "SKJAALD.SkillSlt",
-    ability: "dex",
+    ability: "str",
     fullKey: "sleightOfHand",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.yg6SRpGNVz9nDW0A",
-    icon: "icons/sundries/gaming/playing-cards.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.yg6SRpGNVz9nDW0A",
+   // icon: "icons/sundries/gaming/playing-cards.webp"
   },
   ste: {
     label: "SKJAALD.SkillSte",
-    ability: "dex",
+    ability: "str",
     fullKey: "stealth",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4MfrpERNiQXmvgCI",
-    icon: "icons/magic/perception/shadow-stealth-eyes-purple.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4MfrpERNiQXmvgCI",
+   // icon: "icons/magic/perception/shadow-stealth-eyes-purple.webp"
   },
   sur: {
     label: "SKJAALD.SkillSur",
-    ability: "wis",
+    ability: "str",
     fullKey: "survival",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
-    icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
+  },
+  wri: {
+    label: "SKJAALD.SkillWri",
+    ability: "str",
+    fullKey: "writing",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
+  },
+  tra: {
+    label: "SKJAALD.SkillTra",
+    ability: "str",
+    fullKey: "training",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
+  },
+  tea: {
+    label: "SKJAALD.SkillTea",
+    ability: "str",
+    fullKey: "teaching",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
+  },
+  apt: {
+    label: "SKJAALD.SkillApt",
+    ability: "str",
+    fullKey: "aptitude",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
+  },
+  awr: {
+    label: "SKJAALD.SkillAwr",
+    ability: "str",
+    fullKey: "awareness",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
+  },
+  Sed: {
+    label: "SKJAALD.SkillSed",
+    ability: "str",
+    fullKey: "seduction",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
+  },
+  fit: {
+    label: "SKJAALD.SkillFit",
+    ability: "str",
+    fullKey: "fitness",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
+  },
+  fle: {
+    label: "SKJAALD.SkillFle",
+    ability: "str",
+    fullKey: "flexibility",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
   }
 };
 preLocalize("skills", { key: "label", sort: true });
@@ -23022,6 +23102,7 @@ preLocalize("attunements");
 /**
  * General weapon categories.
  * @enum {string}
+ * TODO: Update
  */
 SKJAALD.weaponProficiencies = {
   sim: "SKJAALD.WeaponSimpleProficiency",
@@ -23037,8 +23118,16 @@ preLocalize("weaponProficiencies");
 SKJAALD.weaponProficienciesMap = {
   simpleM: "sim",
   simpleR: "sim",
+  basicM: "bas",
+  basicR: "bas",
+  combatM: "com",
+  combatR: "com",
   martialM: "mar",
-  martialR: "mar"
+  martialR: "mar",
+  eliteM: "eli",
+  eliteR: "eli",
+  specialM: "spe",
+  specialR: "spe"
 };
 
 /**
@@ -23206,7 +23295,8 @@ preLocalize("permanentTimePeriods");
  */
 SKJAALD.specialTimePeriods = {
   inst: "SKJAALD.TimeInst",
-  spec: "SKJAALD.Special"
+  spec: "SKJAALD.Special",
+  spph: "SKJAALD.SpellPhase"
 };
 preLocalize("specialTimePeriods");
 
@@ -23240,8 +23330,10 @@ SKJAALD.staticAbilityActivationTypes = {
  */
 SKJAALD.abilityActivationTypes = {
   ...SKJAALD.staticAbilityActivationTypes,
-  action: "SKJAALD.Action",
-  bonus: "SKJAALD.BonusAction",
+  intricate: "SKJAALD.IntricateAction",
+  full: "SKJAALD.FullAction",
+  half: "SKJAALD.HalfAction",
+  instant: "SKJAALD.InstantAction",
   reaction: "SKJAALD.Reaction",
   minute: SKJAALD.timePeriods.minute,
   hour: SKJAALD.timePeriods.hour,
@@ -23264,7 +23356,8 @@ SKJAALD.abilityConsumptionTypes = {
   attribute: "SKJAALD.ConsumeAttribute",
   hitDice: "SKJAALD.ConsumeHitDice",
   material: "SKJAALD.ConsumeMaterial",
-  charges: "SKJAALD.ConsumeCharges"
+  charges: "SKJAALD.ConsumeCharges",
+  die: "SKJAALD.DieValue"
 };
 preLocalize("abilityConsumptionTypes", { sort: true });
 
@@ -23289,40 +23382,54 @@ SKJAALD.actorSizes = {
   tiny: {
     label: "SKJAALD.SizeTiny",
     abbreviation: "SKJAALD.SizeTinyAbbr",
-    hitDie: 4,
-    token: 0.5,
+   // hitDie: 4,
+    token: 0.25,
     capacityMultiplier: 0.5
   },
   sm: {
     label: "SKJAALD.SizeSmall",
     abbreviation: "SKJAALD.SizeSmallAbbr",
-    hitDie: 6,
-    dynamicTokenScale: 0.8
+   // hitDie: 6,
+    dynamicTokenScale: 0.5
   },
   med: {
     label: "SKJAALD.SizeMedium",
     abbreviation: "SKJAALD.SizeMediumAbbr",
-    hitDie: 8
+   // hitDie: 8
   },
   lg: {
     label: "SKJAALD.SizeLarge",
     abbreviation: "SKJAALD.SizeLargeAbbr",
-    hitDie: 10,
+   // hitDie: 10,
     token: 2,
     capacityMultiplier: 2
   },
   huge: {
     label: "SKJAALD.SizeHuge",
     abbreviation: "SKJAALD.SizeHugeAbbr",
-    hitDie: 12,
+   // hitDie: 12,
+    token: 2,
+    capacityMultiplier: 4
+  },
+  mas: {
+    label: "SKJAALD.SizeMassive",
+    abbreviation: "SKJAALD.SizeMassiveAbbr",
+   // hitDie: 12,
     token: 3,
+    capacityMultiplier: 4
+  },
+  col: {
+    label: "SKJAALD.SizeColossal",
+    abbreviation: "SKJAALD.SizeColossalAbbr",
+   // hitDie: 12,
+    token: 5,
     capacityMultiplier: 4
   },
   grg: {
     label: "SKJAALD.SizeGargantuan",
     abbreviation: "SKJAALD.SizeGargantuanAbbr",
-    hitDie: 20,
-    token: 4,
+   // hitDie: 20,
+    token: 7,
     capacityMultiplier: 8
   }
 };
@@ -23978,98 +24085,210 @@ preLocalize("featureTypes.supernaturalGift.subtypes", { sort: true });
 
 /**
  * The various properties of all item types.
+ * TODO: Update to ItemTraits
  * @enum {ItemPropertyConfiguration}
  */
 SKJAALD.itemProperties = {
-  ada: {
-    label: "SKJAALD.Item.Property.Adamantine",
-    isPhysical: true
+  accurate: {
+    label: "SKJAALD.Item.Trait.Accurate"
   },
-  amm: {
-    label: "SKJAALD.Item.Property.Ammunition"
+  ammunition: {
+    label: "SKJAALD.Item.Trait.Ammunition"
   },
-  concentration: {
-    label: "SKJAALD.Item.Property.Concentration",
-    abbreviation: "SKJAALD.ConcentrationAbbr",
-    icon: "systems/skjaald/icons/svg/statuses/concentrating.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH",
-    isTag: true
+  angled: {
+    label: "SKJAALD.Item.Trait.Angled"
   },
-  fin: {
-    label: "SKJAALD.Item.Property.Finesse"
+  armorPiercing: {
+    label: "SKJAALD.Item.Trait.ArmorPiercing"
   },
-  fir: {
-    label: "SKJAALD.Item.Property.Firearm"
+  balanced: {
+    label: "SKJAALD.Item.Trait.Balanced"
   },
-  foc: {
-    label: "SKJAALD.Item.Property.Focus"
+  bulk: {
+    label: "SKJAALD.Item.Trait.Bulk"
   },
-  hvy: {
-    label: "SKJAALD.Item.Property.Heavy"
+  closeCombat: {
+    label: "SKJAALD.Item.Trait.CloseCombat"
   },
-  lgt: {
-    label: "SKJAALD.Item.Property.Light"
+  collateral: {
+    label: "SKJAALD.Item.Trait.Collateral"
   },
-  lod: {
-    label: "SKJAALD.Item.Property.Loading"
+  conduit: {
+    label: "SKJAALD.Item.Trait.Conduit"
+  }, 
+  constraining: {
+    label: "SKJAALD.Item.Trait.Constraining"
+  },
+  cov: {
+    label: "SKJAALD.Item.Trait.Cover"
+  },
+  concealing: {
+    label: "SKJAALD.Item.Trait.Concealing"
+  },
+  dampening: {
+    label: "SKJAALD.Item.Trait.Dampening"
+  },
+  debilitating: {
+    label: "SKJAALD.Item.Trait.Debilitating"
+  },
+  def: {
+    label: "SKJAALD.Item.Trait.Defensive"
+  },
+  dem: {
+    label: "SKJAALD.Item.Trait.Demoralizing"
+  },
+  discrete: {
+    label: "SKJAALD.Item.Trait.Discrete"
+  },
+  exo: {
+    label: "SKJAALD.Item.Trait.Exotic"
+  },
+  fending: {
+    label: "SKJAALD.Item.Trait.Fending"
+  },
+  finesse: {
+    label: "SKJAALD.Item.Trait.Finesse"
+  },
+  glancing: {
+    label: "SKJAALD.Item.Trait.Glancing"
+  },
+  grievous: {
+    label: "SKJAALD.Item.Trait.Grievous"
+  },
+  hardened: {
+    label: "SKJAALD.Item.Trait.Hardened"
+  },
+  indirect: {
+    label: "SKJAALD.Item.Trait.Indirect"
+  },
+  insulating: {
+    label: "SKJAALD.Item.Trait.Insulating"
+  },
+  keen: {
+    label: "SKJAALD.Item.Trait.Keen"
+  },
+  kinetic: {
+    label: "SKJAALD.Item.Trait.Kinetic"
+  },
+  light: {
+    label: "SKJAALD.Item.Trait.Light"
+  },
+  loud: {
+    label: "SKJAALD.Item.Trait.Loud"
+  },
+  longGrip: {
+    label: "SKJAALD.Item.Trait.LongGrip"
   },
   material: {
-    label: "SKJAALD.Item.Property.Material",
-    abbreviation: "SKJAALD.ComponentMaterialAbbr",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AeH5eDS4YeM9RETC"
+    label: "SKJAALD.Item.Trait.Material",
+    abbreviation: "SKJAALD.ComponentMaterialAbbr"
+  //  reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AeHDS4YeM9RETC"
   },
-  mgc: {
-    label: "SKJAALD.Item.Property.Magical",
-    icon: "systems/skjaald/icons/svg/properties/magical.svg",
+  magical: {
+    label: "SKJAALD.Item.Trait.Magical",
+    //icon: "systems/skjaald2/icons/svg/properties/magical.svg",
     isPhysical: true
   },
-  rch: {
-    label: "SKJAALD.Item.Property.Reach"
+  mechanical: {
+    label: "SKJAALD.Item.Trait.Mechanical"
   },
-  rel: {
-    label: "SKJAALD.Item.Property.Reload"
+  momentous: {
+    label: "SKJAALD.Item.Trait.Momentous"
   },
-  ret: {
-    label: "SKJAALD.Item.Property.Returning"
+  narrowing: {
+    label: "SKJAALD.Item.Trait.Narrowing"
+  },
+  nimble: {
+    label: "SKJAALD.Item.Trait.Nimble"
+  },
+  overwhelming: {
+    label: "SKJAALD.Item.Trait.Overwhelming"
+  },
+  padded: {
+    label: "SKJAALD.Item.Trait.Padded"
+  },
+  penetrating: {
+    label: "SKJAALD.Item.Trait.Penetrating"
+  },
+  peripheral: {
+    label: "SKJAALD.Item.Trait.Peripheral"
+  },
+  precise: {
+    label: "SKJAALD.Item.Trait.Precise"
+  },
+  qui: {
+    label: "SKJAALD.Item.Trait.Quiet"
+  },
+  reach: {
+    label: "SKJAALD.Item.Trait.Reach"
+  },
+  reliable: {
+    label: "SKJAALD.Item.Trait.Reliable"
+  },
+  reloading: {
+    label: "SKJAALD.Item.Trait.Reloading"
+  },
+  returning: {
+    label: "SKJAALD.Item.Trait.Returning"
   },
   ritual: {
-    label: "SKJAALD.Item.Property.Ritual",
+    label: "SKJAALD.Item.Trait.Ritual",
     abbreviation: "SKJAALD.RitualAbbr",
-    icon: "systems/skjaald/icons/svg/items/spell.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA",
+   // icon: "systems/skjaald2/icons/svg/items/spell.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA",
     isTag: true
   },
-  sil: {
-    label: "SKJAALD.Item.Property.Silvered",
-    isPhysical: true
+  siege: {
+    label: "SKJAALD.Item.Trait.Siege"
   },
   somatic: {
-    label: "SKJAALD.Item.Property.Somatic",
-    abbreviation: "SKJAALD.ComponentSomaticAbbr",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qwUNgUNilEmZkSC9"
+    label: "SKJAALD.Item.Trait.Somatic",
+    abbreviation: "SKJAALD.ComponentSomaticAbbr"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qwUNgUNilEmZkSC9"
   },
-  spc: {
-    label: "SKJAALD.Item.Property.Special"
+  special: {
+    label: "SKJAALD.Item.Trait.Special"
   },
-  stealthDisadvantage: {
-    label: "SKJAALD.Item.Property.StealthDisadvantage"
+  supplemental: {
+    label: "SKJAALD.Item.Trait.Supplemental"
   },
-  thr: {
-    label: "SKJAALD.Item.Property.Thrown"
+  sundering: {
+    label: "SKJAALD.Item.Trait.Sundering"
   },
-  two: {
-    label: "SKJAALD.Item.Property.TwoHanded"
+  sweeping: {
+    label: "SKJAALD.Item.Trait.Sweeping"
   },
-  ver: {
-    label: "SKJAALD.Item.Property.Versatile"
+  thrown: {
+    label: "SKJAALD.Item.Trait.Thrown"
+  },
+  tipped: {
+    label: "SKJAALD.Item.Trait.Tipped"
+  },
+  twoHanded: {
+    label: "SKJAALD.Item.Trait.TwoHanded"
+  },
+  uweildy: {
+    label: "SKJAALD.Item.Trait.Unweildy"
+  },
+  versatile: {
+    label: "SKJAALD.Item.Trait.Versatile"
+  },
+  vicious: {
+    label: "SKJAALD.Item.Trait.Vicious"
   },
   vocal: {
-    label: "SKJAALD.Item.Property.Verbal",
+    label: "SKJAALD.Item.Trait.Verbal",
     abbreviation: "SKJAALD.ComponentVerbalAbbr",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx"
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx"
   },
   weightlessContents: {
-    label: "SKJAALD.Item.Property.WeightlessContents"
+    label: "SKJAALD.Item.Trait.WeightlessContents"
+  },
+  windUp: {
+    label: "SKJAALD.Item.Trait.WindUp"
+  },
+  wristMounted :{
+    label: "SKJAALD.Item.Trait.WristMounted"
   }
 };
 preLocalize("itemProperties", { keys: ["label", "abbreviation"], sort: true });
@@ -24078,20 +24297,36 @@ preLocalize("itemProperties", { keys: ["label", "abbreviation"], sort: true });
 
 /**
  * The various properties of an item per item type.
+ * TODO: Update to validTraits
  * @enum {object}
  */
 SKJAALD.validProperties = {
   consumable: new Set([
-    "mgc"
+    "magical",
+    "conduit",
+    "ammunition"
   ]),
   container: new Set([
-    "mgc",
+    "magical",
     "weightlessContents"
   ]),
   equipment: new Set([
-    "concentration",
-    "mgc",
-    "stealthDisadvantage"
+    "angled",
+    "bulk",
+    "concealing",
+    "constraining",
+    "dampening",
+    "discrete",
+    "glancing",
+    "hardened",
+    "insulating",
+    "loud",
+    "narrowing",
+    "nimble",
+    "padded",
+    "peripheral",
+    "supplementary",
+    "wristMounted"
   ]),
   feat: new Set([
     "concentration",
@@ -24101,23 +24336,46 @@ SKJAALD.validProperties = {
     "mgc"
   ]),
   weapon: new Set([
-    "ada",
-    "amm",
-    "fin",
-    "fir",
-    "foc",
-    "hvy",
-    "lgt",
-    "lod",
-    "mgc",
-    "rch",
-    "rel",
-    "ret",
-    "sil",
-    "spc",
-    "thr",
-    "two",
-    "ver"
+    "ammunition",
+    "armorPiercing",
+    "balanced",
+    "bulk",
+    "closeCombat",
+    "collateral",
+    "conduit",
+    "defensive",
+    "demoralizing",
+    "debilitating",
+    "discrete",
+    "exotic",
+    "fending",
+    "finesse",
+    "grievous",
+    "indirect",
+    "keen",
+    "kinetic",
+    "light",
+    "longGrip",
+    "magical",
+    "mechanical",
+    "momentous",
+    "overwhelming",
+    "penetrating",
+    "precise",
+    "reach",
+    "reliable",
+    "returning",
+    "reloading",
+    "special",
+    "sweeping",
+    "sundering",
+    "tipped",
+    "thrown",
+    "twoHanded",
+    "unwieldy",
+    "versatile",
+    "vicious",
+    "windUp"
   ]),
   spell: new Set([
     "vocal",
@@ -24195,11 +24453,6 @@ SKJAALD.currencies = {
     abbreviation: "SKJAALD.CurrencyAbbrGP",
     conversion: 1
   },
-  ep: {
-    label: "SKJAALD.CurrencyEP",
-    abbreviation: "SKJAALD.CurrencyAbbrEP",
-    conversion: 2
-  },
   sp: {
     label: "SKJAALD.CurrencySP",
     abbreviation: "SKJAALD.CurrencyAbbrSP",
@@ -24209,6 +24462,12 @@ SKJAALD.currencies = {
     label: "SKJAALD.CurrencyCP",
     abbreviation: "SKJAALD.CurrencyAbbrCP",
     conversion: 100
+  },
+  marks: {
+    label: "SKJAALD.CurrencyMarks",
+    abbreviation: "SKJAALD.CurrencyAbbrMarks",
+    conversion: 1
+
   }
 };
 preLocalize("currencies", { keys: ["label", "abbreviation"] });
@@ -24235,87 +24494,300 @@ preLocalize("currencies", { keys: ["label", "abbreviation"] });
 SKJAALD.damageTypes = {
   acid: {
     label: "SKJAALD.DamageAcid",
-    icon: "systems/skjaald/icons/svg/damage/acid.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.IQhbKRPe1vCPdh8v",
-    color: new Color(0x839D50)
+   // icon: "systems/skjaald2/icons/svg/damage/acid.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.IQhbKRPe1vCPdh8v",
+    color: new Color(0x839D50), 
+    family: "decay",
+    subFamily: "material"
   },
   bludgeoning: {
     label: "SKJAALD.DamageBludgeoning",
-    icon: "systems/skjaald/icons/svg/damage/bludgeoning.svg",
+   // icon: "systems/skjaald2/icons/svg/damage/bludgeoning.svg",
     isPhysical: true,
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.39LFrlef94JIYO8m",
-    color: new Color(0x0000A0)
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.39LFrlef94JIYO8m",
+    color: new Color(0x0000A0),
+    family: "bludgeoning"
+  },
+  bright: {
+    label: "SKJAALD.DamageBright", 
+    family: "light"
   },
   cold: {
     label: "SKJAALD.DamageCold",
-    icon: "systems/skjaald/icons/svg/damage/cold.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4xsFUooHDEdfhw6g",
-    color: new Color(0xADD8E6)
+   // icon: "systems/skjaald2/icons/svg/damage/cold.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4xsFUooHDEdfhw6g",
+    color: new Color(0xADD8E6),
+    family: "thermal",
+    subFamily: "cold"
+  },
+  corrosive: {
+    label: "SKJAALD.DamageCorrosive",
+    family: "decay",
+    subFamily: "material"
+  },
+  disease: {
+    label: "SKJAALD.DamageDisease",
+    family: "decay",
+    subFamily: "bio"
+  },
+  drakeFire: {
+    label: "SKJAALD.DamageDrakeFire",
+    family: "thermal",
+    subFamily: "heat"
+  },
+  drakeIce: {
+    label: "SKJAALD.DamageDrakeIce", 
+    family: "thermal",
+    subFamily: "heat"
+  },
+  drakeLightning: {
+    label: "SKJAALD.DamageDrakeLightning", 
+    family: "light"
+  },
+  divine: {
+    label: "SKJAALD.DamageDivine", 
+    family: "essence"
+  },
+  electric: {
+    label: "SKJAALD.DamageElectric", 
+    family: "electric"
   },
   fire: {
     label: "SKJAALD.DamageFire",
-    icon: "systems/skjaald/icons/svg/damage/fire.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.f1S66aQJi4PmOng6",
-    color: new Color(0xFF4500)
+   // icon: "systems/skjaald2/icons/svg/damage/fire.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.f1S66aQJi4PmOng6",
+    color: new Color(0xFF4500), 
+    family: "thermal",
+    subFamily: "heat"
   },
   force: {
     label: "SKJAALD.DamageForce",
-    icon: "systems/skjaald/icons/svg/damage/force.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eFTWzngD8dKWQuUR",
-    color: new Color(0x800080)
+   // icon: "systems/skjaald2/icons/svg/damage/force.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eFTWzngD8dKWQuUR",
+    color: new Color(0x800080), 
+    family: "force"
+  },
+  frost: {
+    label: "SKJAALD.DamageFrost", 
+    family: "thermal", 
+    subFamily: "cold"
+  },
+  heat: {
+    label: "SKJAALD.DamageHeat", 
+    family: "thermal", 
+    subFamily: "heat"
   },
   lightning: {
     label: "SKJAALD.DamageLightning",
-    icon: "systems/skjaald/icons/svg/damage/lightning.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9SaxFJ9bM3SutaMC",
-    color: new Color(0x1E90FF)
+   // icon: "systems/skjaald2/icons/svg/damage/lightning.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9SaxFJ9bM3SutaMC",
+    color: new Color(0x1E90FF), 
+    family: "electric"
+  },
+  luminescent: {
+    label: "SKJAALD.DamageLuminescent", 
+    family: "light"
+  },
+  mageFrost: {
+    label: "SKJAALD.DamageMageFrost", 
+    family: "thermal", 
+    subFamily: "cold"
   },
   necrotic: {
     label: "SKJAALD.DamageNecrotic",
-    icon: "systems/skjaald/icons/svg/damage/necrotic.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.klOVUV5G1U7iaKoG",
-    color: new Color(0x006400)
+   // icon: "systems/skjaald2/icons/svg/damage/necrotic.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.klOVUV5G1U7iaKoG",
+    color: new Color(0x006400), 
+    family: "decay", 
+    subFamily: "material"
+  },
+  penetration: {
+    label: "SKJAALD.DamagePenetration", 
+    family: "penetration"
   },
   piercing: {
     label: "SKJAALD.DamagePiercing",
-    icon: "systems/skjaald/icons/svg/damage/piercing.svg",
+   // icon: "systems/skjaald2/icons/svg/damage/piercing.svg",
     isPhysical: true,
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.95agSnEGTdAmKhyC",
-    color: new Color(0xC0C0C0)
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.95agSnEGTdAmKhyC",
+    color: new Color(0xC0C0C0), 
+    family: "piercing"
+  },
+  plasma: {
+    label: "SKJAALD.DamagePlasma", 
+    family: new Set ([
+      "thermal",
+      "electric"
+    ]),
+    subFamily: "heat"
   },
   poison: {
     label: "SKJAALD.DamagePoison",
-    icon: "systems/skjaald/icons/svg/damage/poison.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.k5wOYXdWPzcWwds1",
-    color: new Color(0x8A2BE2)
+   // icon: "systems/skjaald2/icons/svg/damage/poison.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.k5wOYXdWPzcWwds1",
+    color: new Color(0x8A2BE2), 
+    family: "decay", 
+    subFamily: "bio"
   },
   psychic: {
     label: "SKJAALD.DamagePsychic",
-    icon: "systems/skjaald/icons/svg/damage/psychic.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.YIKbDv4zYqbE5teJ",
-    color: new Color(0xFF1493)
+   // icon: "systems/skjaald2/icons/svg/damage/psychic.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.YIKbDv4zYqbE5teJ",
+    color: new Color(0xFF1493), 
+    family: "essence"
   },
   radiant: {
     label: "SKJAALD.DamageRadiant",
-    icon: "systems/skjaald/icons/svg/damage/radiant.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5tcK9buXWDOw8yHH",
-    color: new Color(0xFFD700)
+   // icon: "systems/skjaald2/icons/svg/damage/radiant.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5tcK9buXWDOw8yHH",
+    color: new Color(0xFFD700), 
+    family: "light"
+  },
+  rending: {
+    label: "SKJAALD.DamageRending", 
+    family: "slashing"
   },
   slashing: {
     label: "SKJAALD.DamageSlashing",
-    icon: "systems/skjaald/icons/svg/damage/slashing.svg",
+   // icon: "systems/skjaald2/icons/svg/damage/slashing.svg",
     isPhysical: true,
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.sz2XKQ5lgsdPEJOa",
-    color: new Color(0x8B0000)
+   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.sz2XKQ5lgsdPEJOa",
+    color: new Color(0x8B0000), 
+    family: "slashing"
   },
-  thunder: {
-    label: "SKJAALD.DamageThunder",
-    icon: "systems/skjaald/icons/svg/damage/thunder.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iqsmMHk7FSpiNkQy",
-    color: new Color(0x708090)
+  sonic: {
+    label: "SKJAALD.DamageSonic", 
+    family: "sonic"
+  },
+  spirit: {
+    label: "SKJAALD.DamageSpirit", 
+    family: "essence"
+  },
+  static: {
+    label: "SKJAALD.DamageStatic", 
+    family: "electric"
+  },
+  wizardsFlame: {
+    label: "SKJAALD.DamageWizardsFlame", 
+    family: "thermal", 
+    subFamily: "heat"
   }
 };
-preLocalize("damageTypes", { keys: ["label"], sort: true });
+
+/* -------------------------------------------- */
+/**
+ * The various damage types of a damage sub-family per sub-family.
+ * @enum {object}
+ */
+SKJAALD.damageSubFamilies = {
+  heatFamily: new Set([
+    "heat",
+    "fire",
+    "wizardsFlame",
+    "drakeFire",
+    "plasma"
+  ]),
+  coldFamily: new Set([
+    "cold",
+    "frost",
+    "mageFrost",
+    "drakeIce"
+  ]), 
+  bioFamily: new Set ([
+    "poison",
+    "disease",
+    "necrotic"
+  ]), 
+  materialFamily: new Set ([
+    "corrosive",
+    "acid",
+    "necrotic"
+  ])
+};
+
+/* -------------------------------------------- */
+/**
+ * The various damage types of a damage sub-family per sub-family.
+ * @enum {object}
+ */
+SKJAALD.damageSubFamilies = {
+  heatFamily: new Set([
+    "heat",
+    "fire",
+    "wizardsFlame",
+    "drakeFire",
+    "plasma"
+  ]),
+  coldFamily: new Set([
+    "cold",
+    "frost",
+    "mageFrost",
+    "drakeIce"
+  ]), 
+  bioFamily: new Set ([
+    "poison",
+    "disease",
+    "necrotic"
+  ]), 
+  materialFamily: new Set ([
+    "corrosive",
+    "acid",
+    "necrotic"
+  ])
+};
+
+/**
+ * The various damage types of a damage family per family.
+ * @enum {object}
+ */
+
+SKJAALD.damageFamilies = {
+  piercing: new Set([
+   "piercing",
+   "penetration"
+  ]),
+  bludgeoning: new Set([
+    "bludgeoning",
+    "force"
+  ]),
+  slashing: new Set ([
+    "slashing",
+    "rending"
+  ]),
+  thermal: new Set ([
+    "heatFamily",
+    "coldFamily"
+  ]), 
+  decay: new Set ([
+    "bioFamily",
+    "materialFamily"
+  ]),
+  electric: new Set ([
+    "static",
+    "electric",
+    "drakeLightning",
+    "plasma"
+  ]),
+  light: new Set([
+    "bright",
+    "luminescent",
+    "radiant"
+  ]),
+  essence: new Set([
+    "psychic",
+    "spirit",
+    "divine"
+  ]),
+  sonic: new Set([
+
+  ]),
+  force: new Set([
+    "force"
+  ])
+};
+
+
+preLocalize("damageTypes", { keys: ["label", "family", "subFamily"], sort: true });
 
 /* -------------------------------------------- */
 /*  Movement                                    */
@@ -24351,7 +24823,8 @@ SKJAALD.movementTypes = {
   climb: "SKJAALD.MovementClimb",
   fly: "SKJAALD.MovementFly",
   swim: "SKJAALD.MovementSwim",
-  walk: "SKJAALD.MovementWalk"
+  walk: "SKJAALD.MovementWalk",
+  glide: "SKJAALD.MovementGlide"
 };
 preLocalize("movementTypes", { sort: true });
 
@@ -24619,7 +25092,7 @@ preLocalize("targetTypes", { sort: true });
  * Denominations of hit dice which can apply to classes.
  * @type {string[]}
  */
-SKJAALD.hitDieTypes = ["d4", "d6", "d8", "d10", "d12"];
+SKJAALD.hitDieTypes = ["d2","d4", "d6", "d8", "d10", "d12", "d20"];
 
 /* -------------------------------------------- */
 
@@ -24871,7 +25344,8 @@ SKJAALD.spellLevels = {
   6: "SKJAALD.SpellLevel6",
   7: "SKJAALD.SpellLevel7",
   8: "SKJAALD.SpellLevel8",
-  9: "SKJAALD.SpellLevel9"
+  9: "SKJAALD.SpellLevel9",
+  10: "SKJAALD.SpellLevel10"
 };
 preLocalize("spellLevels");
 
@@ -24883,7 +25357,6 @@ preLocalize("spellLevels");
  */
 SKJAALD.spellScalingModes = {
   none: "SKJAALD.SpellNone",
-  cantrip: "SKJAALD.SpellCantrip",
   level: "SKJAALD.SpellLevel"
 };
 preLocalize("spellScalingModes", { sort: true });
@@ -24908,17 +25381,25 @@ SKJAALD.spellComponents = {
   vocal: {
     label: "SKJAALD.ComponentVerbal",
     abbr: "SKJAALD.ComponentVerbalAbbr",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx"
+  //  reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx"
   },
   somatic: {
     label: "SKJAALD.ComponentSomatic",
     abbr: "SKJAALD.ComponentSomaticAbbr",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qwUNgUNilEmZkSC9"
+  //  reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qwUNgUNilEmZkSC9"
   },
   material: {
     label: "SKJAALD.ComponentMaterial",
     abbr: "SKJAALD.ComponentMaterialAbbr",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AeH5eDS4YeM9RETC"
+  //  reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AeHDS4YeM9RETC"
+  }, 
+  concentration: {
+    label: "SKJAALD.ComponentConcentration",
+    abbr: "SKJAALD.ComponentConcentrationAbbr"
+  }, 
+  literature: {
+    label: "SKJAALD.ComponentLiterature",
+    abbr: "SKJAALD.ComponentLiteratureAbbr"
   }
 };
 preLocalize("spellComponents", { keys: ["label", "abbr"] });
@@ -25069,11 +25550,18 @@ SKJAALD.spellScrollIds = {
 SKJAALD.weaponTypes = {
   simpleM: "SKJAALD.WeaponSimpleM",
   simpleR: "SKJAALD.WeaponSimpleR",
+  basicM: "SKJAALD.WeaponBasicM",
+  basicR: "SKJAALD.WeaponBasicR",
+  combatM: "SKJAALD.WeaponCombatM",
+  combatR: "SKJAALD.WeaponCombatR",
   martialM: "SKJAALD.WeaponMartialM",
   martialR: "SKJAALD.WeaponMartialR",
+  eliteM: "SKJAALD.WeaponEliteM",
+  eliteR: "SKJAALD.WeaponEliteR",
+  specialM: "SKJAALD.WeaponSpecialM",
+  specialR: "SKJAALD.WeaponSpecialR",
   natural: "SKJAALD.WeaponNatural",
-  improv: "SKJAALD.WeaponImprov",
-  siege: "SKJAALD.WeaponSiege"
+  improv: "SKJAALD.WeaponImprov"
 };
 preLocalize("weaponTypes");
 
@@ -25175,9 +25663,14 @@ preLocalize("transformationPresets", { sort: true, keys: ["label"] });
  */
 SKJAALD.proficiencyLevels = {
   0: "SKJAALD.NotProficient",
-  1: "SKJAALD.Proficient",
-  0.5: "SKJAALD.HalfProficient",
-  2: "SKJAALD.Expertise"
+  1: "SKJAALD.Amateur",
+  2: "SKJAALD.Apprentice",
+  3: "SKJAALD.Proficient",
+  4: "SKJAALD.Adept",
+  6: "SKJAALD.Expert",
+  8: "SKJAALD.Master",
+  12: "SKJAALD.Legend"
+
 };
 preLocalize("proficiencyLevels");
 
@@ -25185,6 +25678,7 @@ preLocalize("proficiencyLevels");
 
 /**
  * Weapon and armor item proficiency levels.
+ * TODO: change to just armor proficiency
  * @enum {string}
  */
 SKJAALD.weaponAndArmorProficiencyLevels = {
@@ -25264,116 +25758,126 @@ SKJAALD.consumableResources = [
  * @enum {ConditionConfiguration}
  */
 SKJAALD.conditionTypes = {
-  bleeding: {
-    label: "EFFECT.SKJAALD.StatusBleeding",
-    icon: "systems/skjaald/icons/svg/statuses/bleeding.svg",
+  bloodied: {
+    label: "EFFECT.SKJAALD.StatusBloodied",
+   // icon: "systems/skjaald2/icons/svg/statuses/bleeding.svg",
     pseudo: true
   },
   blinded: {
     label: "SKJAALD.ConBlinded",
-    icon: "systems/skjaald/icons/svg/statuses/blinded.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.0b8N4FymGGfbZGpJ",
+   // icon: "systems/skjaald2/icons/svg/statuses/blinded.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.0b8N4FymGGfbZGpJ",
     special: "BLIND"
   },
   charmed: {
     label: "SKJAALD.ConCharmed",
-    icon: "systems/skjaald/icons/svg/statuses/charmed.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.zZaEBrKkr66OWJvD"
+   // icon: "systems/skjaald2/icons/svg/statuses/charmed.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.zZaEBrKkr66OWJvD"
   },
   cursed: {
     label: "EFFECT.SKJAALD.StatusCursed",
-    icon: "systems/skjaald/icons/svg/statuses/cursed.svg",
+   // icon: "systems/skjaald2/icons/svg/statuses/cursed.svg",
     pseudo: true
+  },
+  dazed: {
+    label: "SKJAALD.ConDazed"
   },
   deafened: {
     label: "SKJAALD.ConDeafened",
-    icon: "systems/skjaald/icons/svg/statuses/deafened.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.6G8JSjhn701cBITY"
+   // icon: "systems/skjaald2/icons/svg/statuses/deafened.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.6G8JSjhn701cBITY"
   },
   diseased: {
     label: "SKJAALD.ConDiseased",
-    icon: "systems/skjaald/icons/svg/statuses/diseased.svg",
+  //  icon: "systems/skjaald2/icons/svg/statuses/diseased.svg",
     pseudo: true,
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oNQWvyRZkTOJ8PBq"
+  //  reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oNQWvyRZkTOJ8PBq"
+  },
+  disoriented: {
+    label: "SKJAALD.ConDisoriented"
   },
   exhaustion: {
     label: "SKJAALD.ConExhaustion",
-    icon: "systems/skjaald/icons/svg/statuses/exhaustion.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cspWveykstnu3Zcv",
-    levels: 6
+   // icon: "systems/skjaald2/icons/svg/statuses/exhaustion.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cspWveykstnu3Zcv",
+    levels: 10
   },
   frightened: {
     label: "SKJAALD.ConFrightened",
-    icon: "systems/skjaald/icons/svg/statuses/frightened.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.oreoyaFKnvZCrgij"
+   // icon: "systems/skjaald2/icons/svg/statuses/frightened.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.oreoyaFKnvZCrgij"
   },
   grappled: {
     label: "SKJAALD.ConGrappled",
-    icon: "systems/skjaald/icons/svg/statuses/grappled.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.gYDAhd02ryUmtwZn"
+   // icon: "systems/skjaald2/icons/svg/statuses/grappled.svg",
+   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.gYDAhd02ryUmtwZn"
+  },
+  hidden: {
+    label: "SKJAALD.ConHidden"
   },
   incapacitated: {
     label: "SKJAALD.ConIncapacitated",
-    icon: "systems/skjaald/icons/svg/statuses/incapacitated.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.TpkZgLfxCmSndmpb"
+    // icon: "systems/skjaald2/icons/svg/statuses/incapacitated.svg",
+    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.TpkZgLfxCmSndmpb"
   },
   invisible: {
     label: "SKJAALD.ConInvisible",
-    icon: "systems/skjaald/icons/svg/statuses/invisible.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.3UU5GCTVeRDbZy9u"
+    // icon: "systems/skjaald2/icons/svg/statuses/invisible.svg",
+    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.3UU5GCTVeRDbZy9u"
   },
   paralyzed: {
     label: "SKJAALD.ConParalyzed",
-    icon: "systems/skjaald/icons/svg/statuses/paralyzed.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xnSV5hLJIMaTABXP",
+    // icon: "systems/skjaald2/icons/svg/statuses/paralyzed.svg",
+    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xnSV5hLJIMaTABXP",
     statuses: ["incapacitated"]
   },
   petrified: {
     label: "SKJAALD.ConPetrified",
-    icon: "systems/skjaald/icons/svg/statuses/petrified.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xaNDaW6NwQTgHSmi",
+    // icon: "systems/skjaald2/icons/svg/statuses/petrified.svg",
+    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xaNDaW6NwQTgHSmi",
     statuses: ["incapacitated"]
   },
   poisoned: {
     label: "SKJAALD.ConPoisoned",
-    icon: "systems/skjaald/icons/svg/statuses/poisoned.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.lq3TRI6ZlED8ABMx"
+    // icon: "systems/skjaald2/icons/svg/statuses/poisoned.svg",
+    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.lq3TRI6ZlED8ABMx"
   },
   prone: {
     label: "SKJAALD.ConProne",
-    icon: "systems/skjaald/icons/svg/statuses/prone.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.y0TkcdyoZlOTmAFT"
+    // icon: "systems/skjaald2/icons/svg/statuses/prone.svg",
+    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.y0TkcdyoZlOTmAFT"
   },
   restrained: {
     label: "SKJAALD.ConRestrained",
-    icon: "systems/skjaald/icons/svg/statuses/restrained.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cSVcyZyNe2iG1fIc"
+    // icon: "systems/skjaald2/icons/svg/statuses/restrained.svg",
+    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cSVcyZyNe2iG1fIc"
+  },
+  shock: {
+    label: "SKJAALD.ConShock"
   },
   silenced: {
     label: "EFFECT.SKJAALD.StatusSilenced",
-    icon: "systems/skjaald/icons/svg/statuses/silenced.svg",
+    // icon: "systems/skjaald2/icons/svg/statuses/silenced.svg",
     pseudo: true
   },
   stunned: {
     label: "SKJAALD.ConStunned",
-    icon: "systems/skjaald/icons/svg/statuses/stunned.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.ZyZMUwA2rboh4ObS",
+    // icon: "systems/skjaald2/icons/svg/statuses/stunned.svg",
+    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.ZyZMUwA2rboh4ObS",
     statuses: ["incapacitated"]
   },
   surprised: {
     label: "EFFECT.SKJAALD.StatusSurprised",
-    icon: "systems/skjaald/icons/svg/statuses/surprised.svg",
+    // icon: "systems/skjaald2/icons/svg/statuses/surprised.svg",
     pseudo: true
   },
-  transformed: {
-    label: "EFFECT.SKJAALD.StatusTransformed",
-    icon: "systems/skjaald/icons/svg/statuses/transformed.svg",
-    pseudo: true
+  terrified: {
+    label: "SKJAALD.ConTerrified"
   },
   unconscious: {
     label: "SKJAALD.ConUnconscious",
-    icon: "systems/skjaald/icons/svg/statuses/unconscious.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.UWw13ISmMxDzmwbd",
+    // icon: "systems/skjaald2/icons/svg/statuses/unconscious.svg",
+    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.UWw13ISmMxDzmwbd",
     statuses: ["incapacitated"],
     riders: ["prone"]
   }
@@ -25389,10 +25893,11 @@ preLocalize("conditionTypes", { key: "label", sort: true });
  */
 SKJAALD.conditionEffects = {
   noMovement: new Set(["exhaustion-5", "grappled", "paralyzed", "petrified", "restrained", "stunned", "unconscious"]),
-  halfMovement: new Set(["exhaustion-2"]),
+  halfMovement: new Set(["exhaustion-6"]),
   crawl: new Set(["prone", "exceedingCarryingCapacity"]),
   petrification: new Set(["petrified"]),
-  halfHealth: new Set(["exhaustion-4"])
+  halfHealth: new Set(["exhaustion-4"]),
+  unconcious: new Set(["exhaustion:10"])
 };
 
 /* -------------------------------------------- */
@@ -25467,48 +25972,36 @@ SKJAALD.languages = {
   standard: {
     label: "SKJAALD.LanguagesStandard",
     children: {
+      aarakocra: "SKJAALD.LanguagesAarakocra",
+      abyssal: "SKJAALD.LanguagesAbyssal",
+      aquan: "SKJAALD.LanguagesAquan",
+      auran: "SKJAALD.LanguagesAuran",
+      celestial: "SKJAALD.LanguagesCelestial",
       common: "SKJAALD.LanguagesCommon",
+      deep: "SKJAALD.LanguagesDeepSpeech",
+      draconic: "SKJAALD.LanguagesDraconic",
+      druidic: "SKJAALD.LanguagesDruidic",
       dwarvish: "SKJAALD.LanguagesDwarvish",
       elvish: "SKJAALD.LanguagesElvish",
       giant: "SKJAALD.LanguagesGiant",
+      gith: "SKJAALD.LanguagesGith",
+      gnoll: "SKJAALD.LanguagesGnoll",
       gnomish: "SKJAALD.LanguagesGnomish",
       goblin: "SKJAALD.LanguagesGoblin",
       halfling: "SKJAALD.LanguagesHalfling",
-      orc: "SKJAALD.LanguagesOrc"
-    }
-  },
-  exotic: {
-    label: "SKJAALD.LanguagesExotic",
-    children: {
-      aarakocra: "SKJAALD.LanguagesAarakocra",
-      abyssal: "SKJAALD.LanguagesAbyssal",
-      celestial: "SKJAALD.LanguagesCelestial",
-      deep: "SKJAALD.LanguagesDeepSpeech",
-      draconic: "SKJAALD.LanguagesDraconic",
-      gith: "SKJAALD.LanguagesGith",
-      gnoll: "SKJAALD.LanguagesGnoll",
+      ignan: "SKJAALD.LanguagesIgnan",
       infernal: "SKJAALD.LanguagesInfernal",
-      primordial: {
-        label: "SKJAALD.LanguagesPrimordial",
-        children: {
-          aquan: "SKJAALD.LanguagesAquan",
-          auran: "SKJAALD.LanguagesAuran",
-          ignan: "SKJAALD.LanguagesIgnan",
-          terran: "SKJAALD.LanguagesTerran"
-        }
-      },
+      orc: "SKJAALD.LanguagesOrc",
+      primordial: "SKJAALD.LanguagesPrimordial",
       sylvan: "SKJAALD.LanguagesSylvan",
+      terran: "SKJAALD.LanguagesTerran",
       undercommon: "SKJAALD.LanguagesUndercommon"
     }
   },
-  druidic: "SKJAALD.LanguagesDruidic",
   cant: "SKJAALD.LanguagesThievesCant"
 };
 preLocalize("languages", { key: "label" });
 preLocalize("languages.standard.children", { key: "label", sort: true });
-preLocalize("languages.exotic.children", { key: "label", sort: true });
-preLocalize("languages.exotic.children.primordial.children", { sort: true });
-patchConfig("languages", "label", { since: "Skjaald 2.4", until: "Skjaald 3.1" });
 
 /* -------------------------------------------- */
 
@@ -26146,7 +26639,7 @@ preLocalize("tokenRings.effects");
  * @enum {string}
  */
 SKJAALD.sourceBooks = {
-  "SRD 5.1": "SOURCE.BOOK.SRD"
+  "SKJAALD 1.0": "SOURCE.BOOK.SKJAALD"
 };
 preLocalize("sourceBooks", { sort: true });
 
@@ -30853,7 +31346,9 @@ class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplate) {
     const dcBonus = simplifyBonus(this.bonuses?.spell?.dc, rollData);
     for ( const [id, abl] of Object.entries(this.abilities) ) {
       if ( flags.diamondSoul ) abl.proficient = 1;  // Diamond Soul is proficient in all saves
-      abl.mod = Math.floor((abl.value - 10) / 2);
+
+      abl.mod = Math.floor((abl.value - 9));
+      if ( abl.mod > 0 ) abl.mod = Math.floor(abl.mod / 3);
 
       const isRA = this.parent._isRemarkableAthlete(id);
       abl.checkProf = new Proficiency(prof, (isRA || flags.jackOfAllTrades) ? 0.5 : 0, !isRA);
