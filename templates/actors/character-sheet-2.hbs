@@ -2,9 +2,14 @@
 {{#*inline "pip"}}
     <button type="button" class="{{ classes }}" data-n="{{ n }}" data-tooltip="{{ tooltip }}" aria-label="{{ label }}"
             aria-pressed="{{ filled }}"></button>
+
+            
 {{/inline}}
 
+
+
 {{#*inline "ability-score"}}
+
     <div class="ability-score {{#if flipped}}flipped{{/if}}" data-ability="{{ key }}">
         <a class="label {{ @root.rollableClass }} ability-check">{{ abbr }}</a>
         <div class="mod">
@@ -26,7 +31,9 @@
             {{ value }}
             {{/if}}
         </div>
+
     </div>
+
 {{/inline}}
 
 <form class="{{ cssClass }} flexcol" autocomplete="off">
@@ -44,60 +51,97 @@
             <div class="document-name">{{ actor.name }}</div>
             {{/if}}
 
-            {{!-- Class --}}
-            <div class="class roboto-upper">{{ labels.class }}</div>
         </div>
-
-        {{!-- Level, Inspiration, XP, & Buttons --}}
-        <div class="right">
-
-            {{!-- Level --}}
-            <div class="level" aria-label="{{ localize "SKJAALD.LevelNumber" }}">{{ system.details.level }}</div>
-
-            {{!-- Inspiration --}}
-            <button type="button" class="inspiration unbutton" data-action="toggleInspiration"
-                    aria-label="{{ localize "SKJAALD.Inspiration" }}" data-tooltip="SKJAALD.Inspiration"
-                    aria-pressed="{{ system.attributes.inspiration }}"></button>
-
-            <div>
-                {{!-- Resting & Special Traits --}}
-                {{#if actor.isOwner}}
-                <div class="sheet-header-buttons">
-                    <button type="button" class="short-rest gold-button" data-tooltip="SKJAALD.ShortRest"
-                            aria-label="{{ localize "SKJAALD.ShortRest" }}">
-                        <i class="fas fa-utensils"></i>
-                    </button>
-                    <button type="button" class="long-rest gold-button" data-tooltip="SKJAALD.LongRest"
-                            aria-label="{{ localize "SKJAALD.LongRest" }}">
-                        <i class="fas fa-campground"></i>
-                    </button>
-                    <button type="button" class="config-button gold-button" data-action="flags"
-                            data-tooltip="SKJAALD.SpecialTraits" aria-label="{{ localize "SKJAALD.SpecialTraits" }}">
-                        <i class="fas fa-star"></i>
-                    </button>
-                </div>
-                {{/if}}
-
-                {{!-- XP --}}
-                {{#unless disableExperience}}
-                {{#with system.details.xp}}
-                <div class="xp-label roboto-upper">
-                    {{#if @root.editable}}
-                    <input type="text" name="system.details.xp.value" class="value uninput" data-dtype="Number"
-                           value="{{ value }}">
-                    {{else}}
-                    <span class="value">{{ skjaald-numberFormat value }}</span>
-                    {{/if}}
-                    <span class="separator">&sol;</span>
-                    <span class="max">{{ skjaald-numberFormat max }}</span>
-                </div>
-                <div class="xp-bar" role="meter" aria-label="{{ localize "SKJAALD.ExperiencePointsLabel" }}"
-                     aria-valuemin="{{ min }}" aria-valuenow="{{ value }}" aria-valuemax="{{ max }}"
-                     aria-valuetext="{{ pct }}%" style="--bar-percentage: {{ pct }}%;"></div>
-                {{/with}}
-                {{/unless}}
+    {{!-- Ability Scores --}}
+    <section class="ability-scores optional-ability-{{ abilityRows.optional }}">
+        <div class="rows">
+            <div class="top">
+                {{#each abilityRows.top}}
+                    {{> ability-score flipped=true }}
+                {{/each}}
+            </div>
+            <div class="bottom">
+                {{#each abilityRows.bottom}}
+                    {{> ability-score }}
+                {{/each}}
             </div>
         </div>
+    </section>
+
+    {{!-- Hit Points --}}
+    <div class="meter-group">
+        <div class="label roboto-condensed-upper">
+            <span>{{ localize "SKJAALD.HitPoints" }}</span>
+            {{#if editable}}
+            <a class="config-button" data-action="hitPoints" data-tooltip="SKJAALD.HitPointsConfig"
+                aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
+                <i class="fas fa-cog"></i>
+            </a>
+            {{/if}}
+        </div>
+        {{#with system.attributes.hp}}
+        <div class="meter sectioned hit-points">
+            <div class="progress hit-points
+                    {{~#if (gt tempmax 0)}} temp-positive
+                    {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                    role="meter" aria-valuemin="0" aria-valuenow="{{ value }}"
+                    aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                <div class="label">
+                    <span class="value">{{ value }}</span>
+                    <span class="separator">&sol;</span>
+                    <span class="max">{{ effectiveMax }}</span>
+                    {{#if tempmax}}
+                    <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
+                    {{/if}}
+                </div>
+                <input type="text" name="system.attributes.hp.value" data-dtype="Number"
+                        placeholder="0" value="{{ value }}" hidden>
+            </div>
+            <div class="tmp">
+                <input type="text" name="system.attributes.hp.temp" data-dtype="Number"
+                        placeholder="{{ localize "SKJAALD.TMP" }}" value="{{ temp }}">
+            </div>
+        </div>
+        {{/with}}
+    </div>
+
+    {{!-- Armor Class --}}
+    <div class="meter-group">
+        <div class="label roboto-condensed-upper">
+            <span>{{ localize "SKJAALD.ArmorClass" }}</span>
+            {{#if editable}}
+            <a class="config-button" data-action="armorclass" data-tooltip="SKJAALD.HitPointsConfig"
+                aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
+                <i class="fas fa-cog"></i>
+            </a>
+            {{/if}}
+        </div>
+        {{#with system.attributes.hp}}
+        <div class="meter sectioned hit-points">
+            <div class="progress hit-points
+                    {{~#if (gt tempmax 0)}} temp-positive
+                    {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                    role="meter" aria-valuemin="0" aria-valuenow="{{ value }}"
+                    aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                <div class="label">
+                    <span class="value">{{ value }}</span>
+                    <span class="separator">&sol;</span>
+                    <span class="max">{{ effectiveMax }}</span>
+                    {{#if tempmax}}
+                    <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
+                    {{/if}}
+                </div>
+                <input type="text" name="system.attributes.hp.value" data-dtype="Number"
+                        placeholder="0" value="{{ value }}" hidden>
+            </div>
+            <div class="tmp">
+                <input type="text" name="system.attributes.hp.temp" data-dtype="Number"
+                        placeholder="{{ localize "SKJAALD.TMP" }}" value="{{ temp }}">
+            </div>
+        </div>
+        {{/with}}
+    </div>
+
     </header>
 
     {{!-- Body --}}
@@ -495,21 +539,7 @@
 
     </section>
 
-    {{!-- Ability Scores --}}
-    <section class="ability-scores optional-ability-{{ abilityRows.optional }}">
-        <div class="rows">
-            <div class="top">
-                {{#each abilityRows.top}}
-                    {{> ability-score flipped=true }}
-                {{/each}}
-            </div>
-            <div class="bottom">
-                {{#each abilityRows.bottom}}
-                    {{> ability-score }}
-                {{/each}}
-            </div>
-        </div>
-    </section>
+
 
     {{!-- Child Creation --}}
     <button type="button" class="create-child gold-button"

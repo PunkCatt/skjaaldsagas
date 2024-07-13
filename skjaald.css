@@ -4593,12 +4593,12 @@ p:empty:has(+ .content-embed),
 /*  Basic Structure                   */
 /* ---------------------------------- */
 .skjaald2.sheet.actor.character {
-  --skjaald-sheet-header-height: 170px;
+  --skjaald-sheet-header-height: 185px;
   --skjaald-sheet-header-right-width: 280px;
   --skjaald-sheet-sidebar-width: 230px;
   background: transparent;
-  min-width: 800px;
-  min-height: 700px;
+  min-width: 1000px;
+  min-height: 799px;
   box-shadow: none;
   /* ---------------------------------- */
   /*  Outer Window                      */
@@ -4707,13 +4707,25 @@ p:empty:has(+ .content-embed),
   display: none;
 }
 .skjaald2.sheet.actor.character .sheet-header {
+  display: grid;
+  grid-template-columns: 35% 27% 37%;
+  grid-template-rows: 33% 33% 34%;
+  grid-gap: 0.4em;
+  grid-template-areas: 'name placeholder1 placeholder2' 'hp placeholder3 placeholder4' 'placeholder5 placeholder6 placeholder7';
+/* TODO UPDATE GRID TEMPLATE */
   flex: 0 0 var(--skjaald-sheet-header-height);
-  background: transparent url("ui/official/banner-character.jpg") no-repeat center / cover;
+  /* background: transparent url("ui/official/banner-character.jpg") no-repeat center / cover; */
+  background: url("ui/skjaald/bookmark.png");
   border: none;
   border-radius: 5px 5px 0 0;
-  display: grid;
-  grid-template-columns: 1fr var(--skjaald-sheet-header-right-width);
+  /* display: grid;
+  grid-template-columns: 1fr var(--skjaald-sheet-header-right-width); */
   align-items: center;
+  background-position: 50% 30px;
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding-top: 28px;
+  padding-bottom: 26px;
   /* Name */
   /* Name & Class */
   /* Level, XP, & Buttons */
@@ -4738,6 +4750,7 @@ p:empty:has(+ .content-embed),
   padding: 0;
   margin: 0;
   transition: font-size 250ms ease;
+  grid-area: name;
 }
 .skjaald2.sheet.actor.character .sheet-header > .left {
   padding: 0 1.5rem 0 3rem;
@@ -4839,39 +4852,6 @@ p:empty:has(+ .content-embed),
   /* Resting & Special Traits */
   /* XP */
 }
-.skjaald2.sheet.actor.character .sheet-header > .right > div:last-child .sheet-header-buttons {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  position: absolute;
-  top: 1.5625rem;
-}
-.skjaald2.sheet.actor.character .sheet-header > .right > div:last-child .xp-label {
-  color: var(--skjaald-color-gold);
-  font-size: var(--font-size-12);
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-}
-.skjaald2.sheet.actor.character .sheet-header > .right > div:last-child .xp-label > input {
-  width: 55px;
-  text-align: right;
-  padding: 0.125rem 0.25rem;
-}
-.skjaald2.sheet.actor.character .sheet-header > .right > div:last-child .xp-bar {
-  --bar-percentage: 0%;
-  border: 2px solid var(--skjaald-color-gold);
-  background: black;
-  width: 100%;
-  height: 8px;
-}
-.skjaald2.sheet.actor.character .sheet-header > .right > div:last-child .xp-bar::after {
-  content: "";
-  height: 100%;
-  width: var(--bar-percentage);
-  background: var(--skjaald-color-red);
-  display: block;
-}
 .skjaald2.sheet.actor.character nav.tabs {
   --tab-full-width: 44px;
   --tab-inactive-width: 34px;
@@ -4922,7 +4902,8 @@ p:empty:has(+ .content-embed),
 .skjaald2.sheet.actor.character .sheet-body {
   border-radius: 5px;
   position: relative;
-  background: url("ui/texture1.webp") no-repeat top center / auto 770px, url("ui/texture2.webp") no-repeat bottom center / auto 704px;
+  /* background: url("ui/texture1.webp") no-repeat top center / auto 770px, url("ui/texture2.webp") no-repeat bottom center / auto 704px; */
+  background: url(ui/skjaald/CharacterPageBookOnly.png) no-repeat top center / cover;
   /* Main Content */
   /* Sidebar */
   /* Tabbed Content */
@@ -5159,6 +5140,7 @@ p:empty:has(+ .content-embed),
 .skjaald2.sheet.actor.character .sheet-body .sidebar .card .meter.hit-points {
   height: 32px;
   font-size: var(--font-size-16);
+  grid-area: hp;
 }
 .skjaald2.sheet.actor.character .sheet-body .sidebar .card .meter.hit-points .progress::before {
   background: linear-gradient(to right, var(--skjaald-color-hp-1) 0%, var(--skjaald-color-hp-2) 100%);
@@ -5653,11 +5635,12 @@ p:empty:has(+ .content-embed),
 }
 .skjaald2.sheet.actor.character .ability-scores .rows {
   padding: 76px 0 76px 24px;
-  display: flex;
+  display: grid;
   flex-wrap: wrap;
   width: 546px;
   margin-left: auto;
 }
+
 .skjaald2.sheet.actor.character .ability-scores .rows > div {
   display: flex;
   gap: 22px;
@@ -5749,9 +5732,10 @@ p:empty:has(+ .content-embed),
 }
 @container (min-width: 700px) {
   .skjaald2.sheet.actor.character .ability-scores .rows {
-    justify-content: center;
-    gap: 22px;
-    padding-top: 148px;
+    justify-content: right;
+    padding-right: 41px;
+    gap: 8px;
+    padding-top: 43px;
     width: unset;
     margin: 0;
   }
@@ -7846,10 +7830,10 @@ enchantment-application .drop-area .preview > a {
   border: none;
   background: var(--skjaald-color-gold);
 }
-.sheet.skjaald2-journal.journal-entry .journal-entry-content,
+/* .sheet.skjaald2-journal.journal-entry .journal-entry-content,
 .sheet.skjaald2-journal.journal-entry-page .window-content {
   background: url("ui/texture1.webp") no-repeat top center / auto 770px, var(--skjaald-color-parchment) url("ui/texture2.webp") no-repeat bottom center / auto 704px;
-}
+} */
 .sheet.skjaald2-journal.journal-entry .journal-entry-content h1,
 .sheet.skjaald2-journal.journal-entry-page .window-content h1,
 .sheet.skjaald2-journal.journal-entry .journal-entry-content h2,
@@ -8284,6 +8268,7 @@ enchantment-application .drop-area .preview > a {
 :is(.skjaald-theme-dark, .theme-dark) .skjaald2.sheet.actor.character .window-content,
 .skjaald2.sheet.actor.character.skjaald-theme-dark .window-content {
   background: var(--skjaald-color-dark-gray) url("../../ui/denim075.png");
+  /* background: url("ui/skjaald/CharacterPageBookBookmark.png") no-repeat top center / cover; */
 }
 :is(.skjaald-theme-dark, .theme-dark) .skjaald2.sheet.actor.character .window-content::before,
 .skjaald2.sheet.actor.character.skjaald-theme-dark .window-content::before {
@@ -8293,19 +8278,19 @@ enchantment-application .drop-area .preview > a {
   height: 300px;
   border-radius: 5px 5px 0 0;
   opacity: 0.5;
-  background: url("ui/official/banner-character-dark.webp") no-repeat top center / cover;
+  /* background: url("ui/official/banner-character-dark.webp") no-repeat top center / cover; */
   -webkit-mask-image: linear-gradient(to bottom, black, transparent);
   mask-image: linear-gradient(to bottom, black, transparent);
 }
 :is(.skjaald-theme-dark, .theme-dark) .skjaald2.sheet.actor.character .sheet-header,
 .skjaald2.sheet.actor.character.skjaald-theme-dark .sheet-header {
-  background: none;
+  /* background: none; */
   position: relative;
 }
 :is(.skjaald-theme-dark, .theme-dark) .skjaald2.sheet.actor.character .sheet-body,
-.skjaald2.sheet.actor.character.skjaald-theme-dark .sheet-body {
+/* .skjaald2.sheet.actor.character.skjaald-theme-dark .sheet-body {
   background: none;
-}
+} */
 :is(.skjaald-theme-dark, .theme-dark) .skjaald2.sheet.actor.character .sheet-body .skills .ability,
 .skjaald2.sheet.actor.character.skjaald-theme-dark .sheet-body .skills .ability,
 :is(.skjaald-theme-dark, .theme-dark) .skjaald2.sheet.actor.character .sheet-body .tools .ability,

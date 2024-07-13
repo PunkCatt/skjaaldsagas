@@ -75,6 +75,7 @@ class AdvancementConfig extends FormApplication {
 
   /** @inheritdoc */
   getData() {
+
     const levels = Object.fromEntries(Array.fromRange(CONFIG.SKJAALD.maxLevel + 1).map(l => [l, l]));
     if ( ["class", "subclass"].includes(this.item.type) ) delete levels[0];
     else levels[0] = game.i18n.localize("SKJAALD.AdvancementLevelAnyHeader");
@@ -1828,6 +1829,7 @@ class AbilityScoreImprovementConfig extends AdvancementConfig {
 
   /** @inheritdoc */
   getData() {
+    console.log("-------SKJAALD UPDATE TEST ----------");
     const abilities = Object.entries(CONFIG.SKJAALD.abilities).reduce((obj, [key, data]) => {
       if ( !this.advancement.canImprove(key) ) return obj;
       const fixed = this.advancement.configuration.fixed[key] ?? 0;
@@ -31241,7 +31243,7 @@ class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplate) {
     return this.mergeSchema(super.defineSchema(), {
       abilities: new MappingField(new foundry.data.fields.SchemaField({
         value: new foundry.data.fields.NumberField({
-          required: true, nullable: false, integer: true, min: 0, initial: 10, label: "SKJAALD.AbilityScore"
+          required: true, nullable: false, integer: true, min: 0, initial: 9, label: "SKJAALD.AbilityScore"
         }),
         proficient: new foundry.data.fields.NumberField({
           required: true, integer: true, min: 0, max: 1, initial: 0, label: "SKJAALD.ProficiencyLevel"
@@ -32394,7 +32396,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       ability.sign = Math.sign(ability.mod) < 0 ? "-" : "+";
       ability.mod = Math.abs(ability.mod);
       ability.baseValue = context.source.abilities[k]?.value ?? 0;
-      if ( obj.bottom.length > 5 ) obj.top.push(ability);
+      if ( obj.bottom.length > 3 ) obj.top.push(ability);
       else obj.bottom.push(ability);
       return obj;
     }, { top: [], bottom: [] });
@@ -45758,7 +45760,7 @@ globalThis.skjaald = {
 
 Hooks.once("init", function() {
   globalThis.skjaald = game.skjaald = Object.assign(game.system, globalThis.skjaald);
-  console.log(`D&D 5e | Initializing the D&D Fifth Game System - Version ${skjaald.version}\n${SKJAALD.ASCII}`);
+  console.log(`SKJAALD | Initializing the Skjaald Game System - Version ${skjaald.version}\n${SKJAALD.ASCII}`);
 
   // TODO: Remove when v11 support is dropped.
   CONFIG.compatibility.excludePatterns.push(/filePicker|select/);

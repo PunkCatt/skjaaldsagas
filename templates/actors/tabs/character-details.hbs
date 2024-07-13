@@ -81,7 +81,7 @@
     <div class="left">
 
         {{!-- Skills --}}
-        <filigree-box class="skills">
+        {{!-- <filigree-box class="skills">
             <h3>
                 <i class="fas fa-briefcase"></i>
                 <span class="roboto-upper">{{ localize "SKJAALD.Skills" }}</span>
@@ -94,10 +94,10 @@
                 {{/with}}
                 {{/each}}
             </ul>
-        </filigree-box>
+        </filigree-box> --}}
 
         {{!-- Tools --}}
-        <filigree-box class="tools">
+        {{!-- <filigree-box class="tools">
             {{#if editable}}
             <a class="trait-selector" data-trait="tool"
                data-tooltip="{{ localize "SKJAALD.TraitConfig" trait=(localize "SKJAALD.TraitToolProf") }}"
@@ -115,7 +115,7 @@
                         type="tool" hasPassive=false roll="tool-name" }}
                 {{/each}}
             </ul>
-        </filigree-box>
+        </filigree-box> --}}
 
     </div>
 
@@ -126,7 +126,7 @@
         <div class="top flexrow">
 
             {{!-- Saving Throws --}}
-            <filigree-box class="saves">
+            {{!-- <filigree-box class="saves">
                 <h3>
                     <i class="fas fa-shield-heart"></i>
                     <span class="roboto-upper">{{ localize "SKJAALD.ClassSaves" }}</span>
@@ -137,10 +137,10 @@
                             config=(localize "SKJAALD.AbilityConfigure" ability=label) }}
                     {{/each}}
                 </ul>
-            </filigree-box>
+            </filigree-box> --}}
 
             {{!-- Background --}}
-            <div class="pills-lg">
+            {{!-- <div class="pills-lg">
                 {{#with creatureType}}
                 <div class="pill-lg texture type" {{#if reference}}data-reference-tooltip="{{reference}}"{{/if}}>
                     <div class="gold-icon creature-type {{ class }}" style="background-image: url('{{ icon }}');"></div>
@@ -210,12 +210,12 @@
                     {{ localize "SKJAALD.BackgroundAdd" }}
                 </div>
                 {{/if}}
-            </div>
+            </div> --}}
 
         </div>
 
         {{!-- Senses --}}
-        {{#if (or editable senses)}}
+        {{!-- {{#if (or editable senses)}}
         <div class="pills-group {{#unless senses}}empty{{/unless}}">
             <h3 class="icon">
                 <i class="fas fa-eye"></i>
@@ -239,7 +239,7 @@
                 {{/each}}
             </ul>
         </div>
-        {{/if}}
+        {{/if}} --}}
 
         {{!-- Resistances --}}
         {{> "traits" values=traits.dr key="dr" color="green" icon="fas fa-shield-halved" label="SKJAALD.Resistances" }}
