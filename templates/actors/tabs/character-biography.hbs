@@ -1,65 +1,1017 @@
-{{#*inline "textbox"}}
-    <div class="textbox-half">
-        <h3 class="icon">
-            {{#if icon}}<i class="{{ icon }}"></i>
-            {{~else if svg}}<skjaald-icon src="systems/skjaald/icons/svg/{{svg}}.svg"></skjaald-icon>{{/if}}
-            <span class="roboto-upper">{{ localize label }}</span>
-        </h3>
-        {{#if @root.editable}}
-        <textarea class="untext" name="{{ name }}">{{ value }}</textarea>
+
+
+{{#*inline "ability-prof"}}
+    <li data-ability="{{ @key }}" class="{{ class }}">
+        {{#if isConcentration}}
+        <skjaald-icon src="systems/skjaald/icons/svg/statuses/concentrating.svg"></skjaald-icon>
         {{else}}
-        <p>{{ skjaald-textFormat value }}</p>
+        <proficiency-cycle type="ability" name="{{ path }}.proficient" data-tooltip="{{ hover }}"
+                           value="{{#if @root.editable}}{{ baseProf }}{{else}}{{ proficient }}{{/if}}"
+                           aria-label="{{ localize hover }}" {{ disabled (not @root.editable) }}></proficiency-cycle>
         {{/if}}
-    </div>
+        <a class="name saving-throw full {{ @root.rollableClass }}">{{ label }}</a>
+        <a class="name saving-throw abbr {{ @root.rollableClass }}">{{ abbr }}</a>
+        <div class="bonus"><span class="sign">{{ sign }}</span>{{ mod }}</div>
+        {{#if @root.editable}}
+        <a class="config-button" data-action="ability" data-tooltip="{{ config }}" aria-label="{{ localize config }}">
+            <i class="fas fa-cog"></i>
+        </a>
+        {{/if}}
+    </li>
 {{/inline}}
 
-<div class="tab biography" data-group="primary" data-tab="biography">
-
-    {{!-- Characteristics --}}
-    <div class="top">
-        <ul class="unlist characteristics">
-            {{#each characteristics}}
-            <li>
-                <label>
-                    <span class="roboto-upper label">{{ localize label }}</span>
-                    {{#if @root.editable}}
-                    <input type="text" name="{{ name }}" value="{{ value }}">
-                    {{else}}
-                    <span class="value">{{ value }}</span>
-                    {{/if}}
-                </label>
-            </li>
-            {{/each}}
-        </ul>
-    </div>
+<div class="tab biography col-2" data-group="primary" data-tab="biography">
 
     {{!-- Ideals, Bonds, Flaws, Personality Traits, & Appearance --}}
-    <div class="middle flexrow">
-        <div class="left">
-            {{~> "textbox" name="system.details.ideal" value=system.details.ideal label="SKJAALD.Ideals"
-                icon="fas fa-seedling" ~}}
-            {{~> "textbox" name="system.details.bond" value=system.details.bond label="SKJAALD.Bonds"
-                icon="fas fa-link" ~}}
-            {{~> "textbox" name="system.details.flaw" value=system.details.flaw label="SKJAALD.Flaws"
-                icon="fas fa-heart-crack" ~}}
+
+    <div class="left">
+
+        {{!-- Attrition --}}
+
+        <div class="attrition">
+            <div class="meter-group attrition-section">
+                <div class="label roboto-condensed-upper">
+                    <span>{{ localize "SKJAALD.Attrition" }}</span>
+                    {{#if editable}}
+                    <a class="config-button" data-action="armorclass" data-tooltip="SKJAALD.HitPointsConfig"
+                        aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    {{/if}}
+                </div>
+                {{#with system.attributes.hp}}
+                <div class="meter sectioned hit-points">
+                    <div class="progress hit-points
+                            {{~#if (gt tempmax 0)}} temp-positive
+                            {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                            role="meter" aria-valuemin="0" aria-valuenow="{{ attrition }}"
+                            aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                        <div class="label">
+                            <span class="value">{{ attrition }}</span>
+
+                            {{#if tempmax}}
+                            <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
+                            {{/if}}
+                        </div>
+                        <input type="text" name="system.attributes.hp.attrition" data-dtype="Number"
+                                placeholder="0" value="{{ attrition }}" hidden>
+                    </div>
+
+                </div>
+                {{/with}}
+            </div>
         </div>
-        <div class="right">
-            {{~> "textbox" name="system.details.trait" value=system.details.trait label="SKJAALD.PersonalityTraits"
-                icon="fas fa-puzzle-piece" ~}}
-            {{~> "textbox" name="system.details.appearance" value=system.details.appearance label="SKJAALD.Appearance"
-                icon="fas fa-image-portrait" ~}}
+
+        {{!-- Standing Grit Threshold --}}
+
+        <div class="standing-grit">
+            <div class="meter-group sgt-section">
+                <div class="label roboto-condensed-upper">
+                    <span>{{ localize "SKJAALD.SGT" }}</span>
+                    {{#if editable}}
+                    <a class="config-button" data-action="armorclass" data-tooltip="SKJAALD.HitPointsConfig"
+                        aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    {{/if}}
+                </div>
+                {{#with system.attributes.hp}}
+                <div class="meter sectioned hit-points">
+                    <div class="progress hit-points
+                            {{~#if (gt tempmax 0)}} temp-positive
+                            {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                            role="meter" aria-valuemin="0" aria-valuenow="{{ value }}"
+                            aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                        <div class="label">
+                            <span class="value">{{ sgt }}</span>
+
+                            {{#if tempmax}}
+                            <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
+                            {{/if}}
+                        </div>
+                        <input type="text" name="system.attributes.hp.sgt" data-dtype="Number"
+                                placeholder="0" value="{{ sgt }}" hidden>
+                    </div>
+
+                </div>
+                {{/with}}
+            </div>
         </div>
+
+        {{!-- Natural Healing Factor --}}
+        <div class="meter-group nhf-section">
+            <div class="label roboto-condensed-upper">
+                <span>{{ localize "SKJAALD.NaturalHealingFactor" }}</span>
+                {{#if editable}}
+                <a class="config-button" data-action="armorclass" data-tooltip="SKJAALD.HitPointsConfig"
+                    aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
+                    <i class="fas fa-cog"></i>
+                </a>
+                {{/if}}
+            </div>
+            {{#with system.attributes.hp}}
+            <div class="meter sectioned hit-points">
+                <div class="progress hit-points
+                        {{~#if (gt tempmax 0)}} temp-positive
+                        {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                        role="meter" aria-valuemin="0" aria-valuenow="{{nhf }}"
+                        aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                    <div class="label">
+                        <span class="value">{{ nhf }}</span>
+
+                        {{#if tempmax}}
+                        <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
+                        {{/if}}
+                    </div>
+                    <input type="text" name="system.attributes.hp.nhf" data-dtype="Number"
+                            placeholder="0" value="{{ nhf }}" hidden>
+                </div>
+
+            </div>
+            {{/with}}
+        </div>
+
+        {{!-- Protection Value --}}
+        <div class="protection-value">
+            <div class="meter-group pv-section">
+                <div class="label roboto-condensed-upper">
+                    <span>{{ localize "SKJAALD.ProtectionValue" }}</span>
+                    {{#if editable}}
+                    <a class="config-button" data-action="armorclass" data-tooltip="SKJAALD.HitPointsConfig"
+                        aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    {{/if}}
+                </div>
+                {{#with system.attributes}}
+                <div class="meter sectioned hit-points">
+                    <div class="progress hit-points
+                            {{~#if (gt tempmax 0)}} temp-positive
+                            {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                            role="meter" aria-valuemin="0" aria-valuenow="{{ ac.pv }}"
+                            aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                        <div class="label">
+                            <span class="value">{{ ac.pv }}</span>
+
+                            {{#if tempmax}}
+                            <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
+                            {{/if}}
+                        </div>
+                        <input type="text" name="system.attributes.ac.pv" data-dtype="Number"
+                                placeholder="0" value="{{ ac.pv }}" hidden>
+                    </div>
+
+                </div>
+                {{/with}}
+            </div>
+        </div>
+
+        {{!-- Total HP --}}
+        <div class="health-points-total">
+            <div class="meter-group hp-total-section">
+                <div class="label roboto-condensed-upper">
+                    <span>{{ localize "SKJAALD.TotalHP" }}</span>
+                    {{#if editable}}
+                    <a class="config-button" data-action="hitPoints" data-tooltip="SKJAALD.HitPointsConfig"
+                        aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    {{/if}}
+                </div>
+                {{#with system.attributes.hp}}
+                <div class="meter sectioned hit-points">
+                    <div class="progress hit-points
+                            {{~#if (gt tempmax 0)}} temp-positive
+                            {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                            role="meter" aria-valuemin="0" aria-valuenow="{{ max }}"
+                            aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                        <div class="label">
+                            <span class="value">{{ max }}</span>
+
+                            {{#if tempmax}}
+                            <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
+                            {{/if}}
+                        </div>
+                        <input type="text" name="system.attributes.hp.max" data-dtype="Number"
+                                placeholder="0" value="{{ max }}" hidden>
+                    </div>
+
+                </div>
+                {{/with}}
+            </div>
+        </div>
+
+        {{!-- Death Marks --}}
+        <div class="death-marks">
+            <div class="meter-group death-mark-section">
+                <div class="label roboto-condensed-upper">
+                    <span>{{ localize "SKJAALD.DeathMarks" }}</span>
+                    {{#if editable}}
+                    <a class="config-button" data-action="death-mark" data-tooltip="SKJAALD.HitPointsConfig"
+                        aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    {{/if}}
+                </div>
+                {{#with system.attributes}}
+                <div class="meter sectioned hit-points">
+                    <div class="progress hit-points">
+                        <div class="label">
+                            <span class="value">{{ death.marks.wolf }}</span>
+
+                            {{#if tempmax}}
+                            <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
+                            {{/if}}
+                        </div>
+                        <input type="text" name="system.attributes.death.marks.wolf" data-dtype="Number"
+                                placeholder="0" value="{{ death.marks.wolf }}" hidden>
+                    </div>
+
+                </div>
+                {{/with}}
+            </div>
+        </div>
+
+        {{!-- Recovery Dice --}}
+        <div class="recovery-dice">
+            <div class="meter-group recovery-dice-section">
+                <div class="label roboto-condensed-upper">
+                    <span>{{ localize "SKJAALD.RecoveryDice" }}</span>
+                    {{#if editable}}
+                    <a class="config-button" data-action="recovery-dice" data-tooltip="SKJAALD.HitPointsConfig"
+                        aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    {{/if}}
+                </div>
+                {{#with system.attributes.hp}}
+                <div class="meter sectioned recovery-dice">
+                    <div class="progress recovery-dice
+                            {{~#if (gt tempmax 0)}} temp-positive
+                            {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                            role="meter" aria-valuemin="0" aria-valuenow="{{ rdie }}"
+                            aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                        <div class="label">
+                            <span class="value">{{ rdie }}</span>
+
+                            {{#if tempmax}}
+                            <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
+                            {{/if}}
+                        </div>
+                        <input type="text" name="system.attributes.hp.rdie" data-dtype="Number"
+                                placeholder="0" value="{{ rdie }}" hidden>
+                    </div>
+
+                </div>
+                {{/with}}
+            </div>
+        </div>
+
+        {{!-- Thresholds --}}
+        
+        <div class="thresholds-group">
+            <div class="threshold-header">
+
+                <span>{{ localize "SKJAALD.Thresholds" }}</span>
+
+                    {{!-- {{#if editable}}
+                        <a class="config-button" data-action="thresholdConfig" data-tooltip="SKJAALD.ThresholdConfig"
+                            aria-label="{{ localize "SKJAALD.ThresholdConfig" }}">
+                            <i class="fas fa-cog"></i>
+                        </a>
+                    {{/if}} --}}
+
+            </div>
+
+
+            {{#each system.attributes.hp.essence.thresholds as |threshold e| }}
+            <div class="threshold essence-threshold {{e}}">
+
+                <div class="meter sectioned hit-points hp-threshold">
+                    <div class="progress hit-points {{e}} 
+                            {{~#if (gt tempmax 0)}} temp-positive
+                            {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                            role="meter" aria-valuemin="0" aria-valuenow="{{ currentHP }}"
+                            aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                        <div class="label">
+                            <span class="value">{{ currentHP }}</span>
+                            <span class="separator">&sol;</span>
+                            <span class="max">{{ essenceChunkSize }}</span>
+                        </div>
+                        <input type="text" name="system.attributes.hp.essence.thresholds.{{e}}.currentHP" data-dtype="Number"
+                                placeholder="0" value="{{ currentHP }}" hidden>
+                    </div>
+
+                </div>
+                {{#if this.detailsToggle}}
+                    <div class="threshold-details-toggle">
+                        <i class="fas fa-duotone fa-regular fa-circle-info" id="threshold-details-icon" style="color:grey"></i>
+                    </div>
+                {{/if}}
+                {{#unless this.detailsToggle}}
+                    <div class="threshold-details-toggle">
+                        <i class="fas fa-solid fa-circle-info" id="threshold-details-icon" ></i>
+                    </div>
+                {{/unless}}
+            </div>
+            {{/each}}
+
+            <span class="separator">&sol;</span>
+
+            {{#each system.attributes.hp.body.thresholds as |threshold b| }}
+            
+            <div class="threshold body-threshold {{b}}">
+                <div class="meter sectioned hit-points hp-threshold">
+                    <div class="progress hit-points body-threshold {{b}} 
+                            {{~#if (gt tempmax 0)}} temp-positive
+                            {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                            role="meter" aria-valuemin="0" aria-valuenow="{{ currentHP }}"
+                            aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                        <div class="label">
+                            <span class="value">{{ currentHP }}</span>
+                            <span class="separator">&sol;</span>
+                            <span class="max">{{ bodyChunkSize }}</span>
+                        </div>
+                        <input type="text" name="system.attributes.hp.body.thresholds.{{b}}.currentHP" data-dtype="Number"
+                                placeholder="0" value="{{ currentHP }}" hidden>
+                    </div>
+
+
+                </div>
+                {{#if this.detailsToggle}}
+                <div class="threshold-details-toggle">
+                    <i class="fa-duotone fa-regular fa-circle-info" style="color:grey"></i>
+                </div>
+                {{/if}}
+                {{#unless this.detailsToggle}}
+                <div class="threshold-details-toggle">
+                    <i class="fa-solid fa-circle-info"></i>
+                </div>
+                {{/unless}}
+            </div>
+            {{/each}}
+
+        </div>
+        <div class="threshold-details">
+            <div class="body-details">
+                {{#each system.attributes.hp.body.thresholds as |threshold b| }}
+
+                <input type="checkbox" name="system.attributes.hp.body.thresholds.{{b}}.detailsToggle" {{ checked detailsToggle }} hidden>
+                
+                    {{#if this.detailsToggle}}
+
+                        <div class="chunk-size-mod form-group">
+
+                            <div class="label roboto-condensed-upper">
+                                <span>{{ localize "SKJAALD.ChunkSizeMod" }}</span>
+                            </div>
+
+                            <div class="form-fields {{b}}" >
+                                <input type="text" name="system.attributes.hp.body.thresholds.{{b}}.chunkSizeMod"
+                                        value="{{ threshold.chunkSizeMod }}" >
+                            </div>
+                        </div>
+
+                        <div class="negation">
+                            <div class="label roboto-condensed-upper">
+                                <span>{{ localize "SKJAALD.ThresholdNegation" }}</span>
+                            </div>
+                            <div class="form-fields {{b}}" >
+                                <input type="text" name="system.attributes.hp.body.thresholds.{{b}}.negation"
+                                        value="{{ threshold.negation }}" >
+                            </div>
+                        </div>
+
+                        <div class="scars">
+                            <div class="label roboto-condensed-upper">
+                                <span>{{ localize "SKJAALD.Scars" }}</span>
+                            </div>
+
+                            <div class="form-fields {{b}}" >
+                                <input type="text" name="system.attributes.hp.body.thresholds.{{b}}.scars"
+                                        value="{{ threshold.scars }}" >
+                            </div>
+                        </div>
+
+                        <div class="chunk-wounded">
+                            <div class="label roboto-condensed-upper">
+                                <span>{{ localize "SKJAALD.ChunkWounded" }}</span>
+                            </div>
+
+                            <div class="{{b}}" >
+                                <input type="checkbox" name="system.attributes.hp.essence.thresholds.{{b}}.wounded" {{checked wounded }} >
+                            </div>
+                        </div>
+
+                        <div class="injuries">
+                            <div class="label roboto-condensed-upper">
+                                <span>{{ localize "SKJAALD.ChunkInjuries" }}</span>
+                                <a class="injury-control {{b}} add-injury" data-action-index="{{b}}"><i class="fas fa-plus"></i></a>
+                            </div>
+
+                            <ol class="injury-parts form-group">
+                                {{#each threshold.injuries as |injury i| }}
+                                
+                                <li class="injury-part flexrow form-group" data-injury-part="{{i}}">
+                                    <div class="label roboto-condensed-upper">
+                                        <span>{{ localize "SKJAALD.InjurySeverity" }}</span>
+                                    </div>
+                                    <select name="system.attributes.hp.body.thresholds.{{b}}.injuries.{{i}}.injurySeverity">
+                                        {{#select injurySeverity}}
+                                            <option value="">{{ localize "SKJAALD.None" }}</option>
+                                            <optgroup label="{{localize 'SKJAALD.Injury'}}">
+                                                {{selectOptions @root.config.injurySeverities labelAttr="{{ label }}"}}
+                                            </optgroup>
+
+                                        {{/select}}
+                                    </select>
+
+                                    <div class="label roboto-condensed-upper">
+                                        <span>{{ localize "SKJAALD.InjuryDetails" }}</span>
+                                    </div>
+                                    <input type="text form-fields" name="system.attributes.hp.body.thresholds.{{b}}.injuries.{{i}}.injuryDetails" value="{{ injuryDetails }}">
+
+                                    <div class="label roboto-condensed-upper">
+                                        <span>{{ localize "SKJAALD.WoundDC" }}</span>
+                                    </div>
+                                    <input type="number form-fields" name="system.attributes.hp.body.thresholds.{{b}}.injuries.{{i}}.woundDC" value="{{ woundDC }}">
+
+                                    <div class="label roboto-condensed-upper">
+                                        <span>{{ localize "SKJAALD.woundEffects" }}</span>
+                                    </div>
+                                    <input type="text form-fields" name="system.attributes.hp.body.thresholds.{{b}}.injuries.{{i}}.effects" value="{{ effects }}">
+
+
+
+
+                                    <a class="injury-control {{b}} delete-injury {{i}}" data-action-index="{{b}}" data-injury-part="{{i}}"><i class="fas fa-minus"></i></a>
+                                </li>
+                                {{/each}}
+                            </ol>
+                        </div>
+
+                    {{/if}}
+
+                {{/each}}
+            </div>
+            <div class="essence-details">
+
+          
+                {{#each system.attributes.hp.essence.thresholds as |threshold e| }}
+                <input type="checkbox" name="system.attributes.hp.essence.thresholds.{{e}}.detailsToggle" {{ checked detailsToggle }} hidden>
+                
+                    {{#if threshold.detailsToggle}}
+
+                        <div class="chunk-size-mod form-group">
+                            <div class="label roboto-condensed-upper">
+                                <span>{{ localize "SKJAALD.ChunkSizeMod" }}</span>
+                            </div>
+
+                            <div class="form-fields hit-points {{e}} " >
+                                <input type="text" name="system.attributes.hp.essence.thresholds.{{e}}.essenceChunkSizeMod"
+                                        value="{{ threshold.essenceChunkSizeMod }}" >
+                            </div>
+                        </div>
+
+                        <div class="chunk-torn">
+                            <div class="label roboto-condensed-upper">
+                                <span>{{ localize "SKJAALD.EssenceChunkTorn" }}</span>
+                            </div>
+
+                            <div class="{{e}}" >
+                                <input type="checkbox" name="system.attributes.hp.essence.thresholds.{{e}}.torn" {{checked torn }} >
+                            </div>
+                        </div>
+
+                    {{/if}}
+                {{/each}}
+            </div>
+            
+        </div>
+
+
+        {{!-- Resistances --}}
+        {{!-- {{> "traits" values=traits.dr key="dr" color="green" icon="fas fa-shield-halved" label="SKJAALD.Resistances" }} --}}
+
+        {{!-- Immunities --}}
+        {{!-- {{#if editable}} --}}
+            {{!-- {{> "traits" values=traits.di key="di" color="green" icon="fas fa-shield" label="SKJAALD.DamImm" }} --}}
+        {{!-- {{else}} --}}
+            {{!-- {{> "traits" values=traits.di key="di" color="green" icon="fas fa-shield" label="SKJAALD.Immunities" }} --}}
+        {{!-- {{/if}} --}}
+        {{!-- {{> "traits" values=traits.ci key="ci" color="green" svg="rosa-shield" label="SKJAALD.ConImm" }} --}}
     </div>
 
-    {{!-- Biography --}}
-    <div class="bottom">
-        <h3 class="icon">
-            <i class="fas fa-feather"></i>
-            <skjaald-icon src="systems/skjaald/icons/svg/ink-pot.svg"></skjaald-icon>
-            <span class="roboto-upper">{{ localize "SKJAALD.Biography" }}</span>
-        </h3>
-        {{ editor biographyHTML target="system.details.biography.value" button=false editable=@root.editable
-                  engine="prosemirror" collaborate=false }}
+    <div class="right">
+
+        <div class="container attribute exhaustEffects sheet-pc-exhaustion-details container-box container-panel">
+            <h5 class="attribute-name container-box-header sheet-container-header">
+                {{ localize "SKJAALD.ExhaustionEffects" }}
+            </h5>
+        </div>
+
+                <li class="attribute exhaustEffects sheet-pc-exhaustion-details container-box container-panel">
+                <ul class="sheet-container-body">
+                <h5 class="attribute-name container-box-header sheet-container-header">
+                    {{ localize "SKJAALD.ExhaustionEffects" }}
+                </h5>
+                    <li>
+                        <label class="sheet-radio health0 noclick">
+                            <input type="checkbox" {{checked data.attributes.exhaustion.exhaust0}}>
+                            <span><strong>0:</strong> None</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="sheet-radio health1 noclick">
+                            <input type="checkbox"  {{checked data.attributes.exhaustion.exhaust1}}>
+                            <span><strong>1:</strong> -1 to All d20 Rolls and Checks</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="sheet-radio health2 noclick">
+                            <input type="checkbox" {{checked data.attributes.exhaustion.exhaust2}}>
+                            <span><strong>2:</strong> Any Grit Points Gained Are Halved</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="sheet-radio health3 noclick">
+                            <input type="checkbox" {{checked data.attributes.exhaustion.exhaust3}}>
+                            <span><strong>3:</strong>  -2 to All d20 Rolls and Checks</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="sheet-radio health4 noclick">
+                            <input type="checkbox" {{checked data.attributes.exhaustion.exhaust4}}>
+                            <span><strong>4:</strong> Disadvantage on Ability Checks</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="sheet-radio health5 noclick">
+                            <input type="checkbox"  {{checked data.attributes.exhaustion.exhaust5}}>
+                            <span><strong>5:</strong> -3 to All d20 Rolls and Checks</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="sheet-radio health6 noclick">
+                            <input type="checkbox"  {{checked data.attributes.exhaustion.exhaust6}} >
+                            <span><strong>6:</strong> Base movement speed is halved</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="sheet-radio health7 noclick">
+                            <input type="checkbox"  {{checked data.attributes.exhaustion.exhaust7}} >
+                            <span><strong>7:</strong> -4 to All d20 Rolls and Checks</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="sheet-radio health8 noclick">
+                            <input type="checkbox"  {{checked data.attributes.exhaustion.exhaust8}} >
+                            <span><strong>8:</strong> All Attributes are Temporarily Halved</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="sheet-radio health9 noclick">
+                            <input type="checkbox"  {{checked data.attributes.exhaustion.exhaust9}} >
+                            <span><strong>9:</strong> -5 to All d20 Rolls and Checks</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="sheet-radio health10 noclick">
+                            <input type="checkbox"  {{checked data.attributes.exhaustion.exhaust10}} >
+                            <span><strong>10:</strong> Unconscious</span>
+                        </label>
+                    </li>
+                </ul>
+
+            </li>
+
+        {{!-- <div class="slottt-machine-recipe">
+            <div class="slottt-machine-recipe__mask" id="wordbox">
+                <div class="slottt-machine-recipe__items_container recipe_if">
+                </div>
+            </div>
+        </div> --}}
+
+
+    {{#with system.attributes.exhaust.maintenance}}
+    <li class="attribute well-conditions container-box container-panel">
+        <div class="attribute-name container-box-header">
+            <span>{{ localize "SKJAALD.Hunger" }}</span>
+            <span>{{ localize "SKJAALD.Thirst" }}</span>
+            <span>{{ localize "SKJAALD.Fatigue" }}</span>
+            <span>{{ localize "SKJAALD.Temperature" }}</span>
+        </div>
+
+        
+        <div class="sheet-container-body">
+            <ul class="sheet-list-conditions conditions">
+                <li>
+                    <label class="sheet-radio hunger0">
+                        <input type="checkbox" {{checked hunger.stuffed}}>
+                        <span >Stuffed</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio hunger1">
+                        <input type="checkbox"  {{checked hunger.wellfed}}>
+                        <span title="@{condition_hunger}">Well-fed</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio hunger2">
+                        <input type="checkbox" {{checked hunger.ok}}>
+                        <span >Ok</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio hunger3">
+                        <input type="checkbox" {{checked hunger.peckish}}>
+                        <span >Peckish</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio hunger4">
+                        <input type="checkbox" {{checked hunger.hungry}}>
+                        <span >Hungry</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio hunger5">
+                        <input type="checkbox"  {{checked hunger.ravenous}}>
+                        <span >Ravenous</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio hunger6">
+                        <input type="checkbox"  {{checked hunger.starving}} >
+                        <span >Starving</span>
+                    </label>
+                </li>
+            </ul>
+
+            <ul class="sheet-list-conditions">
+                <li>
+                    <label class="sheet-radio thirst0">
+                        <input type="checkbox"  {{checked thirst.quenched}}>
+                        <span title="@{condition_thirst}">Quenched</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio thirst1">
+                        <input type="checkbox"  {{checked thirst.refreshed}}>
+                        <span title="@{condition_thirst}">Refreshed</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio thirst2">
+                        <input type="checkbox"  {{checked thirst.ok}}>
+                        <span title="@{condition_thirst}">Ok</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio thirst3">
+                        <input type="checkbox"  {{checked thirst.parched}}>
+                        <span title="@{condition_thirst}">Parched</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio thirst4">
+                        <input type="checkbox"  {{checked thirst.thirsty}}>
+                        <span title="@{condition_thirst}">Thirsty</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio thirst5">
+                        <input type="checkbox"  {{checked thirst.dry}}>
+                        <span title="@{condition_thirst}">Dry</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio thirst6">
+                        <input type="checkbox"  {{checked thirst.dehydrated}}>
+                        <span title="@{condition_thirst}">Dehydrated</span>
+                    </label>
+                </li>
+            </ul>
+            <ul class="sheet-list-conditions">
+                <li>
+                    <label class="sheet-radio fatigue0">
+                        <input type="checkbox"  {{checked fatigue.energized}}>
+                        <span title="@{condition_fatigue}">Energized</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio fatigue1">
+                        <input type="checkbox"  {{checked fatigue.wellrested}}>
+                        <span title="@{condition_fatigue}">Well-rested</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio fatigue2">
+                        <input type="checkbox"  {{checked fatigue.ok}}>
+                        <span title="@{condition_fatigue}">Ok</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio fatigue3">
+                        <input type="checkbox"  {{checked fatigue.tired}}>
+                        <span title="@{condition_fatigue}">Tired</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio fatigue4">
+                        <input type="checkbox"  {{checked fatigue.sleepy}}>
+                        <span title="@{condition_fatigue}">Sleepy</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio fatigue5">
+                        <input type="checkbox"  {{checked fatigue.verysleepy}}>
+                        <span title="@{condition_fatigue}">Very sleepy</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio fatigue6">
+                        <input type="checkbox"  {{checked fatigue.barelyawake}}>
+                        <span title="@{condition_fatigue}">Barely awake</span>
+                    </label>
+                </li>
+            </ul>
+            <ul class="sheet-list-conditions">
+                <li>
+                    <label class="sheet-radio temp0">
+                        <input type="checkbox"  {{checked temperature.perfect}}>
+                        <span title="@{condition_temperature}">Perfect</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio temp1">
+                        <input type="checkbox"  {{checked temperature.comfortable}}>
+                        <span title="@{condition_temperature}">Comfortable</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio temp2">
+                        <input type="checkbox"  {{checked temperature.ok}}>
+                        <span title="@{condition_temperature}">Ok</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio temp3">
+                        <input type="checkbox"  {{checked temperature.noticable}}>
+                        <span title="@{condition_temperature}">Noticable</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio temp4">
+                        <input type="checkbox"  {{checked temperature.uncomfortable}}>
+                        <span title="@{condition_temperature}">Uncomfortable</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio temp5">
+                        <input type="checkbox"  {{checked temperature.overwhelming}}>
+                        <span title="@{condition_temperature}">Overwhelming</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio temp6">
+                        <input type="checkbox"  {{checked temperature.unbearable}}>
+                        <span title="@{condition_temperature}">Unbearable</span>
+                    </label>
+                </li>
+            </ul>
+
+        </div>
+    </li>
+    {{/with}}
+    <div class="health-block">
+        <li class="attribute health-conditions container-box container-panel">
+            <ul class="sheet-list-conditions">
+                <li>
+                    <label class="sheet-radio health0 noclick">
+                        <input type="checkbox" {{checked data.attributes.hp.robust}}>
+                        <span >Robust</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio health1 noclick">
+                        <input type="checkbox"  {{checked data.attributes.hp.healthy}}>
+                        <span title="@{condition_hunger}">Healthy</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio health2 noclick">
+                        <input type="checkbox" {{checked data.attributes.hp.ok}}>
+                        <span >Ok</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio health3 noclick">
+                        <input type="checkbox" {{checked data.attributes.hp.hit}}>
+                        <span >Hit</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio health4 noclick">
+                        <input type="checkbox" {{checked data.attributes.hp.bloodied}}>
+                        <span >Bloodied</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio health5 noclick">
+                        <input type="checkbox"  {{checked data.attributes.hp.hurt}}>
+                        <span >Hurt</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="sheet-radio health6 noclick">
+                        <input type="checkbox"  {{checked data.attributes.hp.critical}} >
+                        <span >Critical</span>
+                    </label>
+                </li>
+            </ul>
+            <h5 class="attribute-name container-box-header">
+                {{ localize "SKJAALD.Health" }}
+            </h5>
+        </li>
+
+
+        <li class="attribute exhaustion container-panel">
+            <h4 class="attribute-name box-title">
+                {{ localize "SKJAALD.Exhaustion" }}
+            </h4>
+            <h5 class="sheet-container-footer">
+                <div class="container-box-body">
+                    <span>{{ localize "SKJAALD.Base" }}</span>
+                </div>
+                <div class="container-box-body">
+                    <span>{{ localize "SKJAALD.Cond" }}</span>
+                </div>
+                <div class="container-box-body">
+                    <span>{{ localize "SKJAALD.Total" }}</span>
+                </div>
+            </h5>
+            <div class="sheet-container-body">
+                <div class="attribute-value container-box-body auto-dp-value textbox exhaustion-base exhaustion-updates" >
+                    <input type="text" name="system.attributes.exhaust.base" value="{{system.attributes.exhaust.base}}" data-dtype="Number"/>
+                </div>
+                <div class="attribute-value container-box-body auto-dp-value" >
+                    <span>{{system.attributes.exhaust.maintenance.total}}</span>
+                </div>
+                <div class="attribute-value container-box-body auto-dp-value" >
+                    <span class="exhaustion-updates">{{system.attributes.exhaust.total}}</span>
+                </div>
+            </div>
+
+        </li>
+    </div>
+    <{{ elements.effects }} class="effects-element" v2>
+
+    {{!-- Searching --}}
+    <item-list-controls for="effects" label="{{ localize "SKJAALD.EffectsSearch" }}" sort="a"
+                        collection="effects"></item-list-controls>
+
+    {{!-- Effects List --}}
+    <section class="items-list effects-list" data-item-list="effects">
+
+        {{!-- Sections / Categories --}}
+        {{#each effects}}
+        <div class="items-section card" data-effect-type="{{ type }}">
+
+            {{!-- Section Header --}}
+            <div class="items-header header {{#if disabled}}disabled{{/if}}">
+                <h3 class="item-name effect-name">{{ localize label }}</h3>
+                <div class="item-header effect-source">{{ localize "SKJAALD.Source" }}</div>
+                <div class="item-header item-controls effect-controls">
+                    {{#if info}}
+                    <a class="info-control" data-tooltip="{{ info }}" aria-label="{{ info }}">
+                        <i class="fas fa-circle-question"></i>
+                    </a>
+                    {{/if}}
+                </div>
+            </div>
+
+            {{!-- Section Contents --}}
+            <ol class="item-list unlist">
+                {{#each effects}}
+
+                {{!-- Effects --}}
+                <li class="item effect" data-effect-id="{{ id }}" data-entry-id="{{ id }}" data-item-name="{{ name }}"
+                    {{#if parentId}}data-parent-id="{{ parentId }}"{{/if}}>
+
+                    {{!-- Effect Name --}}
+                    <div class="item-name item-tooltip effect-name">
+                        <img class="item-image gold-icon" src="{{ img }}" alt="{{ name }}">
+                        <div class="name name-stacked">
+                            <span class="title">{{ name }}</span>
+                        </div>
+                        {{#if duration.remaining}}
+                        <div class="duration">
+                            <i class="fas fa-clock"></i>
+                            <span class="most-significant">{{ durationParts.[0] }}</span>
+                            {{#if durationParts.[1]}}
+                            <span class="separator">&vert;</span>
+                            <span class="least-significant">{{ durationParts.[1] }}</span>
+                            {{/if}}
+                        </div>
+                        {{/if}}
+                    </div>
+
+                    {{!-- Effect Source --}}
+                    <div class="item-detail effect-source {{#unless source}}empty{{/unless}}">
+                        {{#if source}}
+                        {{#if hasTooltip}}
+                        <a class="item-tooltip" data-uuid="{{ source.uuid }}" data-tooltip-direction="RIGHT">
+                            {{ source.name }}
+                        </a>
+                        {{else}}
+                        {{ source.name }}
+                        {{/if}}
+                        {{/if}}
+                    </div>
+
+                    {{!-- Effect Status --}}
+                    <div class="item-detail item-controls effect-controls">
+
+                        {{#if @root.editable}}
+                        {{!-- Editing --}}
+                        <a class="effect-control item-control" data-action="edit" data-tooltip="SKJAALD.EffectEdit"
+                           aria-label="{{ localize "SKJAALD.EffectEdit" }}">
+                            <i class="fas fa-pen-to-square"></i>
+                        </a>
+
+                        {{!-- Deleting --}}
+                        <a class="effect-control item-control" data-action="delete" data-tooltip="SKJAALD.EffectDelete"
+                           aria-label="{{ localize "SKJAALD.EffectDelete" }}">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        {{else if toggleable}}
+                        <a class="effect-control item-control {{#unless disabled}}active{{/unless}}"
+                           data-action="toggle"
+                           data-tooltip="{{#if disabled}}SKJAALD.EffectEnable{{else}}SKJAALD.EffectDisable{{/if}}"
+                           aria-label="{{#if disabled}}{{ localize "SKJAALD.EffectEnable" }}{{else}}{{ localize "SKJAALD.EffectDisable" }}{{/if}}">
+                            {{#if disabled}}
+                            <i class="fas fa-toggle-off"></i>
+                            {{else}}
+                            <i class="fas fa-toggle-on"></i>
+                            {{/if}}
+                        </a>
+                        {{/if}}
+
+                        {{!-- Context Menu --}}
+                        <a class="effect-control item-control interface-only" data-context-menu
+                           aria-label="{{ localize "SKJAALD.AdditionalControls" }}">
+                            <i class="fas fa-ellipsis-vertical"></i>
+                        </a>
+
+                    </div>
+
+                </li>
+
+                {{/each}}
+            </ol>
+
+        </div>
+        {{/each}}
+
+    </section>
+
+    <section class="items-list">
+
+        <div class="items-section card">
+
+            <div class="items-header header">
+                <h3 class="item-name">{{ localize "SKJAALD.Conditions" }}</h3>
+            </div>
+
+            <ul class="conditions-list unlist">
+                {{#each conditions}}
+                <li class="condition {{#unless disabled}}active{{/unless}} {{#if reference}}content-link{{/if}}"
+                    data-action="toggleCondition" data-uuid="{{ reference }}" data-condition-id="{{ id }}"
+                    data-tooltip="<section class=&quot;loading&quot;><i class=&quot;fas fa-spinner fa-spin-pulse&quot;></i></section>">
+                    <div class="icon">
+                        <skjaald-icon src="{{ icon }}"></skjaald-icon>
+                    </div>
+                    <div class="name-stacked">
+                        <span class="title">{{ name }}</span>
+                    </div>
+                    {{#if disabled}}
+                    <i class="fas fa-toggle-off"></i>
+                    {{else}}
+                    <i class="fas fa-toggle-on"></i>
+                    {{/if}}
+                </li>
+                {{/each}}
+            </ul>
+
+        </div>
+
+    </section>
+
+    </{{ elements.effects }}>
+
+
     </div>
 
 </div>

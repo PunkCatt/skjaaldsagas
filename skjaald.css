@@ -3438,6 +3438,25 @@ p:empty:has(+ .content-embed),
 .skjaald.sheet.actor.character .biography {
   max-width: calc(100% - 180px);
 }
+
+.skjaald2 .biography .thresholds-group {
+grid-column: 1 / span 4;
+display: flex;
+flex-wrap: wrap;
+
+}
+.skjaald2 .biography .left .recovery-dice{
+  grid-column: 3 / span 2;
+  /* grid-area: thresholds; */
+  }
+.skjaald2 .meter.hp-threshold{
+  width: 45px;
+
+}
+.skjaald2 .biography .left .threshold{
+  display: inline-block;
+  text-align: center;
+}
 /* ----------------------------------------- */
 /*  Basic Structure                          */
 /* ----------------------------------------- */
@@ -3993,13 +4012,40 @@ p:empty:has(+ .content-embed),
   font-size: var(--font-size-11);
 }
 .skjaald2 .meter-group {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 0.125rem;
 }
-.skjaald2 .meter-group + .meter-group {
-  margin-top: 0.5rem;
+.skjaald2 .section-1x2 {
+  grid-area: health;
+  display: grid;
+  grid-template-columns: 33% 33% 34%;
+  grid-template-areas: "hp grit recovery";
 }
+.skjaald2 .meter-group.hit-points-section {
+  grid-area: hp;
+}
+
+.skjaald2 .meter-group.grit-section {
+  grid-area: grit;
+}
+.skjaald2 .meter-group.recovery-section {
+  grid-area: recovery;
+}
+.skjaald2 .section-combat {
+  display: grid;
+  grid-area: combat;
+  grid-template-columns: 33%  33% 34%;
+  grid-template-areas: "ac ac attrition";
+}
+.skjaald2 .attrition-section {
+  grid-area: attrition;
+}
+.skjaald2 .meter-group.ac-section {
+  grid-area: ac;
+}
+/* .skjaald2 .meter-group + .meter-group {
+  margin-top: 0.5rem;
+} */
 .skjaald2 .meter {
   --meter-background: var(--skjaald-color-light-gray);
   border: 1px solid var(--skjaald-color-gold);
@@ -4011,7 +4057,11 @@ p:empty:has(+ .content-embed),
   position: relative;
   display: flex;
   align-items: center;
+  height: 23px;
+  width: 69px;
+
 }
+
 .skjaald2 .meter.progress,
 .skjaald2 .meter .progress {
   --bar-percentage: 0%;
@@ -4598,7 +4648,9 @@ p:empty:has(+ .content-embed),
   --skjaald-sheet-sidebar-width: 230px;
   background: transparent;
   min-width: 1000px;
-  min-height: 799px;
+  min-height: 773px;
+  max-width: 1000px;
+  max-height: 773px;
   box-shadow: none;
   /* ---------------------------------- */
   /*  Outer Window                      */
@@ -4710,8 +4762,8 @@ p:empty:has(+ .content-embed),
   display: grid;
   grid-template-columns: 35% 27% 37%;
   grid-template-rows: 33% 33% 34%;
-  grid-gap: 0.4em;
-  grid-template-areas: 'name placeholder1 placeholder2' 'hp placeholder3 placeholder4' 'placeholder5 placeholder6 placeholder7';
+  
+  grid-template-areas: "name placeholder1 attributes" "health placeholder3 attributes" "combat placeholder6 attributes";
 /* TODO UPDATE GRID TEMPLATE */
   flex: 0 0 var(--skjaald-sheet-header-height);
   /* background: transparent url("ui/official/banner-character.jpg") no-repeat center / cover; */
@@ -4724,7 +4776,7 @@ p:empty:has(+ .content-embed),
   background-position: 50% 30px;
   background-repeat: no-repeat;
   background-size: cover;
-  padding-top: 28px;
+  padding-top: 26px;
   padding-bottom: 26px;
   /* Name */
   /* Name & Class */
@@ -4815,6 +4867,10 @@ p:empty:has(+ .content-embed),
   display: grid;
   place-content: center;
 }
+
+.skjaald2.sheet.actor.character .sheet-header .inspiration input[type="checkbox"]{
+  height: 15px;
+}
 .skjaald2.sheet.actor.character .sheet-header > .right .inspiration:hover {
   box-shadow: none;
   filter: drop-shadow(0 3px 4px rgba(255, 255, 255, 0.5));
@@ -4896,8 +4952,25 @@ p:empty:has(+ .content-embed),
   border-left: none;
   pointer-events: none;
 }
-.skjaald2.sheet.actor.character .tab-details .tab-body {
-  padding-top: 56px;
+.skjaald2.sheet.actor.character .tab-inventory .armorDude{
+  min-height: 625px;
+  position: relative;
+  background-image: url("ui/skjaald/armorDude.png");
+  background-repeat: no-repeat;
+  background-position: 9% 19%;
+  z-index:1;
+  background-size: 378px;
+}
+.skjaald2.sheet.actor.character .tab-details .tab-body,
+.skjaald2.sheet.actor.character .tab-biography .tab-body,
+.skjaald2.sheet.actor.character .tab-inventory .tab-body,
+.skjaald2.sheet.actor.character .tab-combat .tab-body  {
+  padding-top: 11px;
+  padding-left: 62px;
+  padding-right: 41px;
+}
+.skjaald2.sheet.actor.character .tab-details .tab-body .portrait > img {
+  height: 160px;
 }
 .skjaald2.sheet.actor.character .sheet-body {
   border-radius: 5px;
@@ -4917,7 +4990,7 @@ p:empty:has(+ .content-embed),
   gap: 12px;
   position: absolute;
   inset: 0;
-  padding: 8px;
+  padding: 0px;
   overflow: hidden auto;
   scrollbar-width: thin;
   scrollbar-color: var(--skjaald-color-scrollbar) transparent;
@@ -5089,6 +5162,7 @@ p:empty:has(+ .content-embed),
   justify-content: space-between;
   filter: drop-shadow(0 0 6px var(--skjaald-shadow-45));
 }
+
 .skjaald2.sheet.actor.character .sheet-body .sidebar .card .stats .lozenges .lozenge .value {
   font-family: var(--skjaald-font-roboto);
   font-size: 20px;
@@ -5140,7 +5214,6 @@ p:empty:has(+ .content-embed),
 .skjaald2.sheet.actor.character .sheet-body .sidebar .card .meter.hit-points {
   height: 32px;
   font-size: var(--font-size-16);
-  grid-area: hp;
 }
 .skjaald2.sheet.actor.character .sheet-body .sidebar .card .meter.hit-points .progress::before {
   background: linear-gradient(to right, var(--skjaald-color-hp-1) 0%, var(--skjaald-color-hp-2) 100%);
@@ -5383,11 +5456,107 @@ p:empty:has(+ .content-embed),
 .skjaald2.sheet.actor.character .sheet-body .sidebar .favorites > ul.value {
   justify-content: center;
 }
-.skjaald2.sheet.actor.character .sheet-body .tab-body .col-2 {
-  --skills-col-width: 260px;
-  display: grid;
-  grid-template-columns: var(--skills-col-width) 1fr;
+.skjaald2.sheet.actor.character .sheet-body .page-2 {
+  --skills-col-width: 417px;
+
   gap: 0.75rem;
+}
+.skjaald2.sheet.actor.character .sheet-body .tab-body .col-2,
+.skjaald2.sheet.actor.character .tab.biography.active{
+  /* --skills-col-width: 206px; */
+  display: grid;
+  grid-template-columns: 418px 425px;
+  gap: 0.75rem;
+}
+.skjaald2.sheet.actor.character .sheet-body .tab-body .col-2.details .left{
+  display: grid;
+  grid-template-columns: 161px 242px;
+  grid-template-rows: 150px 1fr;
+  grid-template-areas: "portrait levels" "details race";
+  gap: 0.75rem;
+  list-style: none;
+}
+
+.skjaald2.sheet.actor.character .sheet-body .tab-body .col-2.biography .left{
+  display: grid;
+  grid-template-columns: 93px 93px 93px 93px;
+  grid-template-rows: 62px 62px 62px 1fr;
+  grid-template-areas: "portrait levels" "details race" "thresholds";
+  gap: 0.75rem;
+  list-style: none;
+}
+.skjaald2.sheet.actor.character .sheet-body .tab-body .col-2.combat .right{
+  display: grid;
+  grid-template-columns: 200px 200px;
+  grid-template-areas: "attacks features";
+  gap: 0.75rem;
+  list-style: none;
+}
+.skjaald2.sheet.actor.character .sheet-body .tab-body .col-2.combat .left{
+  display: grid;
+  grid-template-columns: 120px 60px 60px 120px;
+  gap: 0.75rem;
+  list-style: none;
+}
+.skjaald2.sheet.actor.character .sheet-body .tab-body .col-2.combat .left > div{
+  justify-self: center;
+}
+.skjaald2.sheet.actor.character .sheet-body .tab-body .col-1.inventory .left{
+
+}
+.skjaald2.sheet.actor.character .sheet-body .tab-body .col-2.details .right{
+  display: grid;
+  grid-template-columns: 215px 1fr;
+  grid-template-rows: 130px 105px 105px 1fr;
+  gap: 0.75rem;
+  grid-template-areas: "CES CES" "health-block exhaustion" "health exhaustion" "effects effects";
+  list-style: none;
+}
+.skjaald2.sheet.actor.character .tab-combat .action-points{
+  
+}
+.skjaald2.sheet.actor.character .tab-combat .grit{
+  grid-column: 2 / span 2;
+}
+.skjaald2.sheet.actor.character .tab-combat .attrition{
+
+}
+.skjaald2.sheet.actor.character .tab-combat .recovery-dice{
+  grid-column: 1 / span 2;
+}
+.skjaald2.sheet.actor.character .tab-combat .resource-dice{
+  grid-column: 3 / span 2;
+}
+.skjaald2.sheet.actor.character .tab-combat .resources{
+  grid-column: 1 / span 4;
+}
+.skjaald2.sheet.actor.character .tab-combat .features{
+  grid-area: features;
+}
+.skjaald2.sheet.actor.character .tab-combat .attacks{
+  grid-area: attacks;
+}
+.skjaald2.sheet.actor.charater .exhaustEffects{
+  grid-area: exhaustion;
+}
+.skjaald2.sheet.actor.character .health-block{
+  grid-area: health-block;
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  grid-template-areas: "calculation health"
+}
+.skjaald2.sheet.actor.character .well-conditions{
+  grid-area: CES;
+  margin-top: 5px;
+}
+.skjaa.d2.sheet.actor.character .health-conditions{
+  grid-area: health;
+}
+.skjaald2.sheet.actor.character .exhaustion{
+  grid-area: calculation;
+}
+.skjaald2.sheet.actor.character .effects-element{
+  grid-area: effects;
 }
 .skjaald2.sheet.actor.character .sheet-body .tab-body .col-2.tab:not(.active) {
   display: none;
@@ -5401,10 +5570,23 @@ p:empty:has(+ .content-embed),
 .skjaald2.sheet.actor.character .sheet-body .tab-body .col-2 .right .top {
   gap: 0.5rem;
   align-items: start;
+
 }
 .skjaald2.sheet.actor.character .sheet-body .tab-body .tab:not(.details) {
   padding-inline: 0.5rem;
   padding-bottom: calc(1.5rem + 30px);
+}
+.skjaald2.sheet.actor.character .sheet-body .tab-body .tab.settings {
+  padding-inline: 0.5rem;
+  padding-bottom: calc(1.5rem + 30px);
+  padding-left: 60px;
+  padding-top: 25px;
+}
+.skjaald2.sheet.actor.character .sheet-body .tab-body .col-2.details .left .portrait{
+  grid-area: portrait;
+}
+.skjaald2.sheet.actor.character .sheet-body .tab-body .col-2.details .left .character-details{
+  grid-area: details;
 }
 .skjaald2.sheet.actor.character .sheet-body .skills > ul,
 .skjaald2.sheet.actor.character .sheet-body .tools > ul,
@@ -5626,7 +5808,8 @@ p:empty:has(+ .content-embed),
   content: "\53";
 }
 .skjaald2.sheet.actor.character .ability-scores {
-  position: absolute;
+  display: grid;
+  grid-area: attributes;
   top: 0;
   right: 0;
   left: calc(var(--skjaald-sheet-sidebar-width) + 18px);
@@ -5634,10 +5817,9 @@ p:empty:has(+ .content-embed),
   container-type: inline-size;
 }
 .skjaald2.sheet.actor.character .ability-scores .rows {
-  padding: 76px 0 76px 24px;
+  padding: 0px 0 0px 10px;
   display: grid;
-  flex-wrap: wrap;
-  width: 546px;
+  width: 370px;
   margin-left: auto;
 }
 
@@ -5736,6 +5918,7 @@ p:empty:has(+ .content-embed),
     padding-right: 41px;
     gap: 8px;
     padding-top: 43px;
+    padding-bottom: 13px;
     width: unset;
     margin: 0;
   }
@@ -5762,9 +5945,7 @@ p:empty:has(+ .content-embed),
     order: unset;
   }
 }
-.skjaald2.sheet.actor.character form:not(.tab-details) .ability-scores {
-  display: none;
-}
+
 .skjaald2.sheet.actor.character .create-child {
   display: none;
   position: absolute;
@@ -5876,12 +6057,6 @@ p:empty:has(+ .content-embed),
 }
 .skjaald2.sheet.actor.character .spells-list .items-header .item-name {
   cursor: pointer;
-}
-.skjaald2.sheet.actor.character .tab.biography.active {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  height: 100%;
 }
 .skjaald2.sheet.actor.character .tab.biography > .top {
   display: flex;
@@ -6006,15 +6181,20 @@ p:empty:has(+ .content-embed),
 .skjaald2.sheet.actor.character form.collapsed .main-content {
   grid-template-columns: 0 1fr;
   padding-left: 0;
+  margin-top: 16px;
+  margin-bottom: 18px;
+
 }
 .skjaald2.sheet.actor.character form.collapsed .main-content > .sidebar {
   margin-left: calc(var(--skjaald-sheet-sidebar-width) * -1);
 }
 .skjaald2.sheet.actor.character form.collapsed .sheet-header > .left:is(.optional-ability-1, .optional-ability-2) {
-  padding-right: 24px;
+  padding-right: 10px;
+  padding-left: 10px;
+  /* display: grid; */
 }
 .skjaald2.sheet.actor.character form.collapsed .sheet-header > .left:is(.optional-ability-1, .optional-ability-2) .document-name {
-  font-size: var(--font-size-46);
+  font-size: var(--font-size-36);
 }
 .skjaald2.sheet.actor.character form.collapsed .ability-scores {
   left: 0;
@@ -8297,7 +8477,7 @@ enchantment-application .drop-area .preview > a {
 .skjaald2.sheet.actor.character.skjaald-theme-dark .sheet-body .tools .ability,
 :is(.skjaald-theme-dark, .theme-dark) .skjaald2.sheet.actor.character .sheet-body .saves .ability,
 .skjaald2.sheet.actor.character.skjaald-theme-dark .sheet-body .saves .ability {
-  color: var(--skjaald-color-gold);
+  color: var(--color-border-dark-3);
 }
 :is(.skjaald-theme-dark, .theme-dark) .skjaald2.sheet.actor.character .sheet-body .sidebar .favorites > ul .drop,
 .skjaald2.sheet.actor.character.skjaald-theme-dark .sheet-body .sidebar .favorites > ul .drop {
@@ -8632,3 +8812,354 @@ enchantment-application .drop-area .preview > a {
 .skjaald2.skjaald-flag-high-contrast.skjaald-theme-dark .items-section .item .item-controls .item-control:not(.active) {
   color: var(--color-text-light-6);
 }
+
+.well-conditions {
+  grid-area: well-conditions;
+  flex-direction: column;
+}
+.well-conditions .container-box-header{
+  display: grid;
+  grid-column-gap: 5px;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-bottom: 2px solid #202020;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.well-conditions .sheet-container-body{
+  display: grid;
+  grid-column-gap: 5px;
+  grid-template-columns: repeat(4, 1fr);
+  height: 100%;
+}
+.sheet-list-conditions {
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+  list-style: none;
+  margin: 0;
+  padding: 0; }
+.sheet-list-conditions .sheet-radio {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  line-height: 14px;
+  text-align: center; }
+.sheet-list-conditions .sheet-radio span {
+  border-radius: 4px;
+  flex-grow: 1;
+  font-size: 11px; }
+.sheet-list-conditions .sheet-radio span:hover {
+  background: #e5fffb; }
+.sheet-list-conditions .sheet-radio input {
+  display: none; }
+.sheet-list-conditions .sheet-radio input[type=checkbox]:checked + span {
+  background: #cf0101;
+  color: white; }
+.sheet-list-conditions li:nth-of-type(1) input[type=checkbox]:checked + span {
+  background: #46cf01; }
+.sheet-list-conditions li:nth-of-type(2) input[type=checkbox]:checked + span {
+  background: #7dcf01; }
+.sheet-list-conditions li:nth-of-type(3) input[type=checkbox]:checked + span {
+  background: #b4cf01; }
+.sheet-list-conditions li:nth-of-type(4) input[type=checkbox]:checked + span {
+  background: #cfb401; }
+.sheet-list-conditions li:nth-of-type(5) input[type=checkbox]:checked + span {
+  background: #cf7d01; }
+.sheet-list-conditions li:nth-of-type(6) input[type=checkbox]:checked + span {
+  background: #cf4601; }
+
+
+.skjaald.sheet.actor .health-conditions {
+  grid-area: health-conditions;
+}
+label.weapons{
+position: absolute; 
+top: 404px;
+left: 10px;
+}
+label.head{
+  position: absolute; 
+  top: 65px;
+  left: 258px;
+}
+label.neck{
+position: absolute; 
+top: 99px;
+left: 97px;
+}
+label.shoulders{
+  position: absolute; 
+  top: 119px;
+  left:296px;
+}
+label.inner{
+  position: absolute; 
+  top: 232px;
+  left:302px;
+}
+label.outer{
+  position: absolute; 
+  top: 176px;
+  left:34px;
+}
+label.torso{
+  position: absolute; 
+  top: 159px;
+  left: 304px;
+}
+label.waist{
+  position: absolute; 
+  top: 192px;
+  left: 309px;
+}
+label.arms{
+  position: absolute; 
+  top: 340px;
+  left: 41px;
+}
+label.hands{
+  position: absolute; 
+  top: 236px;
+  left:29px;
+}
+label.rings{
+  position: absolute; 
+  top: 262px;
+  left: 303px;
+}
+label.thighs{
+  position: absolute; 
+  top: 290px;
+  left:52px;
+}
+label.legs{
+  position: absolute; 
+  top: 378px;
+  left: 275px;
+}
+label.ac{
+  position: absolute; 
+  top: 15px;
+  left: 277px;
+}
+label.dp{
+  position: absolute; 
+  top: 15px;
+  left: 146px;
+}
+label.pp{
+  position: absolute; 
+  top: 15px;
+  left: 0px;
+}
+label.onhand{
+  position: absolute; 
+  top: 433px;
+  left: 10px;
+}
+label.offhand{
+  position: absolute; 
+  top: 475px;
+  left: 10px;
+}
+.armorDude select{
+  height: calc(var(--form-field-height) -11px);
+}
+.head-drop{
+  position: absolute; 
+  top: 70px;
+  left: 291px;
+}
+.neck-drop{
+  position: absolute; 
+  top: 105px;
+  left: 31px;
+}
+.shoulders-drop{
+  position: absolute;
+  top: 125px;
+  left: 356px;
+}
+.inner-drop{
+  position: absolute;
+  top: 235px;
+  left: 342px;
+}
+.outer-drop{
+  position: absolute;
+  top: 190px;
+  left: -15px;
+}
+.torso-drop{
+  position: absolute;
+  top: 166px;
+  left: 343px;
+}
+.waist-drop{
+  position: absolute;
+  top: 196px;
+  left: 345px;
+}
+.arms-drop{
+  position: absolute;
+  top: 360px;
+  left: -10px;
+
+}
+.hands-drop{
+  position: absolute;
+  top: 251px;
+  left: -19px;
+}
+.rings-drop{
+  position: absolute;
+  top: 276px;
+  left: 329px;
+}
+.thighs-drop{
+  position: absolute;
+  top: 305px;
+  left: 7px;
+}
+.legs-drop{
+  position: absolute;
+  top: 383px;
+  left: 305px;
+}
+.weapon1-drop{
+  position: absolute;
+  top: 450px;
+  left: 28px;
+}
+.weapon2-drop{
+  position: absolute;
+  top: 491px;
+  left: 28px;
+}
+
+.sheet-pc-exhaustion-details label {
+  cursor: pointer;
+  margin: 0; }
+ .sheet-pc-exhaustion-details ul {
+  list-style: none;
+  margin: 0;
+  padding: 0; 
+  margin-bottom: 5px;}
+ .sheet-pc-exhaustion-details .sheet-pc-exhaustion-dot {
+  background: white;
+  border-radius: 100%;
+  border: 1px solid #272727;
+  display: inline-block;
+  height: 8px;
+  margin-right: 4px;
+  position: relative;
+  width: 8px; }
+ .sheet-pc-exhaustion-details li + li {
+  margin-top: 2px; }
+ .sheet-pc-exhaustion-details li [type=checkbox] {
+  display: none; }
+ .sheet-pc-exhaustion-details li span {
+  border-radius: 4px;
+  display: flex;
+  font-size: 11px;
+  line-height: 8px;
+  padding: 2px 3px; }
+   .sheet-pc-exhaustion-details li span strong {
+    margin-right: 3px; }
+ .sheet-pc-exhaustion-details .sheet-radio span:hover {
+  position: relative; }
+   .sheet-pc-exhaustion-details .sheet-radio span:hover::before {
+    content: '';
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #e5fffb;
+    z-index: -1; }
+ .sheet-pc-exhaustion-details li input[type=checkbox]:checked + span {
+  position: relative; }
+   .sheet-pc-exhaustion-details li input[type=checkbox]:checked + span::after {
+    background: #b4cf01;
+    border-radius: 5px;
+    bottom: 0;
+    content: '';
+    height: 26px;
+    left: 0;
+    position: absolute;
+    width: 100%;
+    z-index: -1; }
+   .sheet-pc-exhaustion-details li input[type=checkbox]:checked + span .sheet-pc-exhaustion-dot {
+    background: #8c8c8c; }
+ .sheet-pc-exhaustion-details li:nth-of-type(1) input[type=checkbox]:checked + span::after {
+  background: #46cf01;
+  height: 12px; }
+ .sheet-pc-exhaustion-details li:not(:nth-of-type(1)) input[type=checkbox]:checked + span {
+  color: rgb(0, 0, 0); }
+ .sheet-pc-exhaustion-details li:nth-of-type(2) input[type=checkbox]:checked + span::after {
+  background: #b4cf01;
+  height: 12px; }
+ .sheet-pc-exhaustion-details li:nth-of-type(3) input[type=checkbox]:checked + span::after {
+  background: #b4cf01;
+  height: 26px; }
+ .sheet-pc-exhaustion-details li:nth-of-type(4) input[type=checkbox]:checked + span::after {
+  background: #cfb401;
+  height: 40px; }
+ .sheet-pc-exhaustion-details li:nth-of-type(5) input[type=checkbox]:checked + span::after {
+  background: #cfb401;
+  height: 54px; }
+ .sheet-pc-exhaustion-details li:nth-of-type(6) input[type=checkbox]:checked + span::after {
+  background: #cf7d01;
+  height: 68px; }
+.sheet-pc-exhaustion-details li:nth-of-type(7) input[type=checkbox]:checked + span::after {
+  background: #cf7d01;
+  height: 82px; }
+ .sheet-pc-exhaustion-details li:nth-of-type(8) input[type=checkbox]:checked + span::after {
+  background: #cf4601;
+  height: 96px; }
+ .sheet-pc-exhaustion-details li:nth-of-type(9) input[type=checkbox]:checked + span::after {
+  background: #cf4601;
+  height: 110px; }
+ .sheet-pc-exhaustion-details li:nth-of-type(10) input[type=checkbox]:checked + span::after {
+  background: #cf4601;
+  height: 124px; }
+ .sheet-pc-exhaustion-details li:nth-of-type(11) input[type=checkbox]:checked + span::after {
+  background: #cf0101;
+  height: 138px; }
+  nav.tabs > .item.hidden{
+  display: none;
+}
+
+.slottt-machine-recipe {
+  margin: 0px auto;
+  width: 700px;
+  margin-top: 50px;
+}
+
+.slottt-machine-recipe__mask {
+    width: 100%;
+    height: 300px;
+    overflow: hidden; 
+    position: relative;
+    display: inline-block;
+    margin-bottom: -40px;
+}
+
+.slottt-machine-recipe__items_container {
+    position: absolute;
+}
+
+.slottt-machine-recipe__item {
+    min-height: 150px;
+    max-height: 150px;
+    margin: 0px;
+    padding: 0px;
+    background-size: contain;
+}
+
+

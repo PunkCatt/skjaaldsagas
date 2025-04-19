@@ -15,6 +15,30 @@
         <input type="text" name="hp.bonuses.overall" value="{{hp.bonuses.overall}}">
     </div>
 
+    <hr>
+
+    <div class="form-group body-threshold">
+        <label>{{localize "SKJAALD.HitPointsChunkSize"}}</label>
+        <input type="number" name="hp.body.chunkSize" value="{{hp.body.chunkSize}}">
+    </div>
+    {{!-- <div class="form-group">
+        <label>{{localize "SKJAALD.HitPointsChunkQuantity"}}</label>
+        <input type="text" name="hp.body.chunkQuantity" value="{{hp.body.chunkQuantity}}">
+    </div> --}}
+
+    <hr>
+
+    
+    <div class="form-group essence-threshold">
+        <label>{{localize "SKJAALD.HitPointsEssenceChunkSize"}}</label>
+        <input type="number" name="hp.essence.essenceChunkSize" value="{{hp.essence.essenceChunkSize}}">
+    </div>
+    <div class="form-group essence-threshold">
+        <label>{{localize "SKJAALD.HitPointsEssenceChunkQuantity"}}</label>
+        <input type="text" name="hp.essence.essenceChunkQuantity" value="{{hp.essence.essenceChunkQuantity}}">
+    </div>
+
+
     {{else}}
 
     <div class="hp-field form-group">
@@ -31,14 +55,7 @@
 
     {{/if}}
 
-    <hr>
 
-    <div class="form-group">
-        <label>{{localize "SKJAALD.HitPointsTempMaxShort"}}</label>
-        <div class="form-fields">
-            <input type="number" name="hp.tempmax" value="{{source.tempmax}}">
-        </div>
-    </div>
 
     <button type="submit">
         <i class="far fa-save"></i> {{localize "Save"}}

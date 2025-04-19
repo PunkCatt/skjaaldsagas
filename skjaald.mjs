@@ -345,6 +345,7 @@ class AdvancementFlow extends FormApplication {
   /** @inheritdoc */
   async _render(...args) {
     await super._render(...args);
+    console.log("_render", this);
 
     // Call setPosition on manager to adjust for size changes
     this.options.manager?.setPosition();
@@ -798,6 +799,8 @@ class ActorDataModel extends SystemDataModel {
   /* -------------------------------------------- */
   /*  Helpers                                     */
   /* -------------------------------------------- */
+  /* -------------------------------------------- */
+
 
   /**
    * Prepare a data object which defines the data schema used by dice roll commands against this Actor.
@@ -855,6 +858,8 @@ class ItemDataModel extends SystemDataModel {
       if ( sourceId ) this.parent.actor?.sourcedItems?.set(sourceId, this.parent);
     }
   }
+
+
 
   /* -------------------------------------------- */
   /*  Helpers                                     */
@@ -1829,7 +1834,6 @@ class AbilityScoreImprovementConfig extends AdvancementConfig {
 
   /** @inheritdoc */
   getData() {
-    console.log("-------SKJAALD UPDATE TEST ----------");
     const abilities = Object.entries(CONFIG.SKJAALD.abilities).reduce((obj, [key, data]) => {
       if ( !this.advancement.canImprove(key) ) return obj;
       const fixed = this.advancement.configuration.fixed[key] ?? 0;
@@ -2062,6 +2066,8 @@ class AbilityScoreImprovementFlow extends AdvancementFlow {
   async _onItemDelete(event) {
     event.preventDefault();
     this.feat = null;
+
+
     this.render();
   }
 
@@ -2360,11 +2366,35 @@ class HitPointsConfig extends AdvancementConfig {
   }
 
   /* -------------------------------------------- */
+  
 
   /** @inheritdoc */
   getData() {
     return foundry.utils.mergeObject(super.getData(), {
       hitDie: this.advancement.hitDie
+    });
+  }
+}
+
+/**
+ * Configuration application for hit points.
+ */
+class ThresholdConfig extends AdvancementConfig {
+
+  /** @inheritdoc */
+  static get defaultOptions() {
+    return foundry.utils.mergeObject(super.defaultOptions, {
+      template: "systems/skjaald/templates/advancement/threshold-config.hbs"
+    });
+  }
+
+  /* -------------------------------------------- */
+  
+
+  /** @inheritdoc */
+  getData() {
+    return foundry.utils.mergeObject(super.getData(), {
+      threshold: this.advancement.threshold
     });
   }
 }
@@ -2755,15 +2785,22 @@ async function preloadHandlebarsTemplates() {
 
     // Actor Sheet Partials
     "systems/skjaald/templates/actors/parts/actor-traits.hbs",
+    "systems/skjaald/templates/actors/parts/armor-dude.hbs",
     "systems/skjaald/templates/actors/parts/actor-inventory.hbs",
     "systems/skjaald/templates/actors/parts/actor-features.hbs",
     "systems/skjaald/templates/actors/parts/actor-spellbook.hbs",
     "systems/skjaald/templates/actors/parts/actor-warnings.hbs",
     "systems/skjaald/templates/actors/tabs/character-details.hbs",
+    "systems/skjaald/templates/actors/parts/actor-inventory.hbs",
+    "systems/skjaald/templates/actors/tabs/character-notes.hbs",
+    "systems/skjaald/templates/actors/tabs/character-settings.hbs",
     "systems/skjaald/templates/actors/tabs/character-features.hbs",
     "systems/skjaald/templates/actors/tabs/character-spells.hbs",
     "systems/skjaald/templates/actors/tabs/character-biography.hbs",
+    "systems/skjaald/templates/actors/tabs/character-learning.hbs",
     "systems/skjaald/templates/actors/tabs/group-members.hbs",
+    "systems/skjaald/templates/actors/parts/actor-textblocks.hbs",
+    "systems/skjaald/templates/actors/tabs/character-active.hbs",
 
     // Item Sheet Partials
     "systems/skjaald/templates/items/parts/item-action.hbs",
@@ -2922,7 +2959,10 @@ function registerHandlebarsHelpers() {
     "skjaald-linkForUuid": (uuid, options) => linkForUuid(uuid, options.hash),
     "skjaald-itemContext": itemContext,
     "skjaald-numberFormat": (context, options) => formatNumber(context, options.hash),
-    "skjaald-textFormat": formatText
+    "skjaald-textFormat": formatText,
+    'arr': function() {return Array.prototype.slice.call(arguments,0,-1);},
+    "contains": function( value, array){ array = ( array instanceof Array ) ? array : [array]; return (array.indexOf(value) > -1);}
+
   });
 }
 
@@ -4780,6 +4820,7 @@ class ShortRestDialog extends Dialog {
     const btn = event.currentTarget;
     this._denom = btn.form.hd.value;
     await this.actor.rollHitDie(this._denom);
+
     this.render();
   }
 
@@ -6657,6 +6698,7 @@ class ActiveEffect5e extends ActiveEffect {
   /** @inheritDoc */
   _onUpdate(data, options, userId) {
     super._onUpdate(data, options, userId);
+
     const originalLevel = foundry.utils.getProperty(options, "skjaald.originalExhaustion");
     const newLevel = foundry.utils.getProperty(data, "flags.skjaald.exhaustionLevel");
     const originalEncumbrance = foundry.utils.getProperty(options, "skjaald.originalEncumbrance");
@@ -7367,6 +7409,8 @@ class AdvancementManager extends Application {
 
   /** @inheritdoc */
   getData() {
+
+
     if ( !this.step ) return {};
 
     // Prepare information for subheading
@@ -7431,7 +7475,6 @@ class AdvancementManager extends Application {
   async _render(force, options) {
     await super._render(force, options);
     if ( (this._state !== Application.RENDER_STATES.RENDERED) || !this.step ) return;
-
     // Render the step
     this.step.flow._element = null;
     this.step.flow.options.manager ??= this;
@@ -7819,6 +7862,8 @@ class TraitConfig extends AdvancementConfig {
   /** @inheritdoc */
   async getData() {
     const context = super.getData();
+
+    
 
     context.grants = {
       label: localizedList({ grants: this.config.grants }) || "—",
@@ -9714,6 +9759,7 @@ const { ArrayField: ArrayField$5, BooleanField: BooleanField$9, NumberField: Num
 class ActionTemplate extends ItemDataModel {
   /** @inheritdoc */
   static defineSchema() {
+
     return {
       ability: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.AbilityModifier"}),
       actionType: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.ItemActionType"}),
@@ -9884,16 +9930,6 @@ class ActionTemplate extends ItemDataModel {
   /* -------------------------------------------- */
 
   /**
-   * Does the Item implement an attack roll as part of its usage?
-   * @type {boolean}
-   */
-  get hasAttack() {
-    return ["mwak", "rwak", "msak", "rsak"].includes(this.actionType);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
    * Does the Item implement a damage roll as part of its usage?
    * @type {boolean}
    */
@@ -9966,6 +10002,7 @@ class ActionTemplate extends ItemDataModel {
     return data;
   }
 }
+
 
 const { BooleanField: BooleanField$8, NumberField: NumberField$c, SchemaField: SchemaField$d, StringField: StringField$f } = foundry.data.fields;
 
@@ -10504,7 +10541,7 @@ const { NumberField: NumberField$b, SchemaField: SchemaField$c, SetField: SetFie
  */
 class EquipmentData extends ItemDataModel.mixin(
   ItemDescriptionTemplate, IdentifiableTemplate, ItemTypeTemplate, PhysicalItemTemplate, EquippableItemTemplate,
-  ActivatedEffectTemplate, ActionTemplate, MountableTemplate
+  ActivatedEffectTemplate, MountableTemplate
 ) {
   /** @inheritdoc */
   static defineSchema() {
@@ -10527,7 +10564,35 @@ class EquipmentData extends ItemDataModel.mixin(
       }),
       proficient: new NumberField$b({
         required: true, min: 0, max: 1, integer: true, initial: null, label: "SKJAALD.ProficiencyLevel"
-      })
+      }),
+      activatedActions: new ArrayField$9(new SchemaField$l({
+        name: new StringField$o({initial: "Action", label: "Name"}),
+        ability: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.AbilityModifier"}),
+      actionType: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.ItemActionType"}),
+      attack: new SchemaField$e({
+        bonus: new FormulaField({required: true, label: "SKJAALD.ItemAttackBonus"}),
+        flat: new BooleanField$9({label: "SKJAALD.ItemAttackFlat"})
+      }),
+      chatFlavor: new StringField$g({required: true, label: "SKJAALD.ChatFlavor"}),
+      critical: new SchemaField$e({
+        threshold: new NumberField$d({
+          required: true, integer: true, initial: null, positive: true, label: "SKJAALD.ItemCritThreshold"
+        }),
+        damage: new FormulaField({required: true, label: "SKJAALD.ItemCritExtraDamage"})
+      }),
+      damage: new SchemaField$e({
+        parts: new ArrayField$5(new ArrayField$5(new StringField$g({nullable: true})), {required: true}),
+        versatile: new FormulaField({required: true, label: "SKJAALD.VersatileDamage"})
+      }, {label: "SKJAALD.Damage"}),
+      enchantment: new EnchantmentField(),
+      formula: new FormulaField({required: true, label: "SKJAALD.OtherFormula"}),
+      save: new SchemaField$e({
+        ability: new StringField$g({required: true, blank: true, label: "SKJAALD.Ability"}),
+        dc: new NumberField$d({required: true, min: 0, integer: true, label: "SKJAALD.AbbreviationDC"}),
+        scaling: new StringField$g({required: true, blank: false, initial: "spell", label: "SKJAALD.ScalingFormula"})
+      }, {label: "SKJAALD.SavingThrow"}),
+      summons: new SummonsField()     
+      }), { required: true, default: [] })
     });
   }
 
@@ -10717,7 +10782,6 @@ class EquipmentData extends ItemDataModel.mixin(
  * Data definition for Spell items.
  * @mixes ItemDescriptionTemplate
  * @mixes ActivatedEffectTemplate
- * @mixes ActionTemplate
  *
  * @property {number} level                      Base level of the spell.
  * @property {string} school                     Magical school to which this spell belongs.
@@ -10735,7 +10799,7 @@ class EquipmentData extends ItemDataModel.mixin(
  * @property {string} scaling.formula            Dice formula used for scaling.
  */
 class SpellData extends ItemDataModel.mixin(
-  ItemDescriptionTemplate, ActivatedEffectTemplate, ActionTemplate
+  ItemDescriptionTemplate, ActivatedEffectTemplate
 ) {
   /** @inheritdoc */
   static defineSchema() {
@@ -10766,7 +10830,35 @@ class SpellData extends ItemDataModel.mixin(
       scaling: new foundry.data.fields.SchemaField({
         mode: new foundry.data.fields.StringField({required: true, initial: "none", label: "SKJAALD.ScalingMode"}),
         formula: new FormulaField({required: true, nullable: true, initial: null, label: "SKJAALD.ScalingFormula"})
-      }, {label: "SKJAALD.LevelScaling"})
+      }, {label: "SKJAALD.LevelScaling"}),
+      activatedActions: new ArrayField$9(new SchemaField$l({
+        name: new StringField$o({initial: "Action", label: "Name"}),
+        ability: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.AbilityModifier"}),
+        actionType: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.ItemActionType"}),
+        attack: new SchemaField$e({
+          bonus: new FormulaField({required: true, label: "SKJAALD.ItemAttackBonus"}),
+          flat: new BooleanField$9({label: "SKJAALD.ItemAttackFlat"})
+        }),
+        chatFlavor: new StringField$g({required: true, label: "SKJAALD.ChatFlavor"}),
+        critical: new SchemaField$e({
+          threshold: new NumberField$d({
+            required: true, integer: true, initial: null, positive: true, label: "SKJAALD.ItemCritThreshold"
+          }),
+          damage: new FormulaField({required: true, label: "SKJAALD.ItemCritExtraDamage"})
+        }),
+        damage: new SchemaField$e({
+          parts: new ArrayField$5(new ArrayField$5(new StringField$g({nullable: true})), {required: true}),
+          versatile: new FormulaField({required: true, label: "SKJAALD.VersatileDamage"})
+        }, {label: "SKJAALD.Damage"}),
+        enchantment: new EnchantmentField(),
+        formula: new FormulaField({required: true, label: "SKJAALD.OtherFormula"}),
+        save: new SchemaField$e({
+          ability: new StringField$g({required: true, blank: true, label: "SKJAALD.Ability"}),
+          dc: new NumberField$d({required: true, min: 0, integer: true, label: "SKJAALD.AbbreviationDC"}),
+          scaling: new StringField$g({required: true, blank: false, initial: "spell", label: "SKJAALD.ScalingFormula"})
+        }, {label: "SKJAALD.SavingThrow"}),
+        summons: new SummonsField()     
+      }), { required: true, default: [] })
     });
   }
 
@@ -11768,6 +11860,7 @@ class Item5e extends SystemDocumentMixin(Item) {
    * @see {@link ActionTemplate#hasAttack}
    */
   get hasAttack() {
+
     return this.system.hasAttack ?? false;
   }
 
@@ -12109,11 +12202,13 @@ class Item5e extends SystemDocumentMixin(Item) {
     super.prepareDerivedData();
     this.labels = {};
 
+
     // Clear out linked item cache
     this._classLink = undefined;
 
     // Advancement
     this._prepareAdvancement();
+
 
     // Item Properties
     if ( this.system.properties ) {
@@ -15353,6 +15448,7 @@ class JournalSpellListPageSheet extends JournalPageSheet {
           const unlinkedSet = this.document.system.unlinkedSpells.filter(s => s._id !== unlinkedId);
           await this.document.update({"system.unlinkedSpells": Array.from(unlinkedSet)});
         }
+        
         this.render();
         break;
       case "edit-unlinked":
@@ -15383,6 +15479,7 @@ class JournalSpellListPageSheet extends JournalPageSheet {
 
     spells.forEach(i => spellUuids.add(i.uuid));
     await this.document.update({"system.spells": Array.from(spellUuids)});
+
     this.render();
   }
 }
@@ -17595,6 +17692,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     this._preparationWarnings = [];
     super.prepareData();
     this.items.forEach(item => item.prepareFinalAttributes());
+
   }
 
   /* --------------------------------------------- */
@@ -17654,6 +17752,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
     this._prepareArmorClass();
     this._prepareInitiative(rollData, checkBonus);
     this._prepareSpellcasting();
+
   }
 
   /* -------------------------------------------- */
@@ -20396,7 +20495,7 @@ class Actor5e extends SystemDocumentMixin(Actor) {
         if ( origin.type === "feat" ) return keepFeatAE;
         if ( origin.type === "background" ) return keepBackgroundAE;
         if ( ["subclass", "class"].includes(origin.type) ) return keepClassAE;
-        if ( ["equipment", "weapon", "tool", "loot", "container"].includes(origin.type) ) return keepEquipmentAE;
+        if ( ["equipment", "weapon", "tool", "loot", "container", "die"].includes(origin.type) ) return keepEquipmentAE;
         return true;
       });
     }
@@ -21526,7 +21625,7 @@ class ItemGrantAdvancement extends Advancement {
    * The item types that are supported in Item Grant.
    * @type {Set<string>}
    */
-  static VALID_TYPES = new Set(["feat", "spell", "consumable", "container", "equipment", "loot", "tool", "weapon"]);
+  static VALID_TYPES = new Set(["feat", "spell", "consumable", "container", "die", "equipment", "loot", "tool", "weapon"]);
 
   /* -------------------------------------------- */
   /*  Display Methods                             */
@@ -22086,7 +22185,7 @@ class ScaleValueTypeDice extends ScaleValueType {
    * List of die faces that can be chosen.
    * @type {number[]}
    */
-  static FACES = [2, 3, 4, 6, 8, 10, 12, 20, 100];
+  static FACES = [2, 3, 4, 6, 8, 10, 12, 14, 16, 20, 50, 100];
 
   /* -------------------------------------------- */
 
@@ -23384,33 +23483,33 @@ SKJAALD.actorSizes = {
   tiny: {
     label: "SKJAALD.SizeTiny",
     abbreviation: "SKJAALD.SizeTinyAbbr",
-   // hitDie: 4,
-    token: 0.25,
+    hitDie: 4,
+    token: 0.5,
     capacityMultiplier: 0.5
   },
   sm: {
     label: "SKJAALD.SizeSmall",
     abbreviation: "SKJAALD.SizeSmallAbbr",
-   // hitDie: 6,
-    dynamicTokenScale: 0.5
+    hitDie: 6,
+    dynamicTokenScale: 0.8
   },
   med: {
     label: "SKJAALD.SizeMedium",
     abbreviation: "SKJAALD.SizeMediumAbbr",
-   // hitDie: 8
+    hitDie: 8
   },
   lg: {
     label: "SKJAALD.SizeLarge",
     abbreviation: "SKJAALD.SizeLargeAbbr",
-   // hitDie: 10,
+    hitDie: 10,
     token: 2,
     capacityMultiplier: 2
   },
   huge: {
     label: "SKJAALD.SizeHuge",
     abbreviation: "SKJAALD.SizeHugeAbbr",
-   // hitDie: 12,
-    token: 2,
+    hitDie: 12,
+    token: 3,
     capacityMultiplier: 4
   },
   mas: {
@@ -23516,90 +23615,90 @@ SKJAALD.creatureTypes = {
     label: "SKJAALD.CreatureAberration",
     plural: "SKJAALD.CreatureAberrationPl",
     icon: "icons/creatures/tentacles/tentacle-eyes-yellow-pink.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.yy50qVC1JhPHt4LC",
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.yy50qVC1JhPHt4LC",
     detectAlignment: true
   },
   beast: {
     label: "SKJAALD.CreatureBeast",
     plural: "SKJAALD.CreatureBeastPl",
     icon: "icons/creatures/claws/claw-bear-paw-swipe-red.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6bTHn7pZek9YX2tv"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6bTHn7pZek9YX2tv"
   },
   celestial: {
     label: "SKJAALD.CreatureCelestial",
     plural: "SKJAALD.CreatureCelestialPl",
     icon: "icons/creatures/abilities/wings-birdlike-blue.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.T5CJwxjhBbi6oqaM",
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.T5CJwxjhBbi6oqaM",
     detectAlignment: true
   },
   construct: {
     label: "SKJAALD.CreatureConstruct",
     plural: "SKJAALD.CreatureConstructPl",
     icon: "icons/creatures/magical/construct-stone-earth-gray.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jQGAJZBZTqDFod8d"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jQGAJZBZTqDFod8d"
   },
   dragon: {
     label: "SKJAALD.CreatureDragon",
     plural: "SKJAALD.CreatureDragonPl",
     icon: "icons/creatures/abilities/dragon-fire-breath-orange.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.k2IRXZwGk9W0PM2S"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.k2IRXZwGk9W0PM2S"
   },
   elemental: {
     label: "SKJAALD.CreatureElemental",
     plural: "SKJAALD.CreatureElementalPl",
     icon: "icons/creatures/magical/spirit-fire-orange.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.7z1LXGGkXpHuzkFh",
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.7z1LXGGkXpHuzkFh",
     detectAlignment: true
   },
   fey: {
     label: "SKJAALD.CreatureFey",
     plural: "SKJAALD.CreatureFeyPl",
     icon: "icons/creatures/magical/fae-fairy-winged-glowing-green.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.OFsRUt3pWljgm8VC",
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.OFsRUt3pWljgm8VC",
     detectAlignment: true
   },
   fiend: {
     label: "SKJAALD.CreatureFiend",
     plural: "SKJAALD.CreatureFiendPl",
     icon: "icons/magic/death/skull-horned-goat-pentagram-red.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ElHKBJeiJPC7gj6k",
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ElHKBJeiJPC7gj6k",
     detectAlignment: true
   },
   giant: {
     label: "SKJAALD.CreatureGiant",
     plural: "SKJAALD.CreatureGiantPl",
     icon: "icons/creatures/magical/humanoid-giant-forest-blue.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AOXn3Mv5vPZwo0Uf"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AOXn3Mv5vPZwo0Uf"
   },
   humanoid: {
     label: "SKJAALD.CreatureHumanoid",
     plural: "SKJAALD.CreatureHumanoidPl",
     icon: "icons/magic/unholy/strike-body-explode-disintegrate.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iFzQs4AenN8ALRvw"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iFzQs4AenN8ALRvw"
   },
   monstrosity: {
     label: "SKJAALD.CreatureMonstrosity",
     plural: "SKJAALD.CreatureMonstrosityPl",
     icon: "icons/creatures/abilities/mouth-teeth-rows-red.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TX0yPEFTn79AMZ8P"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TX0yPEFTn79AMZ8P"
   },
   ooze: {
     label: "SKJAALD.CreatureOoze",
     plural: "SKJAALD.CreatureOozePl",
     icon: "icons/creatures/slimes/slime-movement-pseudopods-green.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.cgzIC1ecG03D97Fg"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.cgzIC1ecG03D97Fg"
   },
   plant: {
     label: "SKJAALD.CreaturePlant",
     plural: "SKJAALD.CreaturePlantPl",
     icon: "icons/magic/nature/tree-animated-strike.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1oT7t6tHE4kZuSN1"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1oT7t6tHE4kZuSN1"
   },
   undead: {
     label: "SKJAALD.CreatureUndead",
     plural: "SKJAALD.CreatureUndeadPl",
     icon: "icons/magic/death/skull-horned-worn-fire-blue.webp",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.D2BdqS1GeD5rcZ6q",
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.D2BdqS1GeD5rcZ6q",
     detectAlignment: true
   }
 };
@@ -23645,20 +23744,39 @@ preLocalize("itemCapacityTypes", { sort: true });
  * @enum {string}
  */
 SKJAALD.itemRarity = {
-  common: "SKJAALD.ItemRarityCommon",
-  uncommon: "SKJAALD.ItemRarityUncommon",
-  rare: "SKJAALD.ItemRarityRare",
-  veryRare: "SKJAALD.ItemRarityVeryRare",
-  legendary: "SKJAALD.ItemRarityLegendary",
-  artifact: "SKJAALD.ItemRarityArtifact"
+  makeshift: "SKJAALD.ItemQualityMakeshift",
+  poor: "SKJAALD.ItemQualityPoor",
+  flawed: "SKJAALD.ItemQualityFlawed",
+  standard: "SKJAALD.ItemQualityStandard",
+  premium: "SKJAALD.ItemQualityPremium",
+  masterwork: "SKJAALD.ItemQualityMasterwork",
+  legendary: "SKJAALD.ItemQualityLegendary"
 };
 preLocalize("itemRarity");
 
 /* -------------------------------------------- */
 
 /**
+ * List of various item conditions.
+ * @enum {string}
+ */
+SKJAALD.itemCondition = {
+  broken: "SKJAALD.ItemConditionBroken",
+  compromised: "SKJAALD.ItemConditionCompromised",
+  scavenged: "SKJAALD.ItemConditionScavenged",
+  used: "SKJAALD.ItemConditionUsed",
+  standard: "SKJAALD.ItemConditionStandard",
+  maintained: "SKJAALD.ItemConditionMaintained",
+  pristine: "SKJAALD.ItemConditionPristine",
+  improved: "SKJAALD.ItemConditionImproved"
+};
+preLocalize("itemCondition");
+
+/* -------------------------------------------- */
+
+/**
  * The limited use periods that support a recovery formula.
- * @deprecated since Skjaald 3.1, available until Skjaald 3.3
+ * @deprecated since DnD5e 3.1, available until DnD5e 3.3
  * @enum {string}
  */
 SKJAALD.limitedUseFormulaPeriods = {
@@ -23712,7 +23830,7 @@ SKJAALD.limitedUsePeriods = {
   }
 };
 preLocalize("limitedUsePeriods", { keys: ["label", "abbreviation"] });
-patchConfig("limitedUsePeriods", "label", { since: "Skjaald 3.1", until: "Skjaald 3.3" });
+patchConfig("limitedUsePeriods", "label", { since: "DnD5e 3.1", until: "DnD5e 3.3" });
 
 /* -------------------------------------------- */
 
@@ -24118,6 +24236,9 @@ SKJAALD.itemProperties = {
   conduit: {
     label: "SKJAALD.Item.Trait.Conduit"
   }, 
+  concentration: {
+    label: "SKJAALD.Item.Trait.Concentration",
+  },
   constraining: {
     label: "SKJAALD.Item.Trait.Constraining"
   },
@@ -24133,16 +24254,16 @@ SKJAALD.itemProperties = {
   debilitating: {
     label: "SKJAALD.Item.Trait.Debilitating"
   },
-  def: {
+  defensive: {
     label: "SKJAALD.Item.Trait.Defensive"
   },
-  dem: {
+  demoralizing: {
     label: "SKJAALD.Item.Trait.Demoralizing"
   },
   discrete: {
     label: "SKJAALD.Item.Trait.Discrete"
   },
-  exo: {
+  exotic: {
     label: "SKJAALD.Item.Trait.Exotic"
   },
   fending: {
@@ -24251,7 +24372,7 @@ SKJAALD.itemProperties = {
   special: {
     label: "SKJAALD.Item.Trait.Special"
   },
-  supplemental: {
+  supplementary: {
     label: "SKJAALD.Item.Trait.Supplemental"
   },
   sundering: {
@@ -24269,7 +24390,7 @@ SKJAALD.itemProperties = {
   twoHanded: {
     label: "SKJAALD.Item.Trait.TwoHanded"
   },
-  uweildy: {
+  unwieldy: {
     label: "SKJAALD.Item.Trait.Unweildy"
   },
   versatile: {
@@ -24299,7 +24420,7 @@ preLocalize("itemProperties", { keys: ["label", "abbreviation"], sort: true });
 
 /**
  * The various properties of an item per item type.
- * TODO: Update to validTraits
+ *  TODO: Update to validTraits
  * @enum {object}
  */
 SKJAALD.validProperties = {
@@ -24332,10 +24453,10 @@ SKJAALD.validProperties = {
   ]),
   feat: new Set([
     "concentration",
-    "mgc"
+    "magical"
   ]),
   loot: new Set([
-    "mgc"
+    "magical"
   ]),
   weapon: new Set([
     "ammunition",
@@ -24388,7 +24509,7 @@ SKJAALD.validProperties = {
   ]),
   tool: new Set([
     "concentration",
-    "mgc"
+    "magical"
   ])
 };
 
@@ -24708,88 +24829,29 @@ SKJAALD.damageSubFamilies = {
 };
 
 /* -------------------------------------------- */
+
+/* -------------------------------------------- */
+/*  Injury Severities                           */
+/* -------------------------------------------- */
+
 /**
  * The various damage types of a damage sub-family per sub-family.
  * @enum {object}
  */
-SKJAALD.damageSubFamilies = {
-  heatFamily: new Set([
-    "heat",
-    "fire",
-    "wizardsFlame",
-    "drakeFire",
-    "plasma"
-  ]),
-  coldFamily: new Set([
-    "cold",
-    "frost",
-    "mageFrost",
-    "drakeIce"
-  ]), 
-  bioFamily: new Set ([
-    "poison",
-    "disease",
-    "necrotic"
-  ]), 
-  materialFamily: new Set ([
-    "corrosive",
-    "acid",
-    "necrotic"
-  ])
+SKJAALD.injurySeverities = {
+  light: "SKJAALD.InjurySeverityLight",
+  minorPlaceholder: "SKJAALD.InjurySeverityMinorPlaceholder",
+  nagging: "SKJAALD.InjurySeverityNagging",
+  majorPlaceholder: "SKJAALD.InjurySeverityMajorPlaceholder",
+  crippling: "SKJAALD.InjurySeverityCrippling",
+  mortal: "SKJAALD.InjurySeverityMortal",
+  grievous: "SKJAALD.InjurySeverityGrievous"
 };
 
-/**
- * The various damage types of a damage family per family.
- * @enum {object}
- */
+preLocalize("injurySeverities", { keys: ["label"] });
 
-SKJAALD.damageFamilies = {
-  piercing: new Set([
-   "piercing",
-   "penetration"
-  ]),
-  bludgeoning: new Set([
-    "bludgeoning",
-    "force"
-  ]),
-  slashing: new Set ([
-    "slashing",
-    "rending"
-  ]),
-  thermal: new Set ([
-    "heatFamily",
-    "coldFamily"
-  ]), 
-  decay: new Set ([
-    "bioFamily",
-    "materialFamily"
-  ]),
-  electric: new Set ([
-    "static",
-    "electric",
-    "drakeLightning",
-    "plasma"
-  ]),
-  light: new Set([
-    "bright",
-    "luminescent",
-    "radiant"
-  ]),
-  essence: new Set([
-    "psychic",
-    "spirit",
-    "divine"
-  ]),
-  sonic: new Set([
+/* -------------------------------------------- */
 
-  ]),
-  force: new Set([
-    "force"
-  ])
-};
-
-
-preLocalize("damageTypes", { keys: ["label", "family", "subFamily"], sort: true });
 
 /* -------------------------------------------- */
 /*  Movement                                    */
@@ -24802,12 +24864,12 @@ preLocalize("damageTypes", { keys: ["label", "family", "subFamily"], sort: true 
 SKJAALD.healingTypes = {
   healing: {
     label: "SKJAALD.Healing",
-    icon: "systems/skjaald/icons/svg/damage/healing.svg",
+    icon: "systems/dnd5e/icons/svg/damage/healing.svg",
     color: new Color(0x46C252)
   },
   temphp: {
     label: "SKJAALD.HealingTemp",
-    icon: "systems/skjaald/icons/svg/damage/temphp.svg",
+    icon: "systems/dnd5e/icons/svg/damage/temphp.svg",
     color: new Color(0x4B66DE)
   }
 };
@@ -24825,8 +24887,7 @@ SKJAALD.movementTypes = {
   climb: "SKJAALD.MovementClimb",
   fly: "SKJAALD.MovementFly",
   swim: "SKJAALD.MovementSwim",
-  walk: "SKJAALD.MovementWalk",
-  glide: "SKJAALD.MovementGlide"
+  walk: "SKJAALD.MovementWalk"
 };
 preLocalize("movementTypes", { sort: true });
 
@@ -24947,15 +25008,15 @@ SKJAALD.encumbrance = {
   effects: {
     encumbered: {
       name: "EFFECT.SKJAALD.StatusEncumbered",
-      icon: "systems/skjaald/icons/svg/statuses/encumbered.svg"
+      icon: "systems/dnd5e/icons/svg/statuses/encumbered.svg"
     },
     heavilyEncumbered: {
       name: "EFFECT.SKJAALD.StatusHeavilyEncumbered",
-      icon: "systems/skjaald/icons/svg/statuses/heavily-encumbered.svg"
+      icon: "systems/dnd5e/icons/svg/statuses/heavily-encumbered.svg"
     },
     exceedingCarryingCapacity: {
       name: "EFFECT.SKJAALD.StatusExceedingCarryingCapacity",
-      icon: "systems/skjaald/icons/svg/statuses/exceeding-carrying-capacity.svg"
+      icon: "systems/dnd5e/icons/svg/statuses/exceeding-carrying-capacity.svg"
     }
   },
   threshold: {
@@ -25043,17 +25104,17 @@ SKJAALD.areaTargetTypes = {
   sphere: {
     label: "SKJAALD.TargetSphere",
     template: "circle",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.npdEWb2egUPnB5Fa"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.npdEWb2egUPnB5Fa"
   },
   cylinder: {
     label: "SKJAALD.TargetCylinder",
     template: "circle",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jZFp4R7tXsIqkiG3"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jZFp4R7tXsIqkiG3"
   },
   cone: {
     label: "SKJAALD.TargetCone",
     template: "cone",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DqqAOr5JnX71OCOw"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DqqAOr5JnX71OCOw"
   },
   square: {
     label: "SKJAALD.TargetSquare",
@@ -25062,12 +25123,12 @@ SKJAALD.areaTargetTypes = {
   cube: {
     label: "SKJAALD.TargetCube",
     template: "rect",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.dRfDIwuaHmUQ06uA"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.dRfDIwuaHmUQ06uA"
   },
   line: {
     label: "SKJAALD.TargetLine",
     template: "ray",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6DOoBgg7okm9gBc6"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6DOoBgg7okm9gBc6"
   },
   wall: {
     label: "SKJAALD.TargetWall",
@@ -25094,7 +25155,7 @@ preLocalize("targetTypes", { sort: true });
  * Denominations of hit dice which can apply to classes.
  * @type {string[]}
  */
-SKJAALD.hitDieTypes = ["d2","d4", "d6", "d8", "d10", "d12", "d20"];
+SKJAALD.hitDieTypes = ["d2", "d3","d4", "d6", "d8", "d10", "d12"];
 
 /* -------------------------------------------- */
 
@@ -25245,13 +25306,13 @@ SKJAALD.spellPreparationModes = {
   }
 };
 preLocalize("spellPreparationModes", { key: "label" });
-patchConfig("spellPreparationModes", "label", { since: "Skjaald 3.1", until: "Skjaald 3.3" });
+patchConfig("spellPreparationModes", "label", { since: "DnD5e 3.1", until: "DnD5e 3.3" });
 
 /* -------------------------------------------- */
 
 /**
  * Subset of `SKJAALD.spellPreparationModes` that consume spell slots.
- * @deprecated since Skjaald 3.1, available until Skjaald 3.3
+ * @deprecated since DnD5e 3.1, available until DnD5e 3.3
  * @type {string[]}
  */
 SKJAALD.spellUpcastModes = ["always", "pact", "prepared"];
@@ -25284,7 +25345,7 @@ SKJAALD.spellUpcastModes = ["always", "pact", "prepared"];
 SKJAALD.spellcastingTypes = {
   leveled: {
     label: "SKJAALD.SpellProgLeveled",
-    img: "systems/skjaald/icons/spell-tiers/{id}.webp",
+    img: "systems/dnd5e/icons/spell-tiers/{id}.webp",
     progression: {
       full: {
         label: "SKJAALD.SpellProgFull",
@@ -25376,7 +25437,7 @@ preLocalize("spellScalingModes", { sort: true });
 
 /**
  * Types of components that can be required when casting a spell.
- * @deprecated since Skjaald 3.0, available until Skjaald 3.3
+ * @deprecated since DnD5e 3.0, available until DnD5e 3.3
  * @enum {SpellComponentConfiguration}
  */
 SKJAALD.spellComponents = {
@@ -25420,21 +25481,21 @@ preLocalize("spellComponents", { keys: ["label", "abbr"] });
 
 /**
  * Supplementary rules keywords that inform a spell's use.
- * @deprecated since Skjaald 3.0, available until Skjaald 3.3
+ * @deprecated since DnD5e 3.0, available until DnD5e 3.3
  * @enum {SpellTagConfiguration}
  */
 SKJAALD.spellTags = {
   concentration: {
     label: "SKJAALD.Concentration",
     abbr: "SKJAALD.ConcentrationAbbr",
-    icon: "systems/skjaald/icons/svg/statuses/concentrating.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH"
+    icon: "systems/dnd5e/icons/svg/statuses/concentrating.svg",
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH"
   },
   ritual: {
     label: "SKJAALD.Ritual",
     abbr: "SKJAALD.RitualAbbr",
-    icon: "systems/skjaald/icons/svg/items/spell.svg",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA"
+    icon: "systems/dnd5e/icons/svg/items/spell.svg",
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA"
   }
 };
 preLocalize("spellTags", { keys: ["label", "abbr"] });
@@ -25458,51 +25519,51 @@ preLocalize("spellTags", { keys: ["label", "abbr"] });
 SKJAALD.spellSchools = {
   abj: {
     label: "SKJAALD.SchoolAbj",
-    icon: "systems/skjaald/icons/svg/schools/abjuration.svg",
+    icon: "systems/dnd5e/icons/svg/schools/abjuration.svg",
     fullKey: "abjuration",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.849AYEWw9FHD6JNz"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.849AYEWw9FHD6JNz"
   },
   con: {
     label: "SKJAALD.SchoolCon",
-    icon: "systems/skjaald/icons/svg/schools/conjuration.svg",
+    icon: "systems/dnd5e/icons/svg/schools/conjuration.svg",
     fullKey: "conjuration",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TWyKMhZJZGqQ6uls"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TWyKMhZJZGqQ6uls"
   },
   div: {
     label: "SKJAALD.SchoolDiv",
-    icon: "systems/skjaald/icons/svg/schools/divination.svg",
+    icon: "systems/dnd5e/icons/svg/schools/divination.svg",
     fullKey: "divination",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HoD2MwzmVbMqj9se"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HoD2MwzmVbMqj9se"
   },
   enc: {
     label: "SKJAALD.SchoolEnc",
-    icon: "systems/skjaald/icons/svg/schools/enchantment.svg",
+    icon: "systems/dnd5e/icons/svg/schools/enchantment.svg",
     fullKey: "enchantment",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.SehPXk24ySBVOwCZ"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.SehPXk24ySBVOwCZ"
   },
   evo: {
     label: "SKJAALD.SchoolEvo",
-    icon: "systems/skjaald/icons/svg/schools/evocation.svg",
+    icon: "systems/dnd5e/icons/svg/schools/evocation.svg",
     fullKey: "evocation",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kGp1RNuxL2SELLRC"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kGp1RNuxL2SELLRC"
   },
   ill: {
     label: "SKJAALD.SchoolIll",
-    icon: "systems/skjaald/icons/svg/schools/illusion.svg",
+    icon: "systems/dnd5e/icons/svg/schools/illusion.svg",
     fullKey: "illusion",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.smEk7kvVyslFozrB"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.smEk7kvVyslFozrB"
   },
   nec: {
     label: "SKJAALD.SchoolNec",
-    icon: "systems/skjaald/icons/svg/schools/necromancy.svg",
+    icon: "systems/dnd5e/icons/svg/schools/necromancy.svg",
     fullKey: "necromancy",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.W0eyiV1FBmngb6Qh"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.W0eyiV1FBmngb6Qh"
   },
   trs: {
     label: "SKJAALD.SchoolTrs",
-    icon: "systems/skjaald/icons/svg/schools/transmutation.svg",
+    icon: "systems/dnd5e/icons/svg/schools/transmutation.svg",
     fullKey: "transmutation",
-    reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.IYWewSailtmv6qEb"
+    reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.IYWewSailtmv6qEb"
   }
 };
 preLocalize("spellSchools", { key: "label", sort: true });
@@ -25574,10 +25635,10 @@ preLocalize("weaponTypes");
  * @enum {string}
  */
 SKJAALD.sourcePacks = {
-  BACKGROUNDS: "skjaald.backgrounds",
-  CLASSES: "skjaald.classes",
-  ITEMS: "skjaald.items",
-  RACES: "skjaald.races"
+  BACKGROUNDS: "dnd5e.backgrounds",
+  CLASSES: "dnd5e.classes",
+  ITEMS: "dnd5e.items",
+  RACES: "dnd5e.races"
 };
 
 /* -------------------------------------------- */
@@ -25664,15 +25725,21 @@ preLocalize("transformationPresets", { sort: true, keys: ["label"] });
  * @enum {string}
  */
 SKJAALD.proficiencyLevels = {
-  0: "SKJAALD.NotProficient",
-  1: "SKJAALD.Amateur",
-  2: "SKJAALD.Apprentice",
-  3: "SKJAALD.Proficient",
-  4: "SKJAALD.Adept",
-  6: "SKJAALD.Expert",
-  8: "SKJAALD.Master",
-  12: "SKJAALD.Legend"
-
+  0: "SKJAALD.Hopeless",
+  1: "SKJAALD.Inept",
+  2: "SKJAALD.Unskilled",
+  3: "SKJAALD.Inadequate",
+  4: "SKJAALD.Untrained",
+  5: "SKJAALD.Inexperienced",
+  6: "SKJAALD.Amateur",
+  7: "SKJAALD.Apprentice",
+  8: "SKJAALD.Proficient",
+  9: "SKJAALD.Adept",
+  10: "SKJAALD.Elite",
+  11: "SKJAALD.Expert",
+  12: "SKJAALD.Master",
+  13: "SKJAALD.Legend",
+  14: "SKJAALD.Savant"
 };
 preLocalize("proficiencyLevels");
 
@@ -25680,12 +25747,11 @@ preLocalize("proficiencyLevels");
 
 /**
  * Weapon and armor item proficiency levels.
- * TODO: change to just armor proficiency
  * @enum {string}
  */
 SKJAALD.weaponAndArmorProficiencyLevels = {
-  0: "SKJAALD.NotProficient",
-  1: "SKJAALD.Proficient"
+  0: "SKJAALD.NotFamiliar",
+  1: "SKJAALD.Familiar"
 };
 preLocalize("weaponAndArmorProficiencyLevels");
 
@@ -25762,23 +25828,23 @@ SKJAALD.consumableResources = [
 SKJAALD.conditionTypes = {
   bloodied: {
     label: "EFFECT.SKJAALD.StatusBloodied",
-   // icon: "systems/skjaald2/icons/svg/statuses/bleeding.svg",
+   icon: "systems/skjaald2/icons/svg/statuses/bleeding.svg",
     pseudo: true
   },
   blinded: {
     label: "SKJAALD.ConBlinded",
-   // icon: "systems/skjaald2/icons/svg/statuses/blinded.svg",
-   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.0b8N4FymGGfbZGpJ",
+   icon: "systems/skjaald/icons/svg/statuses/blinded.svg",
+   reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.0b8N4FymGGfbZGpJ",
     special: "BLIND"
   },
   charmed: {
     label: "SKJAALD.ConCharmed",
-   // icon: "systems/skjaald2/icons/svg/statuses/charmed.svg",
-   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.zZaEBrKkr66OWJvD"
+   icon: "systems/skjaald/icons/svg/statuses/charmed.svg",
+   reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.zZaEBrKkr66OWJvD"
   },
   cursed: {
     label: "EFFECT.SKJAALD.StatusCursed",
-   // icon: "systems/skjaald2/icons/svg/statuses/cursed.svg",
+   icon: "systems/skjaald/icons/svg/statuses/cursed.svg",
     pseudo: true
   },
   dazed: {
@@ -25786,91 +25852,91 @@ SKJAALD.conditionTypes = {
   },
   deafened: {
     label: "SKJAALD.ConDeafened",
-   // icon: "systems/skjaald2/icons/svg/statuses/deafened.svg",
-   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.6G8JSjhn701cBITY"
+   icon: "systems/skjaald/icons/svg/statuses/deafened.svg",
+   reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.6G8JSjhn701cBITY"
   },
   diseased: {
     label: "SKJAALD.ConDiseased",
-  //  icon: "systems/skjaald2/icons/svg/statuses/diseased.svg",
+   icon: "systems/skjaald/icons/svg/statuses/diseased.svg",
     pseudo: true,
-  //  reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oNQWvyRZkTOJ8PBq"
+   reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oNQWvyRZkTOJ8PBq"
   },
   disoriented: {
     label: "SKJAALD.ConDisoriented"
   },
   exhaustion: {
     label: "SKJAALD.ConExhaustion",
-   // icon: "systems/skjaald2/icons/svg/statuses/exhaustion.svg",
-   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cspWveykstnu3Zcv",
+   icon: "systems/skjaald/icons/svg/statuses/exhaustion.svg",
+   reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cspWveykstnu3Zcv",
     levels: 10
   },
   frightened: {
     label: "SKJAALD.ConFrightened",
-   // icon: "systems/skjaald2/icons/svg/statuses/frightened.svg",
-   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.oreoyaFKnvZCrgij"
+   icon: "systems/skjaald/icons/svg/statuses/frightened.svg",
+   reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.oreoyaFKnvZCrgij"
   },
   grappled: {
     label: "SKJAALD.ConGrappled",
-   // icon: "systems/skjaald2/icons/svg/statuses/grappled.svg",
-   // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.gYDAhd02ryUmtwZn"
+   icon: "systems/skjaald/icons/svg/statuses/grappled.svg",
+   reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.gYDAhd02ryUmtwZn"
   },
   hidden: {
     label: "SKJAALD.ConHidden"
   },
   incapacitated: {
     label: "SKJAALD.ConIncapacitated",
-    // icon: "systems/skjaald2/icons/svg/statuses/incapacitated.svg",
-    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.TpkZgLfxCmSndmpb"
+    icon: "systems/skjaald/icons/svg/statuses/incapacitated.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.TpkZgLfxCmSndmpb"
   },
   invisible: {
     label: "SKJAALD.ConInvisible",
-    // icon: "systems/skjaald2/icons/svg/statuses/invisible.svg",
-    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.3UU5GCTVeRDbZy9u"
+    icon: "systems/skjaald/icons/svg/statuses/invisible.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.3UU5GCTVeRDbZy9u"
   },
   paralyzed: {
     label: "SKJAALD.ConParalyzed",
-    // icon: "systems/skjaald2/icons/svg/statuses/paralyzed.svg",
-    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xnSV5hLJIMaTABXP",
+    icon: "systems/skjaald/icons/svg/statuses/paralyzed.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xnSV5hLJIMaTABXP",
     statuses: ["incapacitated"]
   },
   petrified: {
     label: "SKJAALD.ConPetrified",
-    // icon: "systems/skjaald2/icons/svg/statuses/petrified.svg",
-    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xaNDaW6NwQTgHSmi",
+    icon: "systems/skjaald/icons/svg/statuses/petrified.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.xaNDaW6NwQTgHSmi",
     statuses: ["incapacitated"]
   },
   poisoned: {
     label: "SKJAALD.ConPoisoned",
-    // icon: "systems/skjaald2/icons/svg/statuses/poisoned.svg",
-    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.lq3TRI6ZlED8ABMx"
+    icon: "systems/skjaald/icons/svg/statuses/poisoned.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.lq3TRI6ZlED8ABMx"
   },
   prone: {
     label: "SKJAALD.ConProne",
-    // icon: "systems/skjaald2/icons/svg/statuses/prone.svg",
-    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.y0TkcdyoZlOTmAFT"
+    icon: "systems/skjaald/icons/svg/statuses/prone.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.y0TkcdyoZlOTmAFT"
   },
   restrained: {
     label: "SKJAALD.ConRestrained",
-    // icon: "systems/skjaald2/icons/svg/statuses/restrained.svg",
-    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cSVcyZyNe2iG1fIc"
+    icon: "systems/skjaald/icons/svg/statuses/restrained.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.cSVcyZyNe2iG1fIc"
   },
   shock: {
     label: "SKJAALD.ConShock"
   },
   silenced: {
     label: "EFFECT.SKJAALD.StatusSilenced",
-    // icon: "systems/skjaald2/icons/svg/statuses/silenced.svg",
+    icon: "systems/skjaald/icons/svg/statuses/silenced.svg",
     pseudo: true
   },
   stunned: {
     label: "SKJAALD.ConStunned",
-    // icon: "systems/skjaald2/icons/svg/statuses/stunned.svg",
-    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.ZyZMUwA2rboh4ObS",
+    icon: "systems/skjaald/icons/svg/statuses/stunned.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.ZyZMUwA2rboh4ObS",
     statuses: ["incapacitated"]
   },
   surprised: {
     label: "EFFECT.SKJAALD.StatusSurprised",
-    // icon: "systems/skjaald2/icons/svg/statuses/surprised.svg",
+    icon: "systems/skjaald/icons/svg/statuses/surprised.svg",
     pseudo: true
   },
   terrified: {
@@ -25878,8 +25944,8 @@ SKJAALD.conditionTypes = {
   },
   unconscious: {
     label: "SKJAALD.ConUnconscious",
-    // icon: "systems/skjaald2/icons/svg/statuses/unconscious.svg",
-    // reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.UWw13ISmMxDzmwbd",
+    icon: "systems/skjaald/icons/svg/statuses/unconscious.svg",
+    reference: "Compendium.skjaald.rules.JournalEntry.w7eitkpD7QQTB6j0.JournalEntryPage.UWw13ISmMxDzmwbd",
     statuses: ["incapacitated"],
     riders: ["prone"]
   }
@@ -25895,11 +25961,10 @@ preLocalize("conditionTypes", { key: "label", sort: true });
  */
 SKJAALD.conditionEffects = {
   noMovement: new Set(["exhaustion-5", "grappled", "paralyzed", "petrified", "restrained", "stunned", "unconscious"]),
-  halfMovement: new Set(["exhaustion-6"]),
+  halfMovement: new Set(["exhaustion-2"]),
   crawl: new Set(["prone", "exceedingCarryingCapacity"]),
   petrification: new Set(["petrified"]),
-  halfHealth: new Set(["exhaustion-4"]),
-  unconcious: new Set(["exhaustion:10"])
+  halfHealth: new Set(["exhaustion-4"])
 };
 
 /* -------------------------------------------- */
@@ -25912,53 +25977,53 @@ SKJAALD.conditionEffects = {
 SKJAALD.statusEffects = {
   burrowing: {
     name: "EFFECT.SKJAALD.StatusBurrowing",
-    icon: "systems/skjaald/icons/svg/statuses/burrowing.svg",
+    icon: "systems/dnd5e/icons/svg/statuses/burrowing.svg",
     special: "BURROW"
   },
   concentrating: {
     name: "EFFECT.SKJAALD.StatusConcentrating",
-    icon: "systems/skjaald/icons/svg/statuses/concentrating.svg",
+    icon: "systems/dnd5e/icons/svg/statuses/concentrating.svg",
     special: "CONCENTRATING"
   },
   dead: {
     name: "EFFECT.SKJAALD.StatusDead",
-    icon: "systems/skjaald/icons/svg/statuses/dead.svg",
+    icon: "systems/dnd5e/icons/svg/statuses/dead.svg",
     special: "DEFEATED"
   },
   dodging: {
     name: "EFFECT.SKJAALD.StatusDodging",
-    icon: "systems/skjaald/icons/svg/statuses/dodging.svg"
+    icon: "systems/dnd5e/icons/svg/statuses/dodging.svg"
   },
   ethereal: {
     name: "EFFECT.SKJAALD.StatusEthereal",
-    icon: "systems/skjaald/icons/svg/statuses/ethereal.svg"
+    icon: "systems/dnd5e/icons/svg/statuses/ethereal.svg"
   },
   flying: {
     name: "EFFECT.SKJAALD.StatusFlying",
-    icon: "systems/skjaald/icons/svg/statuses/flying.svg",
+    icon: "systems/dnd5e/icons/svg/statuses/flying.svg",
     special: "FLY"
   },
   hiding: {
     name: "EFFECT.SKJAALD.StatusHiding",
-    icon: "systems/skjaald/icons/svg/statuses/hiding.svg"
+    icon: "systems/dnd5e/icons/svg/statuses/hiding.svg"
   },
   hovering: {
     name: "EFFECT.SKJAALD.StatusHovering",
-    icon: "systems/skjaald/icons/svg/statuses/hovering.svg",
+    icon: "systems/dnd5e/icons/svg/statuses/hovering.svg",
     special: "HOVER"
   },
   marked: {
     name: "EFFECT.SKJAALD.StatusMarked",
-    icon: "systems/skjaald/icons/svg/statuses/marked.svg"
+    icon: "systems/dnd5e/icons/svg/statuses/marked.svg"
   },
   sleeping: {
     name: "EFFECT.SKJAALD.StatusSleeping",
-    icon: "systems/skjaald/icons/svg/statuses/sleeping.svg",
+    icon: "systems/dnd5e/icons/svg/statuses/sleeping.svg",
     statuses: ["incapacitated", "unconscious"]
   },
   stable: {
     name: "EFFECT.SKJAALD.StatusStable",
-    icon: "systems/skjaald/icons/svg/statuses/stable.svg"
+    icon: "systems/dnd5e/icons/svg/statuses/stable.svg"
   }
 };
 
@@ -26084,7 +26149,7 @@ SKJAALD.traits = {
       title: "SKJAALD.ClassSaves",
       localization: "SKJAALD.TraitSavesPlural"
     },
-    icon: "systems/skjaald/icons/svg/trait-saves.svg",
+    icon: "systems/dnd5e/icons/svg/trait-saves.svg",
     actorKeyPath: "system.abilities",
     configKey: "abilities",
     labelKeyPath: "label"
@@ -26094,7 +26159,7 @@ SKJAALD.traits = {
       title: "SKJAALD.Skills",
       localization: "SKJAALD.TraitSkillsPlural"
     },
-    icon: "systems/skjaald/icons/svg/trait-skills.svg",
+    icon: "systems/dnd5e/icons/svg/trait-skills.svg",
     actorKeyPath: "system.skills",
     labelKeyPath: "label",
     expertise: true
@@ -26104,14 +26169,14 @@ SKJAALD.traits = {
       title: "SKJAALD.Languages",
       localization: "SKJAALD.TraitLanguagesPlural"
     },
-    icon: "systems/skjaald/icons/svg/trait-languages.svg"
+    icon: "systems/dnd5e/icons/svg/trait-languages.svg"
   },
   armor: {
     labels: {
       title: "SKJAALD.TraitArmorProf",
       localization: "SKJAALD.TraitArmorPlural"
     },
-    icon: "systems/skjaald/icons/svg/trait-armor-proficiencies.svg",
+    icon: "systems/dnd5e/icons/svg/trait-armor-proficiencies.svg",
     actorKeyPath: "system.traits.armorProf",
     configKey: "armorProficiencies",
     subtypes: { keyPath: "armor.type", ids: ["armorIds", "shieldIds"] }
@@ -26121,7 +26186,7 @@ SKJAALD.traits = {
       title: "SKJAALD.TraitWeaponProf",
       localization: "SKJAALD.TraitWeaponPlural"
     },
-    icon: "systems/skjaald/icons/svg/trait-weapon-proficiencies.svg",
+    icon: "systems/dnd5e/icons/svg/trait-weapon-proficiencies.svg",
     actorKeyPath: "system.traits.weaponProf",
     configKey: "weaponProficiencies",
     subtypes: { keyPath: "weaponType", ids: ["weaponIds"] }
@@ -26131,7 +26196,7 @@ SKJAALD.traits = {
       title: "SKJAALD.TraitToolProf",
       localization: "SKJAALD.TraitToolPlural"
     },
-    icon: "systems/skjaald/icons/svg/trait-tool-proficiencies.svg",
+    icon: "systems/dnd5e/icons/svg/trait-tool-proficiencies.svg",
     actorKeyPath: "system.tools",
     configKey: "toolProficiencies",
     subtypes: { keyPath: "toolType", ids: ["toolIds"] },
@@ -26144,7 +26209,7 @@ SKJAALD.traits = {
       title: "SKJAALD.DamImm",
       localization: "SKJAALD.TraitDIPlural"
     },
-    icon: "systems/skjaald/icons/svg/trait-damage-immunities.svg",
+    icon: "systems/dnd5e/icons/svg/trait-damage-immunities.svg",
     configKey: "damageTypes"
   },
   dr: {
@@ -26152,7 +26217,7 @@ SKJAALD.traits = {
       title: "SKJAALD.DamRes",
       localization: "SKJAALD.TraitDRPlural"
     },
-    icon: "systems/skjaald/icons/svg/trait-damage-resistances.svg",
+    icon: "systems/dnd5e/icons/svg/trait-damage-resistances.svg",
     configKey: "damageTypes"
   },
   dv: {
@@ -26160,7 +26225,7 @@ SKJAALD.traits = {
       title: "SKJAALD.DamVuln",
       localization: "SKJAALD.TraitDVPlural"
     },
-    icon: "systems/skjaald/icons/svg/trait-damage-vulnerabilities.svg",
+    icon: "systems/dnd5e/icons/svg/trait-damage-vulnerabilities.svg",
     configKey: "damageTypes"
   },
   ci: {
@@ -26168,7 +26233,7 @@ SKJAALD.traits = {
       title: "SKJAALD.ConImm",
       localization: "SKJAALD.TraitCIPlural"
     },
-    icon: "systems/skjaald/icons/svg/trait-condition-immunities.svg",
+    icon: "systems/dnd5e/icons/svg/trait-condition-immunities.svg",
     configKey: "conditionTypes"
   }
 };
@@ -26379,6 +26444,7 @@ SKJAALD.defaultArtwork = {
     consumable: "systems/skjaald/icons/svg/items/consumable.svg",
     container: "systems/skjaald/icons/svg/items/container.svg",
     equipment: "systems/skjaald/icons/svg/items/equipment.svg",
+    die: "systems/skjaald/icons/svg/items/loot.svg",
     feat: "systems/skjaald/icons/svg/items/feature.svg",
     loot: "systems/skjaald/icons/svg/items/loot.svg",
     race: "systems/skjaald/icons/svg/items/race.svg",
@@ -26456,153 +26522,153 @@ preLocalize("ruleTypes", { key: "label" });
  * @enum {string}
  */
 SKJAALD.rules = {
-  inspiration: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.nkEPI89CiQnOaLYh",
-  carryingcapacity: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1PnjDBKbQJIVyc2t",
-  push: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
-  lift: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
-  drag: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
-  encumbrance: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JwqYf9qb6gJAWZKs",
-  hiding: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.plHuoNdS0j3umPNS",
-  passiveperception: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.988C2hQNyvqkdbND",
-  time: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eihqNjwpZ3HM4IqY",
-  speed: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HhqeIiSj8sE1v1qZ",
-  travelpace: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eFAISahBloR2X8MX",
-  forcedmarch: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uQWQpRKQ1kWhuvjZ",
-  difficultterrainpace: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hFW5BR2yHHwwgurD",
-  climbing: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KxUXbMrUCIAhv4AF",
-  swimming: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KxUXbMrUCIAhv4AF",
-  longjump: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1U0myNrOvIVBUdJV",
-  highjump: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.raPwIkqKSv60ELmy",
-  falling: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kREHL5pgNUOhay9f",
-  suffocating: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BIlnr0xYhqt4TGsi",
-  vision: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.O6hamUbI9kVASN8b",
-  light: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.O6hamUbI9kVASN8b",
-  lightlyobscured: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MAxtfJyvJV7EpzWN",
-  heavilyobscured: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wPFjfRruboxhtL4b",
-  brightlight: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RnMokVPyKGbbL8vi",
-  dimlight: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.n1Ocpbyhr6HhgbCG",
-  darkness: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4dfREIDjG5N4fvxd",
-  blindsight: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.sacjsfm9ZXnw4Tqc",
-  darkvision: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ldmA1PbnEGVkmE11",
-  tremorsense: "Compendium.skjaald.rules.JournalEntry.eVtpEGXjA2tamEIJ.JournalEntryPage.8AIlZ95v54mL531X",
-  truesight: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kNa8rJFbtaTM3Rmk",
-  food: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jayo7XVgGnRCpTW0",
-  water: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iIEI87J7lr2sqtb5",
-  resting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.dpHJXYLigIdEseIb",
-  shortrest: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1s2swI3UsjUUgbt2",
-  longrest: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6cLtjbHn4KV2R7G9",
-  surprise: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.YmOt8HderKveA19K",
-  initiative: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RcwElV4GAcVXKWxo",
-  bonusaction: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2fu2CXsDg8gQmGGw",
-  reaction: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2VqLyxMyMxgXe2wC",
-  difficultterrain: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6tqz947qO8vPyxvD",
-  beingprone: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.bV8akkBdVUUG21CO",
-  droppingprone: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hwTLpAtSS5OqQsI1",
-  standingup: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hwTLpAtSS5OqQsI1",
-  crawling: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.VWG9qe8PUNtS28Pw",
-  movingaroundothercreatures: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9ZWCknaXCOdhyOrX",
-  flying: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.0B1fxfmw0a48tPsc",
-  size: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HWHRQVBVG7K0RVVW",
-  space: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.WIA5bs3P45PmO3OS",
-  squeezing: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wKtOwagDAiNfVoPS",
-  attack: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.u4GQCzoBig20yRLj",
-  castaspell: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GLwN36E4WXn3Cp4Z",
-  dash: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Jqn0MEvq6fduYNo6",
-  disengage: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ZOPRfI48NyjoloEF",
-  dodge: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.V1BkwK2HQrtEfa4d",
-  help: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KnrD3u2AnQfmtOWj",
-  hide: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BXlHhE4ZoiFwiXLK",
-  ready: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8xJzZVelP2AmQGfU",
-  search: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5cn1ZTLgQq95vfZx",
-  useanobject: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ljqhJx8Qxu2ivo69",
-  attackrolls: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5wkqEqhbBD5kDeE7",
-  unseenattackers: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5ZJNwEPlsGurecg5",
-  unseentargets: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5ZJNwEPlsGurecg5",
-  rangedattacks: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.S9aclVOCbusLE3kC",
-  range: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HjKXuB8ndjcqOds7",
-  rangedattacksinclosecombat: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qEZvxW0NM7ixSQP5",
-  meleeattacks: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GTk6emvzNxl8Oosl",
-  reach: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hgZ5ZN4B3y7tmFlt",
-  unarmedstrike: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xJjJ4lhymAYXAOvO",
-  opportunityattacks: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zeU0NyCyP10lkLg3",
-  twoweaponfighting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FQTS08uH74A6psL2",
-  grappling: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Sl4bniSPSbyrakM2",
-  escapingagrapple: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2TZKy9YbMN3ZY3h8",
-  movingagrappledcreature: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.x5bUdhAD7u5Bt2rg",
-  shoving: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hrdqMF8hRXJdNzJx",
-  cover: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.W7f7PcRubNUMIq2S",
-  halfcover: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hv0J61IAfofuhy3Q",
-  threequarterscover: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zAMStUjUrPV10dFm",
-  totalcover: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BKUAxXuPEzxiEOeL",
-  hitpoints: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.PFbzoMBviI2DD9QP",
-  damagerolls: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hd26AqKrCqtcQBWy",
-  criticalhits: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gFL1VhSEljL1zvje",
-  damagetypes: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jVOgf7DNEhkzYNIe",
-  damageresistance: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v0WE18nT5SJO8Ft7",
-  damagevulnerability: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v0WE18nT5SJO8Ft7",
-  healing: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ICketFqbFslqKiX9",
-  instantdeath: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8BG05mA0mEzwmrHU",
-  deathsavingthrows: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JL8LePEJQYFdNuLL",
-  deathsaves: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JL8LePEJQYFdNuLL",
-  stabilizing: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.r1CgZXLcqFop6Dlx",
-  knockingacreatureout: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uEwjgKGuCRTNADYv",
-  temporaryhitpoints: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AW6HpJZHqxfESXaq",
-  temphp: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AW6HpJZHqxfESXaq",
-  mounting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MFpyvUIdcBpC9kIE",
-  dismounting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MFpyvUIdcBpC9kIE",
-  controllingamount: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.khmR2xFk1NxoQUgZ",
-  underwatercombat: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6zVOeLyq4iMnrQT4",
-  spelllevel: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.A6k5fS0kFqPXTW3v",
-  knownspells: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oezg742GlxmEwT85",
-  preparedspells: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oezg742GlxmEwT85",
-  spellslots: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Su6wbb0O9UN4ZDIH",
-  castingatahigherlevel: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4H9SLM95OCLfFizz",
-  upcasting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4H9SLM95OCLfFizz",
-  castinginarmor: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.z4A8vHSK2pb8YA9X",
-  cantrips: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jZD5mCTnMPJ9jW67",
-  rituals: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA",
-  castingtime: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zRVW8Tvyk6BECjZD",
-  bonusactioncasting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RP1WL9FXI3aknlxZ",
-  reactioncasting: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t62lCfinwU9H7Lji",
-  longercastingtimes: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gOAIRFCyPUx42axn",
-  spellrange: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RBYPyE5z5hAZSbH6",
-  components: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xeHthAF9lxfn2tII",
-  verbal: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx",
-  spellduration: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9mp0SRsptjvJcq1e",
-  instantaneous: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kdlgZOpRMB6bGCod",
-  concentrating: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH",
-  spelltargets: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.G80AIQr04sxdVpw4",
-  areaofeffect: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wvtCeGHgnUmh0cuj",
-  pointoforigin: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8HxbRceQQUAhyWRt",
-  spellsavingthrows: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8DajfNll90eeKcmB",
-  spellattackrolls: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qAFzmGZKhVvAEUF3",
-  combiningmagicaleffects: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TMIN963hG773yZzO",
-  schoolsofmagic: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TeF6CKMDRpYpsLd4",
-  detectingtraps: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DZ7AhdQ94xggG4bj",
-  disablingtraps: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DZ7AhdQ94xggG4bj",
-  curingmadness: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6Icem7G3CICdNOkM",
-  damagethreshold: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9LJZhqvCburpags3",
-  poisontypes: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.I6OMMWUaYCWR9xip",
-  contactpoison: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kXnCEqqGUWRZeZDj",
-  ingestedpoison: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Y0vsJYSWeQcFpJ27",
-  inhaledpoison: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KUyN4eK1xTBzXsjP",
-  injurypoison: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.LUL48OUq6SJeMGc7",
-  attunement: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.UQ65OwIyGK65eiOK",
-  wearingitems: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iPB8mGKuQx3X0Z2J",
-  wieldingitems: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iPB8mGKuQx3X0Z2J",
-  multipleitemsofthesamekind: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rLJdvz4Mde8GkEYQ",
-  paireditems: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rd9pCH8yFraSGN34",
-  commandword: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HiXixxLYesv6Ff3t",
-  consumables: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.UEPAcZFzQ5x196zE",
-  itemspells: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DABoaeeF6w31UCsj",
-  charges: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.NLRXcgrpRCfsA5mO",
-  spellscroll: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gi8IKhtOlBVhMJrN",
-  creaturetags: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9jV1fFF163dr68vd",
-  telepathy: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.geTidcFIYWuUvD2L",
-  legendaryactions: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.C1awOyZh78pq1xmY",
-  lairactions: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.07PtjpMxiRIhkBEp",
-  regionaleffects: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uj8W27NKFyzygPUd",
-  disease: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oNQWvyRZkTOJ8PBq"
+  inspiration: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.nkEPI89CiQnOaLYh",
+  carryingcapacity: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1PnjDBKbQJIVyc2t",
+  push: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
+  lift: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
+  drag: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Hni8DjqLzoqsVjb6",
+  encumbrance: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JwqYf9qb6gJAWZKs",
+  hiding: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.plHuoNdS0j3umPNS",
+  passiveperception: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.988C2hQNyvqkdbND",
+  time: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eihqNjwpZ3HM4IqY",
+  speed: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HhqeIiSj8sE1v1qZ",
+  travelpace: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.eFAISahBloR2X8MX",
+  forcedmarch: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uQWQpRKQ1kWhuvjZ",
+  difficultterrainpace: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hFW5BR2yHHwwgurD",
+  climbing: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KxUXbMrUCIAhv4AF",
+  swimming: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KxUXbMrUCIAhv4AF",
+  longjump: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1U0myNrOvIVBUdJV",
+  highjump: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.raPwIkqKSv60ELmy",
+  falling: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kREHL5pgNUOhay9f",
+  suffocating: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BIlnr0xYhqt4TGsi",
+  vision: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.O6hamUbI9kVASN8b",
+  light: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.O6hamUbI9kVASN8b",
+  lightlyobscured: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MAxtfJyvJV7EpzWN",
+  heavilyobscured: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wPFjfRruboxhtL4b",
+  brightlight: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RnMokVPyKGbbL8vi",
+  dimlight: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.n1Ocpbyhr6HhgbCG",
+  darkness: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4dfREIDjG5N4fvxd",
+  blindsight: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.sacjsfm9ZXnw4Tqc",
+  darkvision: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ldmA1PbnEGVkmE11",
+  tremorsense: "Compendium.dnd5e.rules.JournalEntry.eVtpEGXjA2tamEIJ.JournalEntryPage.8AIlZ95v54mL531X",
+  truesight: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kNa8rJFbtaTM3Rmk",
+  food: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jayo7XVgGnRCpTW0",
+  water: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iIEI87J7lr2sqtb5",
+  resting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.dpHJXYLigIdEseIb",
+  shortrest: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.1s2swI3UsjUUgbt2",
+  longrest: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6cLtjbHn4KV2R7G9",
+  surprise: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.YmOt8HderKveA19K",
+  initiative: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RcwElV4GAcVXKWxo",
+  bonusaction: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2fu2CXsDg8gQmGGw",
+  reaction: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2VqLyxMyMxgXe2wC",
+  difficultterrain: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6tqz947qO8vPyxvD",
+  beingprone: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.bV8akkBdVUUG21CO",
+  droppingprone: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hwTLpAtSS5OqQsI1",
+  standingup: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hwTLpAtSS5OqQsI1",
+  crawling: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.VWG9qe8PUNtS28Pw",
+  movingaroundothercreatures: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9ZWCknaXCOdhyOrX",
+  flying: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.0B1fxfmw0a48tPsc",
+  size: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HWHRQVBVG7K0RVVW",
+  space: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.WIA5bs3P45PmO3OS",
+  squeezing: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wKtOwagDAiNfVoPS",
+  attack: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.u4GQCzoBig20yRLj",
+  castaspell: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GLwN36E4WXn3Cp4Z",
+  dash: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Jqn0MEvq6fduYNo6",
+  disengage: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ZOPRfI48NyjoloEF",
+  dodge: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.V1BkwK2HQrtEfa4d",
+  help: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KnrD3u2AnQfmtOWj",
+  hide: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BXlHhE4ZoiFwiXLK",
+  ready: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8xJzZVelP2AmQGfU",
+  search: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5cn1ZTLgQq95vfZx",
+  useanobject: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ljqhJx8Qxu2ivo69",
+  attackrolls: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5wkqEqhbBD5kDeE7",
+  unseenattackers: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5ZJNwEPlsGurecg5",
+  unseentargets: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.5ZJNwEPlsGurecg5",
+  rangedattacks: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.S9aclVOCbusLE3kC",
+  range: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HjKXuB8ndjcqOds7",
+  rangedattacksinclosecombat: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qEZvxW0NM7ixSQP5",
+  meleeattacks: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GTk6emvzNxl8Oosl",
+  reach: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hgZ5ZN4B3y7tmFlt",
+  unarmedstrike: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xJjJ4lhymAYXAOvO",
+  opportunityattacks: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zeU0NyCyP10lkLg3",
+  twoweaponfighting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FQTS08uH74A6psL2",
+  grappling: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Sl4bniSPSbyrakM2",
+  escapingagrapple: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.2TZKy9YbMN3ZY3h8",
+  movingagrappledcreature: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.x5bUdhAD7u5Bt2rg",
+  shoving: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hrdqMF8hRXJdNzJx",
+  cover: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.W7f7PcRubNUMIq2S",
+  halfcover: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hv0J61IAfofuhy3Q",
+  threequarterscover: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zAMStUjUrPV10dFm",
+  totalcover: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.BKUAxXuPEzxiEOeL",
+  hitpoints: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.PFbzoMBviI2DD9QP",
+  damagerolls: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hd26AqKrCqtcQBWy",
+  criticalhits: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gFL1VhSEljL1zvje",
+  damagetypes: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jVOgf7DNEhkzYNIe",
+  damageresistance: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v0WE18nT5SJO8Ft7",
+  damagevulnerability: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.v0WE18nT5SJO8Ft7",
+  healing: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ICketFqbFslqKiX9",
+  instantdeath: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8BG05mA0mEzwmrHU",
+  deathsavingthrows: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JL8LePEJQYFdNuLL",
+  deathsaves: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.JL8LePEJQYFdNuLL",
+  stabilizing: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.r1CgZXLcqFop6Dlx",
+  knockingacreatureout: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uEwjgKGuCRTNADYv",
+  temporaryhitpoints: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AW6HpJZHqxfESXaq",
+  temphp: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AW6HpJZHqxfESXaq",
+  mounting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MFpyvUIdcBpC9kIE",
+  dismounting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.MFpyvUIdcBpC9kIE",
+  controllingamount: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.khmR2xFk1NxoQUgZ",
+  underwatercombat: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6zVOeLyq4iMnrQT4",
+  spelllevel: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.A6k5fS0kFqPXTW3v",
+  knownspells: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oezg742GlxmEwT85",
+  preparedspells: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oezg742GlxmEwT85",
+  spellslots: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Su6wbb0O9UN4ZDIH",
+  castingatahigherlevel: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4H9SLM95OCLfFizz",
+  upcasting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4H9SLM95OCLfFizz",
+  castinginarmor: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.z4A8vHSK2pb8YA9X",
+  cantrips: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.jZD5mCTnMPJ9jW67",
+  rituals: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.FjWqT5iyJ89kohdA",
+  castingtime: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zRVW8Tvyk6BECjZD",
+  bonusactioncasting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RP1WL9FXI3aknlxZ",
+  reactioncasting: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t62lCfinwU9H7Lji",
+  longercastingtimes: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gOAIRFCyPUx42axn",
+  spellrange: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.RBYPyE5z5hAZSbH6",
+  components: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xeHthAF9lxfn2tII",
+  verbal: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6UXTNWMCQ0nSlwwx",
+  spellduration: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9mp0SRsptjvJcq1e",
+  instantaneous: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kdlgZOpRMB6bGCod",
+  concentrating: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ow58p27ctAnr4VPH",
+  spelltargets: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.G80AIQr04sxdVpw4",
+  areaofeffect: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.wvtCeGHgnUmh0cuj",
+  pointoforigin: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8HxbRceQQUAhyWRt",
+  spellsavingthrows: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8DajfNll90eeKcmB",
+  spellattackrolls: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.qAFzmGZKhVvAEUF3",
+  combiningmagicaleffects: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TMIN963hG773yZzO",
+  schoolsofmagic: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.TeF6CKMDRpYpsLd4",
+  detectingtraps: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DZ7AhdQ94xggG4bj",
+  disablingtraps: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DZ7AhdQ94xggG4bj",
+  curingmadness: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.6Icem7G3CICdNOkM",
+  damagethreshold: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9LJZhqvCburpags3",
+  poisontypes: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.I6OMMWUaYCWR9xip",
+  contactpoison: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kXnCEqqGUWRZeZDj",
+  ingestedpoison: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Y0vsJYSWeQcFpJ27",
+  inhaledpoison: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.KUyN4eK1xTBzXsjP",
+  injurypoison: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.LUL48OUq6SJeMGc7",
+  attunement: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.UQ65OwIyGK65eiOK",
+  wearingitems: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iPB8mGKuQx3X0Z2J",
+  wieldingitems: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.iPB8mGKuQx3X0Z2J",
+  multipleitemsofthesamekind: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rLJdvz4Mde8GkEYQ",
+  paireditems: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rd9pCH8yFraSGN34",
+  commandword: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.HiXixxLYesv6Ff3t",
+  consumables: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.UEPAcZFzQ5x196zE",
+  itemspells: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.DABoaeeF6w31UCsj",
+  charges: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.NLRXcgrpRCfsA5mO",
+  spellscroll: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.gi8IKhtOlBVhMJrN",
+  creaturetags: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.9jV1fFF163dr68vd",
+  telepathy: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.geTidcFIYWuUvD2L",
+  legendaryactions: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.C1awOyZh78pq1xmY",
+  lairactions: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.07PtjpMxiRIhkBEp",
+  regionaleffects: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.uj8W27NKFyzygPUd",
+  disease: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.oNQWvyRZkTOJ8PBq"
 };
 
 /* -------------------------------------------- */
@@ -26627,7 +26693,7 @@ SKJAALD.tokenRings = {
     RING_GRADIENT: "SKJAALD.TokenRings.Effects.RingGradient",
     BKG_WAVE: "SKJAALD.TokenRings.Effects.BackgroundWave"
   },
-  spriteSheet: "systems/skjaald/tokens/composite/token-rings.json",
+  spriteSheet: "systems/dnd5e/tokens/composite/token-rings.json",
   shaderClass: null
 };
 preLocalize("tokenRings.effects");
@@ -27362,12 +27428,14 @@ function setTheme(element, theme="", flags=new Set()) {
 class ContextMenu5e extends ContextMenu {
   /** @override */
   _setPosition([html], [target]) {
+    console.log("_setPosition");
     document.body.appendChild(html);
     const { clientWidth, clientHeight } = document.documentElement;
     const { width, height } = html.getBoundingClientRect();
 
     // TODO: Improve core ContextMenu class to provide this event rather than using the global event.
     const { clientX, clientY } = window.event;
+    console.log("top position: " + clientY);
     const left = Math.min(clientX, clientWidth - width);
     this._expandUp = clientY + height > clientHeight;
     html.classList.add("skjaald2");
@@ -27404,6 +27472,7 @@ class EffectsElement extends HTMLElement {
       control.addEventListener("click", event => {
         event.preventDefault();
         event.stopPropagation();
+        console.log("connectedCallback");
         const { clientX, clientY } = event;
         event.currentTarget.closest("[data-effect-id]").dispatchEvent(new PointerEvent("contextmenu", {
           view: window, bubbles: true, cancelable: true, clientX, clientY
@@ -28134,6 +28203,109 @@ class ActorHitPointsConfig extends BaseConfigSheet {
       throw error;
     }
   }
+}
+
+
+/**
+ * A form for configuring actor thresholds.
+ */
+class ActorThresholdConfig extends BaseConfigSheet {
+  constructor(...args) {
+    super(...args);
+
+    /**
+     * Cloned copy of the actor for previewing changes.
+     * @type {Actor5e}
+     */
+    this.clone = this.object.clone();
+  }
+
+  /* -------------------------------------------- */
+
+  /** @override */
+  static get defaultOptions() {
+    return foundry.utils.mergeObject(super.defaultOptions, {
+      classes: ["skjaald", "actor-threshold-config"],
+      template: "systems/skjaald/templates/apps/threshold-config.hbs",
+      width: 320,
+      height: "auto"
+    });
+  }
+
+  /* -------------------------------------------- */
+
+  /** @inheritdoc */
+  get title() {
+    return `${game.i18n.localize("SKJAALD.ThresholdConfig")}: ${this.document.name}`;
+  }
+
+  /* -------------------------------------------- */
+
+  /** @inheritdoc */
+  getData(options) {
+    return {
+      settings: this.clone.system.settings,
+      source: this.clone.toObject().system,
+      isCharacter: this.document.type === "character"
+    };
+  }
+
+  /* -------------------------------------------- */
+
+  /** @inheritdoc */
+  _getActorOverrides() {
+    return Object.keys(foundry.utils.flattenObject(this.object.overrides?.system || {}));
+  }
+
+  /* -------------------------------------------- */
+
+  /** @inheritdoc */
+  async _updateObject(event, formData) {
+    const settings = foundry.utils.expandObject(formData).settings;
+    this.clone.updateSource({"system.settings": settings});
+    return this.document.update({"system.settings": settings});
+  }
+
+  /* -------------------------------------------- */
+  /*  Event Listeners and Handlers                */
+  /* -------------------------------------------- */
+
+  /** @inheritDoc */
+  // activateListeners(html) {
+  //   super.activateListeners(html);
+  //   html.find(".roll-hit-points").click(this._onRollHPFormula.bind(this));
+  // }
+
+  /* -------------------------------------------- */
+
+  /** @inheritdoc */
+  async _onChangeInput(event) {
+    // await super._onChangeInput(event);
+    // const t = event.currentTarget;
+
+    // // Update clone with new data & re-render
+    // this.clone.updateSource({ [`system.attributes.${t.name}`]: t.value || null });
+    // if ( t.name !== "hp.formula" ) this.render();
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Handle rolling NPC health values using the provided formula.
+   * @param {Event} event  The original click event.
+   * @protected
+   */
+  // async _onRollHPFormula(event) {
+  //   event.preventDefault();
+  //   try {
+  //     const roll = await this.clone.rollNPCHitPoints();
+  //     this.clone.updateSource({"system.attributes.hp.max": roll.total});
+  //     this.render();
+  //   } catch(error) {
+  //     ui.notifications.error("SKJAALD.HPFormulaError", {localize: true});
+  //     throw error;
+  //   }
+  // }
 }
 
 /**
@@ -29041,6 +29213,7 @@ class ActorSpellSlotsConfig extends DialogMixin(DocumentSheet) {
 
   /** @override */
   getData(options={}) {
+
     const source = this.document._source.system.spells;
     const { spells } = this.document.system;
     const overrides = Array.fromRange(Object.keys(CONFIG.SKJAALD.spellLevels).length - 1, 1).map(level => ({
@@ -29777,6 +29950,9 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
         break;
       case "hitPoints":
         app = new ActorHitPointsConfig(this.actor);
+        break;
+      case "thresholdConfig":
+        app = new ActorThresholdConfig(this.actor);
         break;
       case "initiative":
         app = new ActorInitiativeConfig(this.actor);
@@ -31831,33 +32007,169 @@ class CharacterData extends CreatureTemplate {
         ...AttributesFields.common,
         ...AttributesFields.creature,
         ac: new SchemaField$5({
-          flat: new NumberField$7({integer: true, min: 0, label: "SKJAALD.ArmorClassFlat"}),
+          armor: new NumberField$7({integer: true, min: 0, label: "SKJAALD.ArmorClassFlat"}),
+          avoidance: new NumberField$7({integer: true, min: 0, label: "SKJAALD.ArmorClassFlat"}),
           calc: new StringField$7({initial: "default", label: "SKJAALD.ArmorClassCalculation"}),
-          formula: new FormulaField({deterministic: true, label: "SKJAALD.ArmorClassFormula"})
+          formula: new FormulaField({deterministic: true, label: "SKJAALD.ArmorClassFormula"}), 
+          pv: new NumberField$7({integer: true, min: 0, initial: 0, label: "SKJAALD.ArmorProtectionValue"})
         }, {label: "SKJAALD.ArmorClass"}),
+        ap: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.AP"}),
         hp: new SchemaField$5({
+          body: new SchemaField$5({
+            chunkSize: new NumberField$7({nullable: true, integer: true, min: 1, initial: 1, label: "SKJAALD.HitPointsChunkSize"}),
+            chunkQuantity: new NumberField$7({nullable: true, integer: true, min: 0, initial: 1, label: "SKJAALD.HitPointsChunkQuantity"}), 
+            thresholds: new ArrayField$1(new SchemaField$5({
+              overides: new SchemaField$5({
+                woundedOveride: new BooleanField$5({required: true, initial: false, label: "SKJAALD.BodyThresholdWounded"})
+              }),
+              currentHP: new NumberField$7({nullable: true, integer: true, min: 0, initial: 3, label: "SKJAALD.BodyThresholdCurrentHP"}),
+              bodyChunkSize: new NumberField$7({nullable: true, integer: true, min: 0, initial: 3, label: "SKJAALD.HitPointsBodyChunkSize"}),
+              chunkSizeMod: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.HitPointsBodyChunkSizeMod"}),
+              wounded: new BooleanField$5({required: true, initial: false, label: "SKJAALD.BodyThresholdWounded"}),
+              injuries: new ArrayField$1(new SchemaField$5({
+                injurySeverity: new StringField$7({required: false, label: "SKJAALD.ThresholdWoundSev"}),
+                injuryDetails: new StringField$7({required: false, label: "SKJAALD.ThresholdWoundDetails"}),
+                woundDC: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.ThresholdWoundDC"}),
+                effects: new StringField$7({required: false, label: "SKJAALD.ThresholdWoundEffects"}),
+              }), {label: "SKJAALD.HitPointsBodyThresholdInjuries"}),
+              scars: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.ThresholdScar"}), 
+              negation: new NumberField$7({nullable: true, integer: true, min: 0, initial: 1, label: "SKJAALD.ThresholdNegation"}), 
+              detailsToggle: new BooleanField$5({ initial: false, label: "SKJAALD.ThresholdDetailsToggle"})
+            }, {label: "SKJAALD.HPBodyThresholds"}),)
+          }, {label: "SKJAALD.HPBodyThresholds"}),
+          essence: new SchemaField$5({
+            essenceChunkQuantity: new NumberField$7({nullable: true, integer: true, min: 0, initial: 3, label: "SKJAALD.HitPointsEssenceChunkQuantity"}),
+            essenceChunkSize: new NumberField$7({nullable: true, integer: true, min: 1, initial: 5, label: "SKJAALD.HitPointsEssenceChunkSize"}),
+            thresholds: new ArrayField$1(new SchemaField$5({
+                currentHP: new NumberField$7({nullable: true, integer: true, min: 0, initial: 5, label: "SKJAALD.BodyThresholdCurrentHP"}),
+                essenceChunkSizeMod: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.HitPointsEssenceChunkSizeMod"}),
+                essenceChunkSize: new NumberField$7({nullable: true, integer: true, min: 0, initial: 5, label: "SKJAALD.HitPointsEssenceChunkSize"}),
+                torn: new BooleanField$5({required: true, initial: false, label: "SKJAALD.EssenceThresholdTorn"}),
+                detailsToggle: new BooleanField$5({initial: false, label: "SKJAALD.ThresholdDetailsToggle"})
+            }, { label: "SKJAALD.HPEssenceThresholds"}),)
+          }, {label: "SKJAALD.HPBodyThresholds"}),
           value: new NumberField$7({
-            nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.HitPointsCurrent"
+            nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.HitPointsCurrent"
           }),
           max: new NumberField$7({
             nullable: true, integer: true, min: 0, initial: null, label: "SKJAALD.HitPointsOverride"
           }),
-          temp: new NumberField$7({integer: true, initial: 0, min: 0, label: "SKJAALD.HitPointsTemp"}),
-          tempmax: new NumberField$7({integer: true, initial: 0, label: "SKJAALD.HitPointsTempMax"}),
+          grit: new NumberField$7({
+            nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.Grit"
+          }),
+          sgt: new NumberField$7({
+            nullable: true, min: 0, initial: 0, label: "SKJAALD.SGT"
+          }),
+          nhf: new NumberField$7({
+            nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.NHF"
+          }),
+          attrition: new NumberField$7({
+            nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.Attrition"
+          }),
           bonuses: new SchemaField$5({
             level: new FormulaField({deterministic: true, label: "SKJAALD.HitPointsBonusLevel"}),
             overall: new FormulaField({deterministic: true, label: "SKJAALD.HitPointsBonusOverall"})
-          })
-        }, {label: "SKJAALD.HitPoints"}),
-        death: new RollConfigField({
-          success: new NumberField$7({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.DeathSaveSuccesses"
           }),
-          failure: new NumberField$7({
-            required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.DeathSaveFailures"
+          category: new SchemaField$5({
+            value: new NumberField$7({initial:2, min:0, label: "SKJAALD.HealthCategoryValue"}),
+            robust: new BooleanField$5({required: true, initial: false, label: "SKJAALD.HealthCategoryRobust"}),
+            healthy: new BooleanField$5({required: true, initial: false, label: "SKJAALD.HealthCategoryHealthy"}),
+            ok: new BooleanField$5({required: true, initial: true, label: "SKJAALD.HealthCategoryOk"}),
+            hit: new BooleanField$5({required: true, initial: false, label: "SKJAALD.HealthCategoryHit"}),
+            bloodied: new BooleanField$5({required: true, initial: false, label: "SKJAALD.HealthCategoryBloodied"}),
+            hurt: new BooleanField$5({required: true, initial: false, label: "SKJAALD.HealthCategoryHurt"}),
+            critical: new BooleanField$5({required: true, initial: false, label: "SKJAALD.HealthCategoryCritical"})
+          }, {label: "SKJAALD.HealthCategory"})
+        }, {label: "SKJAALD.HitPoints"}),
+        exhaust: new SchemaField$5({
+          base: new NumberField$7({initial:0, min:0, label: "SKJAALD.ExhaustionBase"}),
+          total: new NumberField$7({initial:0, min:0, label: "SKJAALD.ExhaustionTotal"}),
+          previousTotal: new NumberField$7({initial:0, min:0, label: "SKJAALD.ExhaustionPreviousTotal"}),
+          maintenance: new SchemaField$5({
+            total: new NumberField$7({initial:0, min:0, label: "SKJAALD.ExhaustionMaintenanceTotal"}),
+            hunger: new SchemaField$5({
+              value: new NumberField$7({initial:2, min:0, label: "SKJAALD.ExhaustionHungerValue"}),
+              stuffed: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionHungerStuffed"}),
+              wellfed: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionHungerWellFed"}),
+              ok: new BooleanField$5({required: true, initial: true, label: "SKJAALD.ExhaustionHungerOk"}),
+              pekish: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionHungerPekish"}),
+              hungry: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionHungerHungry"}),
+              ravenous: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionHungerRavenous"}),
+              starving: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionHungerStarving"})
+            }, {label: "SKJAALD.ExhaustionHunger"}),
+            thirst: new SchemaField$5({
+              value: new NumberField$7({initial:2, min:0, label: "SKJAALD.ExhaustionThirstValue"}),
+              quenched: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionThirstQuenched"}),
+              refreshed: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionThirstRefreshed"}),
+              ok: new BooleanField$5({required: true, initial: true, label: "SKJAALD.ExhaustionThirstOk"}),
+              parched: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionThirstParched"}),
+              thirsty: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionThirstThirsty"}),
+              dry: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionThirstDry"}),
+              dehydrated: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionThirstDehydrated"})
+            }, {label: "SKJAALD.ExhaustionThirst"}),
+            fatigue: new SchemaField$5({
+              value: new NumberField$7({initial:2, min:0, label: "SKJAALD.ExhaustionFatigueValue"}),
+              energized: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFatigueEnergized"}),
+              wellrested: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFatigueWellRested"}),
+              ok: new BooleanField$5({required: true, initial: true, label: "SKJAALD.ExhaustionFatigueOk"}),
+              tired: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFatigueTired"}),
+              sleepy: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFatigueSleepy"}),
+              verysleepy: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFatigueVerySleepy"}),
+              barelyawake: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFatigueBarelyAwake"})
+            }, {label: "SKJAALD.ExhaustionFatigue"}),
+            temperature: new SchemaField$5({
+              value: new NumberField$7({initial:2, min:0, label: "SKJAALD.ExhaustionTemperatureValue"}),
+              perfect: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionTemperaturePerfect"}),
+              comfortable: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionTemperatureComfortable"}),
+              ok: new BooleanField$5({required: true, initial: true, label: "SKJAALD.ExhaustionTemperatureOk"}),
+              noticable: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionTemperatureNoticable"}),
+              uncomfortable: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionTemperatureUncomfortable"}),
+              overwhelming: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionTemperatureOverwhelming"}),
+              unbearable: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionTemperatureUnbearable"})
+            }, {label: "SKJAALD.ExhaustionTemperature"}),
+            faith: new SchemaField$5({
+              value: new NumberField$7({initial:2, min:0, label: "SKJAALD.ExhaustionFaithValue"}),
+              1: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFaith1"}),
+              2: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFaith2"}),
+              ok: new BooleanField$5({required: true, initial: true, label: "SKJAALD.ExhaustionFaithOk"}),
+              4: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFaith4"}),
+              5: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFaith5"}),
+              6: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFaith6"}),
+              7: new BooleanField$5({required: true, initial: false, label: "SKJAALD.ExhaustionFaith7"})
+            }, {label: "SKJAALD.ExhaustionFaith"})
+          }, {label: "SKJAALD.ExhaustionMaintenance"}),
+        }, {label: "SKJAALD.ExhaustionComplete"}),
+        recovery: new SchemaField$5({
+          racial: new SchemaField$5({
+            quantity: new NumberField$7({deterministic: true, label: "SKJAALD.RecoveryRacialQuantity"}),
+            size: new NumberField$7({deterministic: true, label: "SKJAALD.RecoveryRacialSize"})
+          }),
+          base: new SchemaField$5({
+            available: new BooleanField$5({required: true, label: "SKJAALD.Available"}),
+            quantity: new NumberField$7({deterministic: true, label: "SKJAALD.RecoveryRacialQuantity"}),
+            size: new NumberField$7({deterministic: true, label: "SKJAALD.RecoveryRacialSize"})
+          }),
+          specialty: new SchemaField$5({
+            available: new BooleanField$5({required: true, label: "SKJAALD.Available"}),
+            level: new NumberField$7({deterministic: true, label: "SKJAALD.RecoveryRacialQuantity"}),
+            overall: new NumberField$7({deterministic: true, label: "SKJAALD.RecoveryRacialSize"})
           })
-        }, {label: "SKJAALD.DeathSave"}),
-        inspiration: new BooleanField$5({required: true, label: "SKJAALD.Inspiration"})
+        }, {label: "SKJAALD.RecoveryDice"}),
+        death: new RollConfigField({
+          marks: new SchemaField$5 ({
+            lamb: new NumberField$7({required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.DeathMarksLamb"}),
+            wolf: new NumberField$7({required: true, nullable: false, integer: true, min: 0, initial: 0, label: "SKJAALD.DeathMarksWolf"})
+          }, {label: "SKJAALD.DeathMarkTypes"}),
+        }, {label: "SKJAALD.DeathKnocks"}),
+        inspiration: new SchemaField$5 ({
+          inspir1: new BooleanField$5({required: true, label: "SKJAALD.Inspiration"}),
+          inspir2: new BooleanField$5({required: true, label: "SKJAALD.Inspiration"}),
+          inspir3: new BooleanField$5({required: true, label: "SKJAALD.Inspiration"}),
+          legend1: new BooleanField$5({required: true, label: "SKJAALD.Legend"}),
+          legend2: new BooleanField$5({required: true, label: "SKJAALD.Legend"}),
+          legend3: new BooleanField$5({required: true, label: "SKJAALD.Legend"}),
+          fate: new BooleanField$5({required: true, label: "SKJAALD.Fate"})
+        })
       }, {label: "SKJAALD.Attributes"}),
       details: new SchemaField$5({
         ...DetailsField.common,
@@ -31876,21 +32188,35 @@ class CharacterData extends CreatureTemplate {
         ideal: new StringField$7({required: true, label: "SKJAALD.Ideals"}),
         bond: new StringField$7({required: true, label: "SKJAALD.Bonds"}),
         flaw: new StringField$7({required: true, label: "SKJAALD.Flaws"}),
-        gender: new StringField$7({ label: "SKJAALD.Gender" }),
         eyes: new StringField$7({ label: "SKJAALD.Eyes" }),
         height: new StringField$7({ label: "SKJAALD.Height" }),
         faith: new StringField$7({ label: "SKJAALD.Faith" }),
         hair: new StringField$7({ label: "SKJAALD.Hair" }),
-        skin: new StringField$7({ label: "SKJAALD.Skin" }),
         age: new StringField$7({ label: "SKJAALD.Age" }),
-        weight: new StringField$7({ label: "SKJAALD.Weight" })
+        weight: new StringField$7({ label: "SKJAALD.Weight" }),
+        build: new StringField$7({ label: "SKJAALD.Build" }),
+        morality: new StringField$7({ label: "SKJAALD.Morality" }),
+        honor: new StringField$7({ label: "SKJAALD.Honor" })
       }, {label: "SKJAALD.Details"}),
+      level: new SchemaField$5({
+        character: new NumberField$7({integer: true, min: 1, label: "SKJAALD.ArmorClassFlat"}),
+        class: new NumberField$7({integer: true, min: 0, label: "SKJAALD.ArmorClassFlat"}),
+        renown: new NumberField$7({integer: true, min: 0, label: "SKJAALD.ArmorClassFlat"}),
+      }, {label: "SKJAALD.Level"}),
       traits: new SchemaField$5({
         ...TraitsField.common,
         ...TraitsField.creature,
         weaponProf: TraitsField.makeSimpleTrait({label: "SKJAALD.TraitWeaponProf"}),
         armorProf: TraitsField.makeSimpleTrait({label: "SKJAALD.TraitArmorProf"})
       }, {label: "SKJAALD.Traits"}),
+      settings: new SchemaField$5 ({
+        spells: new SchemaField$5  ({
+          display: new BooleanField$5 ({required: true, label: "SETTINGS.DisplaySpellsTab"})
+        }),
+        overrides: new SchemaField$5 ({
+          thresholdWounded: new BooleanField$5 ({required: true, initial: false, label: "SETTINGS.DisplayOverrides"})
+        })
+      }, {label: "SKJAALD.Settings"}),
       resources: new SchemaField$5({
         primary: makeResourceField({label: "SKJAALD.ResourcePrimary"}),
         secondary: makeResourceField({label: "SKJAALD.ResourceSecondary"}),
@@ -31923,6 +32249,7 @@ class CharacterData extends CreatureTemplate {
     this.attributes.hd = new HitDice(this.parent);
     this.details.level = this.attributes.hd.max;
     this.attributes.attunement.value = 0;
+    this.attributes.exhaust.total = this.attributes.exhaust.base + this.attributes.exhaust.maintenance.total;
 
     for ( const item of this.parent.items ) {
       if ( item.system.attuned ) this.attributes.attunement.value += 1;
@@ -31941,6 +32268,8 @@ class CharacterData extends CreatureTemplate {
       const pct = Math.round((xp.value - xp.min) * 100 / required);
       xp.pct = Math.clamp(pct, 0, 100);
     }
+
+    console.log("In base data")
 
     AttributesFields.prepareBaseArmorClass.call(this);
     AttributesFields.prepareBaseEncumbrance.call(this);
@@ -31990,6 +32319,8 @@ class CharacterData extends CreatureTemplate {
       hpOptions.mod = this.abilities[CONFIG.SKJAALD.defaultAbilities.hitPoints ?? "con"]?.mod ?? 0;
     }
     AttributesFields.prepareHitPoints.call(this, this.attributes.hp, hpOptions);
+
+
   }
 
   /* -------------------------------------------- */
@@ -32195,11 +32526,14 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
    */
   static TABS = [
     { tab: "details", label: "SKJAALD.Details", icon: "fas fa-cog" },
+    { tab: "notes", label: "SKJAALD.Notes", icon: "fas fa-book" },
+    { tab: "combat", label: "SKJAALD.Active", icon: "fa-solid fa-sword"},
     { tab: "inventory", label: "SKJAALD.Inventory", svg: "backpack" },
-    { tab: "features", label: "SKJAALD.Features", icon: "fas fa-list" },
+    { tab: "learning", label: "SKJAALD.Learning", icon: "fas fa-list" },
     { tab: "spells", label: "TYPES.Item.spellPl", icon: "fas fa-book" },
     { tab: "effects", label: "SKJAALD.Effects", icon: "fas fa-bolt" },
-    { tab: "biography", label: "SKJAALD.Biography", icon: "fas fa-feather" }
+    { tab: "biography", label: "SKJAALD.Biography", icon: "fas fa-feather" },
+    { tab: "settings", label: "SKJAALD.Settings", icon: "fas fa-cog" }
   ];
 
   /**
@@ -32215,6 +32549,13 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
    * @protected
    */
   _deathTrayOpen = false;
+
+    /**
+   * Whether the user has manually opened the death save tray.
+   * @type {boolean}
+   * @protected
+   */
+    _thresholdTrayOpen = false;
 
   /**
    * The cached concentration information for the character.
@@ -32275,7 +32616,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     nav.dataset.group = "primary";
     nav.append(...this.constructor.TABS.map(({ tab, label, icon, svg }) => {
       const item = document.createElement("a");
-      item.classList.add("item", "control");
+          item.classList.add("item", "control");
       item.dataset.group = "primary";
       item.dataset.tab = tab;
       item.dataset.tooltip = label;
@@ -32290,6 +32631,8 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       if ( this._tabs?.[0]?.active !== t.initial ) t.initial = this._tabs?.[0]?.active ?? t.initial;
       return new Tabs5e(t);
     });
+
+
 
     // Set theme
     // TODO: Re-enable this when we support V12 only
@@ -32310,11 +32653,484 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     const hp = foundry.utils.getProperty(data ?? {}, "system.attributes.hp.value");
     if ( isUpdate && (hp === 0) ) this._toggleDeathTray(true);
   }
+   /**
+   * Handle manual change of CES Hunger.
+   * @param {Event} event   A click or contextmenu event which triggered the handler.
+   * @returns {Promise<Actor5e>}     Updated data for this actor after changes are applied.
+   * @private
+   */
+  //  async _changeExhaustion(previous, current) {
+  //   console.log("change Exhaustion");
+  //   var exhaustionList = [
+  //     "None",
+  //     "-1 to All d20 Rolls and Checks",
+  //     "Any Grit Points Gained Are Halved",
+  //     "-2 to All d20 Rolls and Checks",
+  //     "Disadvantage on Ability",
+  //     "-3 to All d20 Rolls and Checks",
+  //     "Base movement speed is halved",
+  //     "-4 to All d20 Rolls and Checks",
+  //     "All Attributes are Temporarily Halved",
+  //     "-5 to All d20 Rolls and Checks",
+  //     "Unconscious"
+  //   ];
+
+  //   var wordbox = '#wordbox .slottt-machine-recipe__items_container';
+  //   buildSlotContents(wordbox, exhaustionList); 
+    
+  //   $items = wordlist.map(buildSlotItem);
+  //   $container.append($items);
+    
+  //   wordbox.animate({top: 1*150}, 500, 'swing', function () {
+  //     rotateContents(wordbox, wordIndex);
+  //   });
+
+  //   return;
+  // }
+
+//   async buildSlotItem (text) {
+//     return $('<div>').addClass('slottt-machine-recipe__item').text(text);
+//   }
+
+//  buildSlotContents ($container, wordlist) {
+//     $items = wordlist.map(buildSlotItem);
+//     $container.append($items);
+//   }
+
+//   async popPushNItems ($container, n) {
+//       $children = $container.find('.slottt-machine-recipe__item');
+//       $children.slice(0, n).insertAfter($children.last());
+
+//       if (n === $children.length) {
+//         popPushNItems($container, 1);
+//       }
+//   }
+
+//   async rotateContents ($container, n) {
+//     setTimeout(function () {
+//       popPushNItems($container, n);
+//       $container.css({top: 0});
+//     }, 300);    
+// }
+
+
+
+   /**
+   * Handle manual change of CES Hunger.
+   * @param {Event} event   A click or contextmenu event which triggered the handler.
+   * @returns {Promise<Actor5e>}     Updated data for this actor after changes are applied.
+   * @private
+   */
+    _changeHunger(event) {
+    event.preventDefault();
+    const trigger = event.currentTarget.className;
+    var newValue;
+    if(trigger.includes("hunger0")){
+      newValue = 0;
+    } else if(trigger.includes("hunger1")){
+      newValue = 1;
+    } else if(trigger.includes("hunger2")){
+      newValue = 2;
+    } else if(trigger.includes("hunger3")){
+      newValue = 3;
+    } else if(trigger.includes("hunger4")){
+      newValue = 4;
+    } else if(trigger.includes("hunger5")){
+      newValue = 5;
+    } else if(trigger.includes("hunger6")){
+      newValue = 6;
+    }
+    return this.actor.update({"system.attributes.exhaust.maintenance.hunger.value": newValue});
+  }
+
+   /* -------------------------------------------- */
+
+      /**
+   * Handle manual change of CES Thirst.
+   * @param {Event} event   A click or contextmenu event which triggered the handler.
+   * @returns {Promise<Actor5e>}     Updated data for this actor after changes are applied.
+   * @private
+   */
+  _changeThirst(event) {
+    event.preventDefault();
+    const trigger = event.currentTarget.className;
+    var newValue;
+    if(trigger.includes("thirst0")){
+      newValue = 0;
+    } else if(trigger.includes("thirst1")){
+      newValue = 1;
+    } else if(trigger.includes("thirst2")){
+      newValue = 2;
+    } else if(trigger.includes("thirst3")){
+      newValue = 3;
+    } else if(trigger.includes("thirst4")){
+      newValue = 4;
+    } else if(trigger.includes("thirst5")){
+      newValue = 5;
+    } else if(trigger.includes("thirst6")){
+      newValue = 6;
+    }
+    return this.actor.update({"system.attributes.exhaust.maintenance.thirst.value": newValue});
+  }
+
+  /**
+ * Handle manual change of CES Fatigue.
+ * @param {Event} event   A click or contextmenu event which triggered the handler.
+ * @returns {Promise<Actor5e>}     Updated data for this actor after changes are applied.
+ * @private
+ */
+    _changeFatigue(event) {
+      event.preventDefault();
+      const trigger = event.currentTarget.className;
+      var newValue;
+      if(trigger.includes("fatigue0")){
+        newValue = 0;
+      } else if(trigger.includes("fatigue1")){
+        newValue = 1;
+      } else if(trigger.includes("fatigue2")){
+        newValue = 2;
+      } else if(trigger.includes("fatigue3")){
+        newValue = 3;
+      } else if(trigger.includes("fatigue4")){
+        newValue = 4;
+      } else if(trigger.includes("fatigue5")){
+        newValue = 5;
+      } else if(trigger.includes("fatigue6")){
+        newValue = 6;
+      }
+      return this.actor.update({"system.attributes.exhaust.maintenance.fatigue.value": newValue});
+    }
+
+   /* -------------------------------------------- */
+
+    /**
+   * Handle manual change of CES Fatigue.
+   * @param {Event} event   A click or contextmenu event which triggered the handler.
+   * @returns {Promise<Actor5e>}     Updated data for this actor after changes are applied.
+   * @private
+   */
+       _changeTemperature(event) {
+        event.preventDefault();
+        const trigger = event.currentTarget.className;
+        var newValue;
+        if(trigger.includes("temp0")){
+          newValue = 0;
+        } else if(trigger.includes("temp1")){
+          newValue = 1;
+        } else if(trigger.includes("temp2")){
+          newValue = 2;
+        } else if(trigger.includes("temp3")){
+          newValue = 3;
+        } else if(trigger.includes("temp4")){
+          newValue = 4;
+        } else if(trigger.includes("temp5")){
+          newValue = 5;
+        } else if(trigger.includes("temp6")){
+          newValue = 6;
+        }
+        return this.actor.update({"system.attributes.exhaust.maintenance.temperature.value": newValue});
+      }
+  
+     /* -------------------------------------------- */
+
+
+  /**
+   * Compute the conditional exhaustion for an Actor.
+   *
+   * Optionally include the weight of carried currency across all denominations by applying the standard rule
+   * from the PHB pg. 143
+   * @param {object} actorData      The data object for the Actor being rendered
+   * @returns {number}              An object describing the character's encumbrance level
+   * @private
+   */
+   async _computeConditionalExhaust(){
+    var actorData = this.object.system.attributes.exhaust.maintenance;
+    var conditional = 0;
+    var hunger = parseInt(actorData.hunger.value);
+    var thirst = parseInt(actorData.thirst.value);
+    var fatigue = parseInt(actorData.fatigue.value);
+    var temperature = parseInt(actorData.temperature.value);
+    switch(hunger){
+      case 0: conditional += -2; break;
+      case 1: conditional += -1; break;
+      case 2: conditional += 0; break;
+      case 3: conditional += 0; break;
+      case 4: conditional += 1; break;
+      case 5: conditional += 2; break;
+      case 6: conditional += 3; break;
+    }
+
+    switch(thirst){
+      case 0: conditional += -2; break;
+      case 1: conditional += -1; break;
+      case 2: conditional += 0; break;
+      case 3: conditional += 0; break;
+      case 4: conditional += 1; break;
+      case 5: conditional += 2; break;
+      case 6: conditional += 3; break;
+    }
+
+    switch(fatigue){
+      case 0: conditional += -2; break;
+      case 1: conditional += -1; break;
+      case 2: conditional += 0; break;
+      case 3: conditional += 0; break;
+      case 4: conditional += 1; break;
+      case 5: conditional += 2; break;
+      case 6: conditional += 3; break;
+    }
+
+    switch(temperature){
+      case 0: conditional += -2; break;
+      case 1: conditional += -1; break;
+      case 2: conditional += 0; break;
+      case 3: conditional += 0; break;
+      case 4: conditional += 1; break;
+      case 5: conditional += 2; break;
+      case 6: conditional += 3; break;
+    }
+
+    this.actor.update({"system.attributes.exhaust.maintenance.total": conditional});
+
+    return;
+  }
 
   /* -------------------------------------------- */
 
+  /**
+   * Compute the total exhaustion for an Actor.
+   *
+   * Optionally include the weight of carried currency across all denominations by applying the standard rule
+   * from the PHB pg. 143
+   * @param {object} actorData      The data object for the Actor being rendered
+   * @returns {number}              An object describing the character's encumbrance level
+   * @private
+   */
+    async _computeTotalExhaust(){
+    var total;
+    var conditional = parseInt(this.object.system.attributes.exhaust.maintenance.total);
+    var base = parseInt(this.object.system.attributes.exhaust.base);
+    total = conditional + base;
+    if(total < 0){
+      total = 0;
+    }
+    if(total > 10){
+      total = 10;
+    }
+
+    this.actor.update({"system.attributes.exhaust.total": total});
+
+    return;
+  }
+
+    /* -------------------------------------------- */
+
+  /**
+   * Update the essence threshold count or size for an Actor.
+   *
+  
+   * @param {object} actorData      The data object for the Actor being rendered
+   * @returns {number}              An object describing the character's encumbrance level
+   * @private
+   */
+  _checkEssenceThreshold(){
+//TO DO: Implement Essence threshold changes
+  console.log("in check essence threshold");
+
+
+    var thresholds = this.object.system.attributes.hp.essence.thresholds;
+    var chunks = this.object.system.attributes.hp.essence.essenceChunkQuantity;
+    var chunkSize = this.object.system.attributes.hp.essence.essenceChunkSize;
+
+    // enforce limits of chunk quantity and size
+    if (chunks < 1){
+      chunks = 1;
+    }
+    if (chunkSize < 1){
+      chunkSize = 1;
+    }
+    // implement chunk quantity changes
+    if (thresholds.length == 0){
+      for (var i = 0; i < chunks; i++){
+        thresholds.push({currentHP: chunkSize, essenceChunkSize: chunkSize, lost: false, excessDamage:0, detailsToggle: false});
+      }
+    } 
+    if (chunks != thresholds.length){
+      if (chunks > thresholds.length){
+        for (var i = 0; i < chunks - thresholds.length; i++){
+          thresholds.unshift({currentHP: chunkSize, essenceChunkSize: chunkSize, lost: false, excessDamage:0, detailsToggle: false});
+        }
+      }
+      if (chunks < thresholds.length){
+        for(var i = 0; i < thresholds.length - chunks; i++){
+          thresholds.shift();
+        }
+      }
+    }else{
+      console.log("no chunk change ");
+    }
+    
+  // implement chunk size changes
+  // thresholds.forEach( element => {
+  //   if (element.essenceChunkSize != chunkSize){
+  //     var difference = chunkSize - element.essenceChunkSize;
+  //     // element.currentHP += difference;
+  //     element.essenceChunkSize = chunkSize;
+  //   }
+  // });
+
+
+    return this.actor.update({"system.attributes.hp.essence.thresholds": thresholds});
+  }
+
+  /* -------------------------------------------- */
+
+
+
+  /**
+   * Update the essence threshold count or size for an Actor when there are changes in the HP config.
+   *
+  
+   * @param {object} actorData      The data object for the Actor being rendered
+   * @returns {number}              An object describing the character's encumbrance level
+   * @private
+   */
+  _checkCurrentEssenceThreshold(event){
+    //TO DO: Implement Essence threshold checks on change
+    
+        var thresholds = this.object.system.attributes.hp.essence.thresholds;
+        var chunkSize = this.object.system.attributes.hp.essence.essenceChunkSize;
+        var thresholdNumber = event.target.parentNode.classList[3];
+
+        var currentHP = event.target.value;
+
+        if (currentHP > chunkSize){
+
+          currentHP = chunkSize;
+          thresholds[thresholdNumber].currentHP = chunkSize;
+        }
+
+
+
+        return this.actor.update({"system.attributes.hp.essence.thresholds": thresholds});
+      }
+    
+  /* -------------------------------------------- */
+
+  /**
+   * Update the body threshold count or size for an Actor when there are changes in the HP config menu.
+   *
+  
+   * @param {object} actorData      The data object for the Actor being rendered
+   * @returns {number}              An object describing the character's encumbrance level
+   * @private
+   */
+  async _checkCurrentBodyThreshold(event){
+    //TO DO: Implement Essence threshold checks on change
+    
+        var thresholds = this.object.system.attributes.hp.body.thresholds;
+        var chunkSize = this.object.system.attributes.hp.body.bodyChunkSize;
+        var thresholdNumber = event.target.parentNode.classList[3];
+
+        var currentHP = event.target.value;
+
+        if (currentHP > chunkSize){
+
+          currentHP = chunkSize;
+          thresholds[thresholdNumber].currentHP = chunkSize;
+        }
+
+
+        return this.actor.update({"system.attributes.hp.body.thresholds": thresholds});
+      }
+    
+
+
+
+      
+
+  /* -------------------------------------------- */
+
+  /**
+   * Update the essence threshold count or size for an Actor.
+   *
+  
+   * @param {object} actorData      The data object for the Actor being rendered
+   * @returns {number}              An object describing the character's encumbrance level
+   * @private
+   */
+  _checkBodyThreshold(){
+    //TO DO: Implement Essence threshold changes
+    
+        var thresholds = this.object.system.attributes.hp.body.thresholds;
+        var chunks = this.object.system.attributes.hp.body.chunkQuantity;
+        var chunkSize = this.object.system.attributes.hp.body.chunkSize;
+
+        //calculate chunk quantity
+        var maxHP = this.object.system.attributes.hp.max;
+        chunks = Math.ceil(maxHP / chunkSize);
+        this.actor.update({"system.attributes.hp.body.chunkQuantity": chunks});
+
+      
+        // enforce limits of chunk quantity and size
+        if (chunks < 1){
+          chunks = 1;
+        }
+        if (chunkSize < 1){
+          chunkSize = 1;
+        }
+        // implement chunk quantity changes
+        if (thresholds.length == 0){
+          for (var i = 0; i < chunks; i++){
+            thresholds.push({currentHP: chunkSize, bodyChunkSize: chunkSize});
+          }
+        } 
+        if (chunks != thresholds.length){
+          console.log("chunk change needed");
+          if (chunks > thresholds.length){
+            for (var i = 0; i < chunks - thresholds.length; i++){
+              thresholds.unshift({currentHP: chunkSize, bodyChunkSize: chunkSize});
+            }
+          }
+          if (chunks < thresholds.length){
+            for(var i = 0; i < thresholds.length - chunks; i++){
+              thresholds.shift();
+            }
+          }
+        }else{
+          console.log("no chunk change ");
+        }
+
+        var hpCounter = 0;
+        var remainderHP = maxHP % chunkSize;
+        var currentHP = 0;
+
+      // implement chunk size changes
+      thresholds.forEach( element => {
+        if(hpCounter <= (maxHP - chunkSize)){
+          hpCounter += chunkSize;
+          element.bodyChunkSize = chunkSize;
+          currentHP += element.currentHP
+
+        } else{
+          element.bodyChunkSize = remainderHP;
+          currentHP += element.currentHP;
+        }
+
+      });
+        this.actor.update({"system.attributes.hp.value": currentHP});
+        this.actor.update({"system.attributes.hp.body.thresholds": thresholds});
+    
+        return;
+      }
+    
+      /* -------------------------------------------- */
+    
+
   /** @inheritDoc */
+  //TODO: set initial/update character values - set-up
   async getData(options) {
+
     this._concentration = this.actor.concentration; // Cache concentration so it's not called for every item.
     const context = await super.getData(options);
     context.editable = this.isEditable && (this._mode === this.constructor.MODES.EDIT);
@@ -32343,20 +33159,161 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       path: showTokenPortrait ? this.actor.isToken ? "" : "prototypeToken.texture.src" : "img"
     };
 
-    // Exhaustion
-    const max = CONFIG.SKJAALD.conditionTypes.exhaustion.levels;
-    context.exhaustion = Array.fromRange(max, 1).reduce((acc, n) => {
-      const label = game.i18n.format("SKJAALD.ExhaustionLevel", { n });
-      const classes = ["pip"];
-      const filled = attributes.exhaustion >= n;
-      if ( filled ) classes.push("filled");
-      if ( n === max ) classes.push("death");
-      const pip = { n, label, filled, tooltip: label, classes: classes.join(" ") };
+    
+    // HP Threshold Set-up
+    this._checkEssenceThreshold();
+    this._checkBodyThreshold();
 
-      if ( n <= max / 2 ) acc.left.push(pip);
-      else acc.right.push(pip);
-      return acc;
-    }, { left: [], right: [] });
+
+    // Exhaustion
+    // TO DO: Implement Exhaustion scrolling
+    const max = CONFIG.SKJAALD.conditionTypes.exhaustion.levels;
+    this._computeConditionalExhaust();
+    this._computeTotalExhaust();
+    // console.log("exhaustion computed");
+    // console.log("exhaustion total: " + this.actor.system.attributes.exhaust.total);
+    // if ( this.actor.system.attributes.exhaust.total != this.actor.system.attributes.exhaust.previousTotal ) {
+    //   console.log("exhaustion change");
+    //   var previous = this.actor.system.attributes.exhaust.previousTotal;
+    //   var current = this.actor.system.attributes.exhaust.total;
+    //   await this._changeExhaustion( current, previous );
+    //   this.actor.system.attributes.exhaust.previousTotal = this.actor.system.attributes.exhaust.total;
+
+    // }
+
+
+    //Maintenance setup
+    //Hunger
+    context.system.attributes.exhaust.maintenance.hunger.stuffed = false;
+    context.system.attributes.exhaust.maintenance.hunger.wellfed = false;
+    context.system.attributes.exhaust.maintenance.hunger.ok = false;
+    context.system.attributes.exhaust.maintenance.hunger.peckish = false;
+    context.system.attributes.exhaust.maintenance.hunger.hungry = false;
+    context.system.attributes.exhaust.maintenance.hunger.ravenous = false;
+    context.system.attributes.exhaust.maintenance.hunger.starving = false;
+    switch ( String(context.system.attributes.exhaust.maintenance.hunger.value) ) {
+      case "0":
+        context.system.attributes.exhaust.maintenance.hunger.stuffed = true;
+        break;
+      case "1":
+        context.system.attributes.exhaust.maintenance.hunger.wellfed = true;
+        break;
+      case "2":
+        context.system.attributes.exhaust.maintenance.hunger.ok = true;
+        break;
+      case "3":
+        context.system.attributes.exhaust.maintenance.hunger.peckish = true;
+        break;
+      case "4":
+        context.system.attributes.exhaust.maintenance.hunger.hungry = true;
+        break;
+      case "5":
+        context.system.attributes.exhaust.maintenance.hunger.ravenous = true;
+        break;
+      case "6":
+        context.system.attributes.exhaust.maintenance.hunger.starving = true;
+        break;
+    }
+
+    //Thirst
+    context.system.attributes.exhaust.maintenance.thirst.quenched = false;
+    context.system.attributes.exhaust.maintenance.thirst.refreshed = false;
+    context.system.attributes.exhaust.maintenance.thirst.ok = false;
+    context.system.attributes.exhaust.maintenance.thirst.parched = false;
+    context.system.attributes.exhaust.maintenance.thirst.thirsty = false;
+    context.system.attributes.exhaust.maintenance.thirst.dry = false;
+    context.system.attributes.exhaust.maintenance.thirst.dehydrated = false;
+    switch ( String(context.system.attributes.exhaust.maintenance.thirst.value) ) {
+      case "0":
+        context.system.attributes.exhaust.maintenance.thirst.quenched = true;
+        break;
+      case "1":
+        context.system.attributes.exhaust.maintenance.thirst.refreshed = true;
+        break;
+      case "2":
+        context.system.attributes.exhaust.maintenance.thirst.ok = true;
+        break;
+      case "3":
+        context.system.attributes.exhaust.maintenance.thirst.parched = true;
+        break;
+      case "4":
+        context.system.attributes.exhaust.maintenance.thirst.thirsty = true;
+        break;
+      case "5":
+        context.system.attributes.exhaust.maintenance.thirst.dry = true;
+        break;
+      case "6":
+        context.system.attributes.exhaust.maintenance.thirst.dehydrated = true;
+        break;
+    }
+
+    //Fatigue
+    context.system.attributes.exhaust.maintenance.fatigue.energized = false;
+    context.system.attributes.exhaust.maintenance.fatigue.wellrested = false;
+    context.system.attributes.exhaust.maintenance.fatigue.ok = false;
+    context.system.attributes.exhaust.maintenance.fatigue.tired = false;
+    context.system.attributes.exhaust.maintenance.fatigue.sleepy = false;
+    context.system.attributes.exhaust.maintenance.fatigue.verysleepy = false;
+    context.system.attributes.exhaust.maintenance.fatigue.barelyawake = false;
+    switch ( String(context.system.attributes.exhaust.maintenance.fatigue.value) ) {
+      case "0":
+        context.system.attributes.exhaust.maintenance.fatigue.energized = true;
+        break;
+      case "1":
+        context.system.attributes.exhaust.maintenance.fatigue.wellrested = true;
+        break;
+      case "2":
+        context.system.attributes.exhaust.maintenance.fatigue.ok = true;
+        break;
+      case "3":
+        context.system.attributes.exhaust.maintenance.fatigue.tired = true;
+        break;
+      case "4":
+        context.system.attributes.exhaust.maintenance.fatigue.sleepy = true;
+        break;
+      case "5":
+        context.system.attributes.exhaust.maintenance.fatigue.verysleepy = true;
+        break;
+      case "6":
+        context.system.attributes.exhaust.maintenance.fatigue.barelyawake = true;
+        break;
+    }
+
+    //Temperature
+    context.system.attributes.exhaust.maintenance.temperature.perfect = false;
+    context.system.attributes.exhaust.maintenance.temperature.comfortable = false;
+    context.system.attributes.exhaust.maintenance.temperature.ok = false;
+    context.system.attributes.exhaust.maintenance.temperature.noticable = false;
+    context.system.attributes.exhaust.maintenance.temperature.uncomfortable = false;
+    context.system.attributes.exhaust.maintenance.temperature.overwhelming = false;
+    context.system.attributes.exhaust.maintenance.temperature.unbearable = false;
+    switch ( String(context.system.attributes.exhaust.maintenance.temperature.value) ) {
+      case "0":
+        context.system.attributes.exhaust.maintenance.temperature.perfect = true;
+        break;
+      case "1":
+        context.system.attributes.exhaust.maintenance.temperature.comfortable = true;
+        break;
+      case "2":
+        context.system.attributes.exhaust.maintenance.temperature.ok = true;
+        break;
+      case "3":
+        context.system.attributes.exhaust.maintenance.temperature.noticable = true;
+        break;
+      case "4":
+        context.system.attributes.exhaust.maintenance.temperature.uncomfortable = true;
+        break;
+      case "5":
+        context.system.attributes.exhaust.maintenance.temperature.overwhelming = true;
+        break;
+      case "6":
+        context.system.attributes.exhaust.maintenance.temperature.unbearable = true;
+        break;
+    }
+
+    if (isNaN(context.system.attributes.exhaust.base)){
+      context.system.attributes.exhaust.maintenance.base = 0;
+    }
 
     // Speed
     context.speed = Object.entries(CONFIG.SKJAALD.movementTypes).reduce((obj, [k, label]) => {
@@ -32537,7 +33494,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
 
     // Characteristics
     context.characteristics = [
-      "alignment", "eyes", "height", "faith", "hair", "weight", "gender", "skin", "age"
+      "eyes", "hair", "height", "faith", "build", "weight", "age", "morality", "honor"
     ].map(k => {
       const fields = CharacterData.schema.fields.details.fields;
       const field = fields[k];
@@ -32548,6 +33505,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     // Favorites
     context.favorites = await this._prepareFavorites();
     context.favorites.sort((a, b) => a.sort - b.sort);
+
 
     return context;
   }
@@ -32765,6 +33723,8 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     if ( this._concentration.items.has(item) ) ctx.concentration = true;
   }
 
+
+
   /* -------------------------------------------- */
 
   /** @inheritDoc */
@@ -32777,8 +33737,52 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     html.find(".rollable:is(.saving-throw, .ability-check)").on("click", this._onRollAbility.bind(this));
     html.find("proficiency-cycle").on("change", this._onChangeInput.bind(this));
     html.find(".sidebar .collapser").on("click", this._onToggleSidebar.bind(this));
+    html.find(".threshold-details-toggle").on("click", this._onToggleThresholdDetails.bind(this));
+    html.find(".injury-control").click(this._onInjuryControl.bind(this));
+
+
+    // html.find(".exhaustion-updates").change(this._changeExhaustion.bind(this));
     this.form.querySelectorAll(".item-tooltip").forEach(this._applyItemTooltips.bind(this));
     this.form.querySelectorAll("[data-reference-tooltip]").forEach(this._applyReferenceTooltips.bind(this));
+
+    // CES change
+      html.find(".hunger0").on("click", this._changeHunger.bind(this));
+      html.find(".hunger1").on("click", this._changeHunger.bind(this));
+      html.find(".hunger2").on("click", this._changeHunger.bind(this));
+      html.find(".hunger3").on("click", this._changeHunger.bind(this));
+      html.find(".hunger4").on("click", this._changeHunger.bind(this));
+      html.find(".hunger5").on("click", this._changeHunger.bind(this));
+      html.find(".hunger6").on("click", this._changeHunger.bind(this));
+
+      html.find(".thirst0").click(this._changeThirst.bind(this));
+      html.find(".thirst1").click(this._changeThirst.bind(this));
+      html.find(".thirst2").click(this._changeThirst.bind(this));
+      html.find(".thirst3").click(this._changeThirst.bind(this));
+      html.find(".thirst4").click(this._changeThirst.bind(this));
+      html.find(".thirst5").click(this._changeThirst.bind(this));
+      html.find(".thirst6").click(this._changeThirst.bind(this));
+
+      html.find(".fatigue0").click(this._changeFatigue.bind(this));
+      html.find(".fatigue1").click(this._changeFatigue.bind(this));
+      html.find(".fatigue2").click(this._changeFatigue.bind(this));
+      html.find(".fatigue3").click(this._changeFatigue.bind(this));
+      html.find(".fatigue4").click(this._changeFatigue.bind(this));
+      html.find(".fatigue5").click(this._changeFatigue.bind(this));
+      html.find(".fatigue6").click(this._changeFatigue.bind(this));
+
+      html.find(".temp0").click(this._changeTemperature.bind(this));
+      html.find(".temp1").click(this._changeTemperature.bind(this));
+      html.find(".temp2").click(this._changeTemperature.bind(this));
+      html.find(".temp3").click(this._changeTemperature.bind(this));
+      html.find(".temp4").click(this._changeTemperature.bind(this));
+      html.find(".temp5").click(this._changeTemperature.bind(this));
+      html.find(".temp6").click(this._changeTemperature.bind(this));
+
+    // HP Thresholds
+      // html.find(".essence-threshold").on("change", this._checkCurrentEssenceThreshold.bind(this));
+      // html.find(".body-threshold").on("change", this._checkCurrentBodyThreshold.bind(this));
+
+
 
     // Prevent default middle-click scrolling when locking a tooltip.
     this.form.addEventListener("pointerdown", event => {
@@ -32786,7 +33790,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
         event.preventDefault();
       }
     });
-
+ 
     // Apply special context menus for items outside inventory elements
     const featuresElement = html[0].querySelector(`[data-tab="features"] ${this.options.elements.inventory}`);
     if ( featuresElement ) new ContextMenu5e(html, ".pills-lg [data-item-id]", [], {
@@ -32799,6 +33803,17 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       html.find(".create-child").on("click", this._onCreateChild.bind(this));
     }
 
+    //animate threshold details click
+    // const icon = document.getElementById("threshold-details-icon");
+
+    // icon.addEventListener("click", () => {
+    //   icon.classList.addClass('fa-bounce');
+
+    //   // setTimeout(() => {
+    //   //   this.classList.remove('fa-bounce');
+    //   // }, 1000);
+    // });
+ 
     // Edit mode only.
     if ( this._mode === this.constructor.MODES.EDIT ) {
       html.find(".tab.details .item-action").on("click", this._onItemAction.bind(this));
@@ -32809,6 +33824,18 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
       html.find(".portrait").on("click", this._onShowPortrait.bind(this));
     }
   }
+
+  /* -------------------------------------------- */
+  /** @inheritDoc */
+  // _onToggleSpellsTab(document){
+    
+
+
+
+ 
+
+ 
+  // }
 
   /* -------------------------------------------- */
 
@@ -32991,6 +34018,102 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
 
   /* -------------------------------------------- */
 
+
+
+  /**
+ * Add or remove a injury part from a threshold
+ * @param {Event} event             The original click event.
+ * @returns {Promise<Item5e>|null}  Item with updates applied.
+ * @private
+ */
+  async _onInjuryControl(event) {
+    event.preventDefault();
+    const a = event.currentTarget;
+    const index = parseInt(a.classList[1]);
+    console.log("injury add-remove method");
+    console.log(index);
+    const actor = this.object;
+    console.log(actor);
+    
+
+    // Add new damage component
+    if ( a.classList.contains("add-injury") ) {
+      await this._onSubmit(event); 
+      const injury = actor.system.attributes.hp.body.thresholds[index].injuries;
+      
+      actor.system.attributes.hp.body.thresholds[index].injuries.push({injurySeverity: 'light'});
+
+      this.render(true);
+      return actor.update({"system.attributes.hp.body.thresholds": actor.system.attributes.hp.body.thresholds});
+    }
+
+    // Remove a damage component
+    if ( a.classList.contains("delete-injury") ) {
+      await this._onSubmit(event);  // Submit any unsaved changes
+      const injuryIndex = a.attributes[2].value; // Use dataset to get the damage index
+      const injury = actor.system.attributes.hp.body.thresholds[index].injuries;
+      injury.splice(injuryIndex, 1);
+      this.render(true);
+      return actor.update({"system.attributes.hp.body.thresholds": actor.system.attributes.hp.body.thresholds});
+    }
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Handle the user toggling the sidebar collapsed state.
+   * @protected
+   */
+   _onToggleThresholdDetails(event) {
+    event.preventDefault();
+
+    // Delare Variables
+    var actor = this.object;
+    const clicked = event.target.parentElement.parentElement.classList;
+    var thresholdType = clicked[1];
+    var thresholdNumber = clicked[2];
+    var bodyThresholds = actor.system.attributes.hp.body.thresholds;
+    var essenceThresholds = actor.system.attributes.hp.essence.thresholds;
+    var currentValue;
+    if (thresholdType === "body-threshold") {
+      currentValue = bodyThresholds[thresholdNumber].detailsToggle;
+    } else if(thresholdType === "essence-threshold") {
+      currentValue = essenceThresholds[thresholdNumber].detailsToggle;
+    }
+    
+
+    // Reset all thresholds to false
+    bodyThresholds.forEach ((value, key) => {
+      bodyThresholds[key].detailsToggle = false;
+    });
+    essenceThresholds.forEach ((value, key) => {
+      essenceThresholds[key].detailsToggle = false;
+    });
+
+    // Toggle the clicked threshold
+    if (thresholdType === "body-threshold") {
+      if(currentValue === true) {
+        bodyThresholds[thresholdNumber].detailsToggle = false;
+      } else {
+      bodyThresholds[thresholdNumber].detailsToggle = true;
+      }
+    } else if(thresholdType === "essence-threshold") {
+      if(currentValue === true) {
+        essenceThresholds[thresholdNumber].detailsToggle = false;
+      } else {
+        essenceThresholds[thresholdNumber].detailsToggle = true;
+      }
+    } else{
+      console.log("Error: Threshold type not recognized");
+    }
+
+    // Update the actor with the new thresholds
+    actor.update({ "system.attributes.hp.body.thresholds": bodyThresholds });
+   return actor.update({ "system.attributes.hp.essence.thresholds": essenceThresholds });
+  }
+
+  /* -------------------------------------------- */
+
   /**
    * Handle showing the character's portrait or token art.
    * @protected
@@ -33065,7 +34188,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
 
     let types = {
       inventory: ["weapon", "equipment", "consumable", "tool", "container", "loot"],
-      features: ["feat", "race", "background", "class", "subclass"]
+      features: ["feat", "race", "background", "class", "subclass", "die"]
     }[activeTab] ?? [];
 
     types = types.filter(type => {
@@ -34161,7 +35284,7 @@ class GroupActorSheet extends ActorSheetMixin(ActorSheet) {
 
     // Categorize as weapons, equipment, containers, and loot
     const sections = {};
-    for ( const type of ["weapon", "equipment", "consumable", "container", "loot"] ) {
+    for ( const type of ["weapon", "equipment", "consumable", "container", "loot", "die"] ) {
       sections[type] = {label: `${CONFIG.Item.typeLabels[type]}Pl`, items: [], hasActions: false, dataset: {type}};
     }
 
@@ -34375,6 +35498,7 @@ var _module$f = /*#__PURE__*/Object.freeze({
   ActorConcentrationConfig: ActorConcentrationConfig,
   ActorHitDiceConfig: ActorHitDiceConfig,
   ActorHitPointsConfig: ActorHitPointsConfig,
+  ActorThresholdConfig: ActorThresholdConfig,
   ActorInitiativeConfig: ActorInitiativeConfig,
   ActorMovementConfig: ActorMovementConfig,
   ActorSensesConfig: ActorSensesConfig,
@@ -34582,6 +35706,7 @@ var _module$e = /*#__PURE__*/Object.freeze({
   AdvancementMigrationDialog: AdvancementMigrationDialog,
   AdvancementSelection: AdvancementSelection,
   HitPointsConfig: HitPointsConfig,
+  ThresholdConfig: ThresholdConfig,
   HitPointsFlow: HitPointsFlow,
   ItemChoiceConfig: ItemChoiceConfig,
   ItemChoiceFlow: ItemChoiceFlow,
@@ -35734,6 +36859,7 @@ class InventoryElement extends HTMLElement {
       control.addEventListener("click", event => {
         event.preventDefault();
         event.stopPropagation();
+        console.log("connectedCallback 2");
         const { clientX, clientY } = event;
         event.currentTarget.closest("[data-item-id]").dispatchEvent(new PointerEvent("contextmenu", {
           view: window, bubbles: true, cancelable: true, clientX, clientY
@@ -37614,6 +38740,7 @@ class StartingEquipmentConfig extends DocumentSheet {
     else if ( !dropEntry ) {
       updateData = { [`startingEquipment.${dragEntry._id}.group`]: null };
       const box = this.form.getBoundingClientRect();
+      console.log("sort entry");
       sortBefore = (event.clientY - box.y) < (box.height * .75);
       const sortedEntries = this.document.system.startingEquipment.filter(e => !e.group)
         .sort((lhs, rhs) => lhs.sort - rhs.sort);
@@ -37946,7 +39073,6 @@ class ItemSheet5e extends ItemSheet {
       context.abilityConsumptionHint = (this.item.system.consume?.type === "attribute")
         ? "SKJAALD.ConsumeHint.Attribute" : "SKJAALD.ConsumeHint.Item";
     }
-
     if ( ("properties" in item.system) && (item.type in CONFIG.SKJAALD.validProperties) ) {
       context.properties = item.system.validProperties.reduce((obj, k) => {
         const v = CONFIG.SKJAALD.itemProperties[k];
@@ -38188,8 +39314,10 @@ class ItemSheet5e extends ItemSheet {
    * @private
    */
   _getItemProperties() {
+
     const props = [];
     const labels = this.item.labels;
+
     switch ( this.item.type ) {
       case "consumable":
       case "weapon":
@@ -38319,6 +39447,7 @@ class ItemSheet5e extends ItemSheet {
     if ( this.isEditable ) {
       html.find(".config-button").click(this._onConfigMenu.bind(this));
       html.find(".damage-control").click(this._onDamageControl.bind(this));
+      html.find(".action-control").click(this._onActionControl.bind(this));
       html.find(".enchantment-button").click(this._onEnchantmentAction.bind(this));
       html.find(".advancement .item-control").click(event => {
         const t = event.currentTarget;
@@ -38429,7 +39558,9 @@ class ItemSheet5e extends ItemSheet {
     app?.render(true);
   }
 
-  /* -------------------------------------------- */
+  
+  
+    /* -------------------------------------------- */
 
   /**
    * Add or remove a damage part from the damage formula.
@@ -38440,25 +39571,67 @@ class ItemSheet5e extends ItemSheet {
   async _onDamageControl(event) {
     event.preventDefault();
     const a = event.currentTarget;
+    const index = parseInt(a.classList[1]);
+    
 
     // Add new damage component
     if ( a.classList.contains("add-damage") ) {
-      await this._onSubmit(event);  // Submit any unsaved changes
-      const damage = this.item.system.damage;
-      return this.item.update({"system.damage.parts": damage.parts.concat([["", ""]])});
+      await this._onSubmit(event); 
+      const damage = this.item.system.activatedActions[index].damage.parts;
+      
+      if(damage.length == 0){
+        this.item.system.activatedActions[index].damage.parts = [["", ""]];
+      }
+      else{
+        this.item.system.activatedActions[index].damage.parts = damage.concat([["", ""]]);
+        }
+      // this.render(true);
+      return this.item.update({"system.activatedActions": this.item.system.activatedActions});
     }
 
     // Remove a damage component
     if ( a.classList.contains("delete-damage") ) {
       await this._onSubmit(event);  // Submit any unsaved changes
-      const li = a.closest(".damage-part");
-      const damage = foundry.utils.deepClone(this.item.system.damage);
-      damage.parts.splice(Number(li.dataset.damagePart), 1);
-      return this.item.update({"system.damage.parts": damage.parts});
+      const damageIndex = a.classList[3]; // Use dataset to get the damage index
+      const damage = this.item.system.activatedActions[index].damage.parts;
+      damage.splice(damageIndex, 1);
+      // this.render();
+      return this.item.update({"system.activatedActions": this.item.system.activatedActions});
     }
   }
 
   /* -------------------------------------------- */
+
+    /**
+   * Add or remove a activated actions.
+   * @param {Event} event             The original click event.
+   * @returns {Promise<Item5e>|null}  Item with updates applied.
+   * @private
+   */
+    async _onActionControl(event) {
+      event.preventDefault();
+      const a = event.currentTarget;
+      const index = a.classList[2];
+
+
+      // Add new action component
+      if ( a.classList.contains("add-activatedAction") ) {
+        await this._onSubmit(event);  // Submit any unsaved changes
+        const action = this.item.system.activatedActions;
+
+        return this.item.update({"system.activatedActions": action.concat([["", ""]])});
+      }
+  
+      // Remove a action component
+      if ( a.classList.contains("delete-activatedAction") ) {
+        await this._onSubmit(event);  // Submit any unsaved changes
+        const action = this.item.system.activatedActions;
+        const removed = action.splice(index, 1);
+        return this.item.update({"system.activatedActions": action});
+      }
+    }
+  
+    /* -------------------------------------------- */
 
   /**
    * Handle actions on entries in the enchanted items list.
@@ -38794,6 +39967,8 @@ class ContainerSheet extends ItemSheet5e {
     return this._onDropItem(event, data);
   }
 
+
+  
   /* -------------------------------------------- */
 
   /**
@@ -42693,7 +43868,35 @@ class ConsumableData extends ItemDataModel.mixin(
       properties: new SetField$3(new StringField$4(), { label: "SKJAALD.ItemAmmoProperties" }),
       uses: new ActivatedEffectTemplate.ItemUsesField({
         autoDestroy: new BooleanField$2({required: true, label: "SKJAALD.ItemDestroyEmpty"})
-      }, {label: "SKJAALD.LimitedUses"})
+      }, {label: "SKJAALD.LimitedUses"}), 
+      activatedActions: new ArrayField$9(new SchemaField$l({
+        name: new StringField$o({initial: "Action", label: "Name"}),
+        ability: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.AbilityModifier"}),
+      actionType: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.ItemActionType"}),
+      attack: new SchemaField$e({
+        bonus: new FormulaField({required: true, label: "SKJAALD.ItemAttackBonus"}),
+        flat: new BooleanField$9({label: "SKJAALD.ItemAttackFlat"})
+      }),
+      chatFlavor: new StringField$g({required: true, label: "SKJAALD.ChatFlavor"}),
+      critical: new SchemaField$e({
+        threshold: new NumberField$d({
+          required: true, integer: true, initial: null, positive: true, label: "SKJAALD.ItemCritThreshold"
+        }),
+        damage: new FormulaField({required: true, label: "SKJAALD.ItemCritExtraDamage"})
+      }),
+      damage: new SchemaField$e({
+        parts: new ArrayField$5(new ArrayField$5(new StringField$g({nullable: true})), {required: true}),
+        versatile: new FormulaField({required: true, label: "SKJAALD.VersatileDamage"})
+      }, {label: "SKJAALD.Damage"}),
+      enchantment: new EnchantmentField(),
+      formula: new FormulaField({required: true, label: "SKJAALD.OtherFormula"}),
+      save: new SchemaField$e({
+        ability: new StringField$g({required: true, blank: true, label: "SKJAALD.Ability"}),
+        dc: new NumberField$d({required: true, min: 0, integer: true, label: "SKJAALD.AbbreviationDC"}),
+        scaling: new StringField$g({required: true, blank: false, initial: "spell", label: "SKJAALD.ScalingFormula"})
+      }, {label: "SKJAALD.SavingThrow"}),
+      summons: new SummonsField()     
+      }), { required: true, default: [] })
     });
   }
 
@@ -42851,7 +44054,35 @@ class FeatData extends ItemDataModel.mixin(
           required: true, integer: true, min: 1, label: "SKJAALD.FeatureRechargeOn"
         }),
         charged: new BooleanField$1({required: true, label: "SKJAALD.Charged"})
-      }, {label: "SKJAALD.FeatureActionRecharge"})
+      }, {label: "SKJAALD.FeatureActionRecharge"}),
+      activatedActions: new ArrayField$9(new SchemaField$l({
+        name: new StringField$o({initial: "Action", label: "Name"}),
+        ability: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.AbilityModifier"}),
+      actionType: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.ItemActionType"}),
+      attack: new SchemaField$e({
+        bonus: new FormulaField({required: true, label: "SKJAALD.ItemAttackBonus"}),
+        flat: new BooleanField$9({label: "SKJAALD.ItemAttackFlat"})
+      }),
+      chatFlavor: new StringField$g({required: true, label: "SKJAALD.ChatFlavor"}),
+      critical: new SchemaField$e({
+        threshold: new NumberField$d({
+          required: true, integer: true, initial: null, positive: true, label: "SKJAALD.ItemCritThreshold"
+        }),
+        damage: new FormulaField({required: true, label: "SKJAALD.ItemCritExtraDamage"})
+      }),
+      damage: new SchemaField$e({
+        parts: new ArrayField$5(new ArrayField$5(new StringField$g({nullable: true})), {required: true}),
+        versatile: new FormulaField({required: true, label: "SKJAALD.VersatileDamage"})
+      }, {label: "SKJAALD.Damage"}),
+      enchantment: new EnchantmentField(),
+      formula: new FormulaField({required: true, label: "SKJAALD.OtherFormula"}),
+      save: new SchemaField$e({
+        ability: new StringField$g({required: true, blank: true, label: "SKJAALD.Ability"}),
+        dc: new NumberField$d({required: true, min: 0, integer: true, label: "SKJAALD.AbbreviationDC"}),
+        scaling: new StringField$g({required: true, blank: false, initial: "spell", label: "SKJAALD.ScalingFormula"})
+      }, {label: "SKJAALD.SavingThrow"}),
+      summons: new SummonsField()     
+      }), { required: true, default: [] })
     });
   }
 
@@ -42994,6 +44225,19 @@ class LootData extends ItemDataModel.mixin(
     });
   }
 
+    /* -------------------------------------------- */
+
+  /**
+   * The proficiency multiplier for this item.
+   * @returns {number}
+   */
+  get proficiencyMultiplier() {
+    return 1;
+  }
+
+
+
+
   /* -------------------------------------------- */
 
   /** @inheritdoc */
@@ -43039,6 +44283,100 @@ var _module$5 = /*#__PURE__*/Object.freeze({
   SensesField: SensesField,
   SourceField: SourceField
 });
+
+ /* -------------------------------------------- */
+
+/**
+ * Data definition for Die items.
+ * @mixes ItemDescriptionTemplate
+ * @mixes ItemTypeTemplate
+ * @mixes IdentifiableTemplate
+ * @mixes PhysicalItemTemplate
+ */
+class DieData extends ItemDataModel.mixin(
+  ItemDescriptionTemplate, IdentifiableTemplate, ItemTypeTemplate, PhysicalItemTemplate
+) {
+  /** @inheritdoc */
+  static defineSchema() {
+    return this.mergeSchema(super.defineSchema(), {
+      properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
+        label: "SKJAALD.ItemDieProperties"
+      }),
+      type: new ItemTypeField({baseItem: false}, {label: "SKJAALD.ItemDieType"})
+    });
+  }
+}
+
+ /* -------------------------------------------- */
+
+ /**
+ * Data definition for Movement items.
+ * @mixes ItemDescriptionTemplate
+ * @mixes ItemTypeTemplate
+ * @mixes IdentifiableTemplate
+ * @mixes PhysicalItemTemplate
+ */
+class MovementData extends ItemDataModel.mixin(
+  ItemDescriptionTemplate, IdentifiableTemplate, ItemTypeTemplate, PhysicalItemTemplate
+) {
+  /** @inheritdoc */
+  static defineSchema() {
+    return this.mergeSchema(super.defineSchema(), {
+      properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
+        label: "SKJAALD.ItemMovementProperties"
+      }),
+      type: new ItemTypeField({baseItem: false}, {label: "SKJAALD.ItemMovementType"})
+    });
+  }
+}
+
+ /* -------------------------------------------- */
+
+/**
+ * Data definition for Language items.
+ * @mixes ItemDescriptionTemplate
+ * @mixes ItemTypeTemplate
+ * @mixes IdentifiableTemplate
+ * @mixes PhysicalItemTemplate
+ */
+class LanguageData extends ItemDataModel.mixin(
+  ItemDescriptionTemplate, IdentifiableTemplate, ItemTypeTemplate, PhysicalItemTemplate
+) {
+  /** @inheritdoc */
+  static defineSchema() {
+    return this.mergeSchema(super.defineSchema(), {
+      properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
+        label: "SKJAALD.ItemLanguageProperties"
+      }),
+      type: new ItemTypeField({baseItem: false}, {label: "SKJAALD.ItemLanguageType"})
+    });
+  }
+}
+
+ /* -------------------------------------------- */
+
+ /**
+ * Data definition for Note items.
+ * @mixes ItemDescriptionTemplate
+ * @mixes ItemTypeTemplate
+ * @mixes IdentifiableTemplate
+ * @mixes PhysicalItemTemplate
+ */
+class NoteData extends ItemDataModel.mixin(
+  ItemDescriptionTemplate, IdentifiableTemplate, ItemTypeTemplate, PhysicalItemTemplate
+) {
+  /** @inheritdoc */
+  static defineSchema() {
+    return this.mergeSchema(super.defineSchema(), {
+      properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
+        label: "SKJAALD.ItemNoteProperties"
+      }),
+      type: new ItemTypeField({baseItem: false}, {label: "SKJAALD.ItemNoteType"})
+    });
+  }
+}
+
+ /* -------------------------------------------- */
 
 /**
  * Data definition for Race items.
@@ -43339,7 +44677,7 @@ class ToolData extends ItemDataModel.mixin(
   }
 }
 
-const { NumberField: NumberField$1, SetField: SetField$1, StringField: StringField$2 } = foundry.data.fields;
+const { NumberField: NumberField$1, SetField: SetField$1, StringField: StringField$2, ArrayField: ArrayField$9, SchemaField: SchemaField$l, StringField: StringField$o } = foundry.data.fields;
 
 /**
  * Data definition for Weapon items.
@@ -43368,7 +44706,35 @@ class WeaponData extends ItemDataModel.mixin(
       properties: new SetField$1(new StringField$2(), {label: "SKJAALD.ItemWeaponProperties"}),
       proficient: new NumberField$1({
         required: true, min: 0, max: 1, integer: true, initial: null, label: "SKJAALD.ProficiencyLevel"
-      })
+      }),
+      activatedActions: new ArrayField$9(new SchemaField$l({
+        name: new StringField$o({initial: "Action", label: "Name"}),
+        ability: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.AbilityModifier"}),
+      actionType: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.ItemActionType"}),
+      attack: new SchemaField$e({
+        bonus: new FormulaField({required: true, label: "SKJAALD.ItemAttackBonus"}),
+        flat: new BooleanField$9({label: "SKJAALD.ItemAttackFlat"})
+      }),
+      chatFlavor: new StringField$g({required: true, label: "SKJAALD.ChatFlavor"}),
+      critical: new SchemaField$e({
+        threshold: new NumberField$d({
+          required: true, integer: true, initial: null, positive: true, label: "SKJAALD.ItemCritThreshold"
+        }),
+        damage: new FormulaField({required: true, label: "SKJAALD.ItemCritExtraDamage"})
+      }),
+      damage: new SchemaField$e({
+        parts: new ArrayField$5(new ArrayField$5(new StringField$g({nullable: true})), {required: true}),
+        versatile: new FormulaField({required: true, label: "SKJAALD.VersatileDamage"})
+      }, {label: "SKJAALD.Damage"}),
+      enchantment: new EnchantmentField(),
+      formula: new FormulaField({required: true, label: "SKJAALD.OtherFormula"}),
+      save: new SchemaField$e({
+        ability: new StringField$g({required: true, blank: true, label: "SKJAALD.Ability"}),
+        dc: new NumberField$d({required: true, min: 0, integer: true, label: "SKJAALD.AbbreviationDC"}),
+        scaling: new StringField$g({required: true, blank: false, initial: "spell", label: "SKJAALD.ScalingFormula"})
+      }, {label: "SKJAALD.SavingThrow"}),
+      summons: new SummonsField()     
+      }), { required: true, default: [] })
     });
   }
 
@@ -43417,6 +44783,8 @@ class WeaponData extends ItemDataModel.mixin(
   /*  Data Preparation                            */
   /* -------------------------------------------- */
 
+
+
   /** @inheritDoc */
   prepareDerivedData() {
     super.prepareDerivedData();
@@ -43445,6 +44813,41 @@ class WeaponData extends ItemDataModel.mixin(
   /* -------------------------------------------- */
   /*  Getters                                     */
   /* -------------------------------------------- */
+
+    /* -------------------------------------------- */
+
+  /**
+   * Does the Item implement an attack roll as part of its usage?
+   * @type {boolean}
+   */
+  get hasAttack() {
+    if (this.parent.type == "weapon" || this.parent.type == "equipment" || this.parent.type == 'consumable'){
+
+      const attacks = this.activatedActions;
+  
+      if(attacks){
+        for (const attack of Object.entries(attacks)) {
+          if( ["mwak", "rwak", "msak", "rsak", "other"].includes(attack[1].actionType) )
+          return true;
+        }
+      }
+      return false;
+  
+    }else if (this.parent.type == "spell"){
+      const effects = this.effects;
+  
+      if(effects){
+        for (const attack of Object.entries(effects)) {
+          if( ["mwak", "rwak", "msak", "rsak", "other"].includes(attack[1].actionType) )
+          return true;
+        }
+      }
+      return false;
+    }else {
+      return ["mwak", "rwak", "msak", "rsak", "other"].includes(attacks.actionType);
+  
+    }
+  }
 
   /**
    * Properties displayed in chat.
@@ -43517,14 +44920,65 @@ class WeaponData extends ItemDataModel.mixin(
   }
 }
 
+/* -------------------------------------------- */
+
+/**
+ * Data structure for an entry in a item's action list.
+ *
+ * @typedef {object} ActionData
+ * @property {string} name      Name of individual action
+ * @property {number} quantity  How many of this creature are onboard?
+ */
+
+/**
+ * Produce the schema field for a simple trait.
+ * @param {object} schemaOptions  Options passed to the outer schema.
+ * @returns {ActionData}
+ */
+function makeActionData(schemaOptions={}) {
+  return new foundry.data.fields.SchemaField({
+    ability: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.AbilityModifier"}),
+    actionType: new StringField$g({required: true, nullable: true, initial: null, label: "SKJAALD.ItemActionType"}),
+    attack: new SchemaField$e({
+      bonus: new FormulaField({required: true, label: "SKJAALD.ItemAttackBonus"}),
+      flat: new BooleanField$9({label: "SKJAALD.ItemAttackFlat"})
+    }),
+    chatFlavor: new StringField$g({required: true, label: "SKJAALD.ChatFlavor"}),
+    critical: new SchemaField$e({
+      threshold: new NumberField$d({
+        required: true, integer: true, initial: null, positive: true, label: "SKJAALD.ItemCritThreshold"
+      }),
+      damage: new FormulaField({required: true, label: "SKJAALD.ItemCritExtraDamage"})
+    }),
+    damage: new SchemaField$e({
+      parts: new ArrayField$5(new ArrayField$5(new StringField$g({nullable: true})), {required: true}),
+      versatile: new FormulaField({required: true, label: "SKJAALD.VersatileDamage"})
+    }, {label: "SKJAALD.Damage"}),
+    enchantment: new EnchantmentField(),
+    formula: new FormulaField({required: true, label: "SKJAALD.OtherFormula"}),
+    save: new SchemaField$e({
+      ability: new StringField$g({required: true, blank: true, label: "SKJAALD.Ability"}),
+      dc: new NumberField$d({required: true, min: 0, integer: true, label: "SKJAALD.AbbreviationDC"}),
+      scaling: new StringField$g({required: true, blank: false, initial: "spell", label: "SKJAALD.ScalingFormula"})
+    }, {label: "SKJAALD.SavingThrow"}),
+    summons: new SummonsField()
+  }, schemaOptions);
+}
+
+
+
 const config$1 = {
   background: BackgroundData,
   container: ContainerData,
   class: ClassData,
   consumable: ConsumableData,
+  die: DieData,
+  note: NoteData,
   equipment: EquipmentData,
   feat: FeatData,
+  language: LanguageData,
   loot: LootData,
+  movement: MovementData,
   race: RaceData,
   spell: SpellData,
   subclass: SubclassData,
@@ -43551,7 +45005,11 @@ var _module$4 = /*#__PURE__*/Object.freeze({
   ItemTypeField: ItemTypeField,
   ItemTypeTemplate: ItemTypeTemplate,
   LootData: LootData,
+  LanguageData: LanguageData,
+  DieData: DieData,
+  NoteData: NoteData,
   MountableTemplate: MountableTemplate,
+  MovementData: MovementData,
   PhysicalItemTemplate: PhysicalItemTemplate,
   RaceData: RaceData,
   SpellData: SpellData,
@@ -46239,3 +47697,4 @@ Hooks.on("targetToken", Token5e.onTargetToken);
 
 export { SKJAALD, applications, canvas$1 as canvas, dataModels, dice, documents, enrichers, migrations, utils };
 //# sourceMappingURL=skjaald-compiled.mjs.map
+

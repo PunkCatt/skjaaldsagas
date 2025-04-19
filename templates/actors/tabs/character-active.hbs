@@ -1,0 +1,57 @@
+<div class="tab combat page-2 col-2" data-group="primary" data-tab="combat">
+    <div class="left">
+        <div class="action-points">
+            <div class="meter-group ap-section">
+                <div class="label roboto-condensed-upper">
+                    <span>{{ localize "SKJAALD.ActionPoints" }}</span>
+                    {{#if editable}}
+                    <a class="config-button" data-action="armorclass" data-tooltip="SKJAALD.HitPointsConfig"
+                        aria-label="{{ localize "SKJAALD.HitPointsConfig" }}">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    {{/if}}
+                </div>
+                {{#with system.attributes}}
+                <div class="meter sectioned hit-points">
+                    <div class="progress hit-points
+                            {{~#if (gt tempmax 0)}} temp-positive
+                            {{~else if (lt tempmax 0)}} temp-negative{{/if}}"
+                            role="meter" aria-valuemin="0" aria-valuenow="{{ ap }}"
+                            aria-valuemax="{{ max }}" style="--bar-percentage: {{ pct }}%">
+                        <div class="label">
+                            <span class="value">{{ ap }}</span>
+
+                            {{#if tempmax}}
+                            <span class="bonus">{{skjaald-numberFormat tempmax signDisplay="always"}}</span>
+                            {{/if}}
+                        </div>
+                        <input type="text" name="system.attributes.ap" data-dtype="Number"
+                                placeholder="0" value="{{ ap }}" hidden>
+                    </div>
+
+                </div>
+                {{/with}}
+            </div>
+        </div>
+
+        <div class="recovery-dice">
+            {{> "skjaald.character-features" sections=recovery-dice}}
+        </div>
+        <div class="resource-dice">
+            {{> "skjaald.character-features" sections=resource-dice}}
+        </div>
+        <div class="resources">
+            {{> "skjaald.character-features" sections=resources}}
+        </div>
+    </div>
+
+
+    <div class="right">
+        <div class="attacks">
+            {{> "skjaald.character-features" sections=attacks}}
+        </div>
+        <div class="features">
+            {{> "skjaald.character-features" sections=features}}
+        </div>
+    </div>
+</div>

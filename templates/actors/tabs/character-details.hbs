@@ -1,3 +1,18 @@
+{{#*inline "textbox"}}
+    <div class="textbox-half">
+        <h3 class="icon">
+            {{#if icon}}<i class="{{ icon }}"></i>
+            {{~else if svg}}<skjaald-icon src="systems/skjaald/icons/svg/{{svg}}.svg"></skjaald-icon>{{/if}}
+            <span class="roboto-upper">{{ localize label }}</span>
+        </h3>
+        {{#if @root.editable}}
+        <textarea class="untext" name="{{ name }}">{{ value }}</textarea>
+        {{else}}
+        <p>{{ skjaald-textFormat value }}</p>
+        {{/if}}
+    </div>
+{{/inline}}
+
 {{#*inline "skill-prof"}}
     <li data-key="{{ @key }}" {{~#if reference}} data-reference-tooltip="{{ reference }}"{{/if}}>
         <proficiency-cycle type="skill" name="{{ path }}.value" data-tooltip="{{ hover }}"
@@ -46,7 +61,7 @@
 {{#*inline "traits"}}
     {{#if (or @root.editable values)}}
     <div class="pills-group {{#unless values}}empty{{/unless}}">
-        <h3 class="icon">
+        {{!-- <h3 class="icon">
             {{#if icon}}<i class="{{ icon }}"></i>
             {{~else if svg}}<skjaald-icon src="systems/skjaald/icons/svg/{{svg}}.svg"></skjaald-icon>{{/if}}
             <span class="roboto-upper">{{ localize label }}</span>
@@ -57,8 +72,8 @@
                 <i class="fas fa-cog"></i>
             </a>
             {{/if}}
-        </h3>
-        <ul class="pills">
+        </h3> --}}
+        {{!-- <ul class="pills">
             {{#each values}}
             <li class="pill {{ ../color }} {{ color }}">
                 {{#each icons}}
@@ -70,7 +85,7 @@
                 <span class="label">{{ label }}</span>
             </li>
             {{/each}}
-        </ul>
+        </ul> --}}
     </div>
     {{/if}}
 {{/inline}}
@@ -79,6 +94,171 @@
 
     {{!-- Skills & Tools --}}
     <div class="left">
+        
+        {{!-- Portrait --}}
+        <div class="portrait {{#if portrait.token}}token{{/if}}">
+            {{#if editable}}
+            <label class="slide-toggle roboto-upper">
+                <input type="checkbox" name="flags.skjaald.showTokenPortrait" {{ checked portrait.token }}>
+                {{#if portrait.token}}
+                <i class="fas fa-toggle-on"></i>
+                {{ localize "DOCUMENT.Token" }}
+                {{else}}
+                <i class="fas fa-toggle-off"></i>
+                {{ localize "SKJAALD.Portrait" }}
+                {{/if}}
+            </label>
+            {{/if}}
+
+            <img src="{{ portrait.src }}" alt="{{ actor.name }}"
+                    {{#if (and editable portrait.path)}}data-edit="{{ portrait.path }}"{{/if}}>
+        </div>
+
+        {{!-- Characteristics --}}
+        <div class="top character-details">
+            <ul class="unlist characteristics">
+                {{#each characteristics}}
+                <li>
+                    <label>
+                        <span class="roboto-upper label">{{ localize label }}</span>
+                        {{#if @root.editable}}
+                        <input type="text" name="{{ name }}" value="{{ value }}">
+                        {{else}}
+                        <span class="value">{{ value }}</span>
+                        {{/if}}
+                    </label>
+                </li>
+                {{/each}}
+            </ul>
+        </div>
+
+        {{!-- Character Level --}}
+        <div class="top character-levels">
+            <ul class="unlist characteristics">
+
+                <li>
+                    <label>
+                        <span class="roboto-upper label">{{ localize "SKJAALD.CharacterLevel" }}</span>
+                        {{#if @root.editable}}
+                        <input type="text" name="system.details.level.character" value="{{ value }}">
+                        {{else}}
+                        <span class="value">{{ system.details.level.character }}</span>
+                        {{/if}}
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <span class="roboto-upper label">{{ localize "SKJAALD.RenownLevel" }}</span>
+                        {{#if @root.editable}}
+                        <input type="text" name="system.details.level.renown" value="{{ value }}">
+                        {{else}}
+                        <span class="value">{{ system.details.level.renown }}</span>
+                        {{/if}}
+                    </label>
+                </li>
+
+            </ul>
+            
+            {{!-- Speed --}}
+            <div class="lozenge" data-attribution="attributes.movement">
+                <div class="value">
+                    {{#if editable}}
+                    <a class="config-button" data-action="movement" data-tooltip="SKJAALD.MovementConfig">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    {{else}}
+                    {{ speed.value }}
+                    {{/if}}
+                </div>
+                <div class="label roboto-condensed-upper">{{ speed.label }}</div>
+            </div>
+        </div>
+
+
+
+        {{!-- Background --}}
+        <div class="pills-lg">
+            {{#with creatureType}}
+            <div class="pill-lg texture type" {{#if reference}}data-reference-tooltip="{{reference}}"{{/if}}>
+                <div class="gold-icon creature-type {{ class }}" style="background-image: url('{{ icon }}');"></div>
+                <div class="name name-stacked">
+                    <span class="title">
+                        {{ localize title }}
+                    </span>
+                    <span class="subtitle">{{ subtitle }}</span>
+                </div>
+                {{#if (and @root.editable @root.race)}}
+                <a class="config-button" data-action="type" data-tooltip="SKJAALD.CreatureTypeConfig"
+                    aria-label="{{ localize "SKJAALD.CreatureTypeConfig" }}">
+                    <i class="fas fa-cog"></i>
+                </a>
+                {{/if}}
+            </div>
+            {{/with}}
+            {{#if race}}
+            <div class="pill-lg texture race item-tooltip" data-action="edit"
+                    data-item-id="{{ system.details.race.id }}"
+                    aria-label="{{#if actor.isOwner}}{{ localize "SKJAALD.ItemEdit" }}{{else}}{{ localize "SKJAALD.ItemView" }}{{/if}}">
+                {{#if system.details.race.img}}
+                <img class="gold-icon" src="{{ system.details.race.img }}" alt="{{ system.details.race.name }}">
+                {{/if}}
+                <div class="name name-stacked">
+                    <span class="title">{{ system.details.race.name }}</span>
+                    {{#if editable}}
+                    <select class="actor-size unselect" name="system.traits.size">
+                        {{ selectOptions config.actorSizes selected=source.traits.size labelAttr="label" }}
+                    </select>
+                    {{else}}
+                    <span class="subtitle">{{ size.label }}</span>
+                    {{/if}}
+                </div>
+                {{#if editable}}
+                <a class="item-control item-action" data-action="delete" data-tooltip="SKJAALD.ItemDelete"
+                    aria-label="{{ localize "SKJAALD.ItemDelete" }}" data-tooltip-class data-tooltip-direction>
+                    <i class="fas fa-trash"></i>
+                </a>
+                {{/if}}
+            </div>
+            {{else if actor.isOwner}}
+            <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="race">
+                {{ localize "SKJAALD.RaceAdd" }}
+            </div>
+            {{/if}}
+            {{#if background}}
+            <div class="pill-lg texture background item-tooltip" data-action="edit"
+                    data-item-id="{{ system.details.background.id }}"
+                    aria-label="{{#if actor.isOwner}}{{ localize "SKJAALD.ItemEdit" }}{{else}}{{ localize "SKJAALD.ItemView" }}{{/if}}">
+                {{#if system.details.background.img}}
+                <img class="gold-icon" src="{{ system.details.background.img }}"
+                        alt="{{ system.details.background.name }}">
+                {{/if}}
+                <div class="name name-stacked">
+                    <span class="title">{{ system.details.background.name }}</span>
+                </div>
+                {{#if editable}}
+                <a class="item-control item-action" data-action="delete" data-tooltip="SKJAALD.ItemDelete"
+                    aria-label="{{ localize "SKJAALD.ItemDelete" }}" data-tooltip-class data-tooltip-direction>
+                    <i class="fas fa-trash"></i>
+                </a>
+                {{/if}}
+            </div>
+            {{else if actor.isOwner}}
+            <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="background">
+                {{ localize "SKJAALD.BackgroundAdd" }}
+            </div>
+            {{/if}}
+        </div>
+
+        {{!-- Biography --}}
+        <div class="bottom biography">
+            <h3 class="icon">
+                <i class="fas fa-feather"></i>
+                <skjaald-icon src="systems/skjaald/icons/svg/ink-pot.svg"></skjaald-icon>
+                <span class="roboto-upper">{{ localize "SKJAALD.Biography" }}</span>
+            </h3>
+            {{ editor biographyHTML target="system.details.biography.value" button=false editable=@root.editable
+                    engine="prosemirror" collaborate=false }}
+        </div>
 
         {{!-- Skills --}}
         {{!-- <filigree-box class="skills">
@@ -122,97 +302,30 @@
     {{!-- Background, Saving Throws, Proficiencies, & Senses --}}
     <div class="right">
 
-        {{!-- Background & Saving Throws --}}
-        <div class="top flexrow">
-
-            {{!-- Saving Throws --}}
-            {{!-- <filigree-box class="saves">
-                <h3>
-                    <i class="fas fa-shield-heart"></i>
-                    <span class="roboto-upper">{{ localize "SKJAALD.ClassSaves" }}</span>
-                </h3>
-                <ul>
-                    {{#each saves}}
-                        {{> "ability-prof" path=(concat "system.abilities." @key)
-                            config=(localize "SKJAALD.AbilityConfigure" ability=label) }}
-                    {{/each}}
-                </ul>
-            </filigree-box> --}}
-
-            {{!-- Background --}}
-            {{!-- <div class="pills-lg">
-                {{#with creatureType}}
-                <div class="pill-lg texture type" {{#if reference}}data-reference-tooltip="{{reference}}"{{/if}}>
-                    <div class="gold-icon creature-type {{ class }}" style="background-image: url('{{ icon }}');"></div>
-                    <div class="name name-stacked">
-                        <span class="title">
-                            {{ localize title }}
-                        </span>
-                        <span class="subtitle">{{ subtitle }}</span>
-                    </div>
-                    {{#if (and @root.editable @root.race)}}
-                    <a class="config-button" data-action="type" data-tooltip="SKJAALD.CreatureTypeConfig"
-                       aria-label="{{ localize "SKJAALD.CreatureTypeConfig" }}">
-                        <i class="fas fa-cog"></i>
-                    </a>
-                    {{/if}}
-                </div>
-                {{/with}}
-                {{#if race}}
-                <div class="pill-lg texture race item-tooltip" data-action="edit"
-                     data-item-id="{{ system.details.race.id }}"
-                     aria-label="{{#if actor.isOwner}}{{ localize "SKJAALD.ItemEdit" }}{{else}}{{ localize "SKJAALD.ItemView" }}{{/if}}">
-                    {{#if system.details.race.img}}
-                    <img class="gold-icon" src="{{ system.details.race.img }}" alt="{{ system.details.race.name }}">
-                    {{/if}}
-                    <div class="name name-stacked">
-                        <span class="title">{{ system.details.race.name }}</span>
-                        {{#if editable}}
-                        <select class="actor-size unselect" name="system.traits.size">
-                            {{ selectOptions config.actorSizes selected=source.traits.size labelAttr="label" }}
-                        </select>
-                        {{else}}
-                        <span class="subtitle">{{ size.label }}</span>
-                        {{/if}}
-                    </div>
-                    {{#if editable}}
-                    <a class="item-control item-action" data-action="delete" data-tooltip="SKJAALD.ItemDelete"
-                       aria-label="{{ localize "SKJAALD.ItemDelete" }}" data-tooltip-class data-tooltip-direction>
-                        <i class="fas fa-trash"></i>
-                    </a>
-                    {{/if}}
-                </div>
-                {{else if actor.isOwner}}
-                <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="race">
-                    {{ localize "SKJAALD.RaceAdd" }}
-                </div>
-                {{/if}}
-                {{#if background}}
-                <div class="pill-lg texture background item-tooltip" data-action="edit"
-                     data-item-id="{{ system.details.background.id }}"
-                     aria-label="{{#if actor.isOwner}}{{ localize "SKJAALD.ItemEdit" }}{{else}}{{ localize "SKJAALD.ItemView" }}{{/if}}">
-                    {{#if system.details.background.img}}
-                    <img class="gold-icon" src="{{ system.details.background.img }}"
-                         alt="{{ system.details.background.name }}">
-                    {{/if}}
-                    <div class="name name-stacked">
-                        <span class="title">{{ system.details.background.name }}</span>
-                    </div>
-                    {{#if editable}}
-                    <a class="item-control item-action" data-action="delete" data-tooltip="SKJAALD.ItemDelete"
-                       aria-label="{{ localize "SKJAALD.ItemDelete" }}" data-tooltip-class data-tooltip-direction>
-                        <i class="fas fa-trash"></i>
-                    </a>
-                    {{/if}}
-                </div>
-                {{else if actor.isOwner}}
-                <div class="pill-lg empty roboto-upper" data-action="findItem" data-item-type="background">
-                    {{ localize "SKJAALD.BackgroundAdd" }}
-                </div>
-                {{/if}}
-            </div> --}}
-
-        </div>
+        {{~> "textbox" name="system.details.appearance" value=system.details.appearance label="SKJAALD.Appearance"
+            icon="fas fa-image-portrait" ~}}
+        {{~> "textbox" name="system.details.secrets" value=system.details.secrets label="SKJAALD.Secret"
+            icon="fas fa-image-portrait" ~}}
+        {{~> "textbox" name="system.details.quest" value=system.details.quest label="SKJAALD.Quest"
+            icon="fas fa-image-portrait" ~}}
+        {{~> "textbox" name="system.details.habits" value=system.details.habits label="SKJAALD.Habits"
+            icon="fas fa-image-portrait" ~}}
+        {{~> "textbox" name="system.details.allies" value=system.details.allies label="SKJAALD.Allies"
+            icon="fas fa-image-portrait" ~}}
+        {{~> "textbox" name="system.details.family" value=system.details.family label="SKJAALD.Family"
+            icon="fas fa-image-portrait" ~}}
+        {{~> "textbox" name="system.details.trait" value=system.details.trait label="SKJAALD.PersonalityTraits"
+            icon="fas fa-puzzle-piece" ~}}
+        {{~> "textbox" name="system.details.ideal" value=system.details.ideal label="SKJAALD.Ideals"
+            icon="fas fa-seedling" ~}}
+        {{~> "textbox" name="system.details.bond" value=system.details.bond label="SKJAALD.Bonds"
+            icon="fas fa-link" ~}}
+        {{~> "textbox" name="system.details.flaw" value=system.details.flaw label="SKJAALD.Flaws"
+            icon="fas fa-heart-crack" ~}}
+        {{~> "textbox" name="system.details.backstory" value=system.details.flaw label="SKJAALD.Backstory"
+            icon="fas fa-heart-crack" ~}}
+        {{~> "textbox" name="system.details.memories" value=system.details.flaw label="SKJAALD.Memories"
+            icon="fas fa-heart-crack" ~}}
 
         {{!-- Senses --}}
         {{!-- {{#if (or editable senses)}}
@@ -242,30 +355,31 @@
         {{/if}} --}}
 
         {{!-- Resistances --}}
-        {{> "traits" values=traits.dr key="dr" color="green" icon="fas fa-shield-halved" label="SKJAALD.Resistances" }}
+       {{!--  {{> "traits" values=traits.dr key="dr" color="green" icon="fas fa-shield-halved" label="SKJAALD.Resistances" }} --}}
 
         {{!-- Immunities --}}
-        {{#if editable}}
+        {{!-- {{#if editable}}
             {{> "traits" values=traits.di key="di" color="green" icon="fas fa-shield" label="SKJAALD.DamImm" }}
         {{else}}
             {{> "traits" values=traits.di key="di" color="green" icon="fas fa-shield" label="SKJAALD.Immunities" }}
         {{/if}}
-        {{> "traits" values=traits.ci key="ci" color="green" svg="rosa-shield" label="SKJAALD.ConImm" }}
+        {{> "traits" values=traits.ci key="ci" color="green" svg="rosa-shield" label="SKJAALD.ConImm" }} --}}
 
         {{!-- Vulnerabilities --}}
-        {{> "traits" values=traits.dv key="dv" color="maroon" icon="fas fa-heart-crack" label="SKJAALD.Vulnerabilities" }}
+        {{!-- {{> "traits" values=traits.dv key="dv" color="maroon" icon="fas fa-heart-crack" label="SKJAALD.Vulnerabilities" }} --}}
 
         {{!-- Damage Modification --}}
-        {{> "traits" values=traits.dm key="dm" icon="fas fa-heart-circle-plus" label="SKJAALD.DamageModification.Label" }}
+        {{!-- {{> "traits" values=traits.dm key="dm" icon="fas fa-heart-circle-plus" label="SKJAALD.DamageModification.Label" }} --}}
 
         {{!-- Armor --}}
-        {{> "traits" values=traits.armor key="armor" svg="checked-shield" label="SKJAALD.Armor" }}
+        {{!-- {{> "traits" values=traits.armor key="armor" svg="checked-shield" label="SKJAALD.Armor" }} --}}
 
         {{!-- Weapons --}}
-        {{> "traits" values=traits.weapon key="weapon" svg="trait-weapon-proficiencies" label="TYPES.Item.weaponPl" }}
+        {{!-- {{> "traits" values=traits.weapon key="weapon" svg="trait-weapon-proficiencies" label="TYPES.Item.weaponPl" }} --}}
 
         {{!-- Languages --}}
-        {{> "traits" values=traits.languages key="languages" icon="fas fa-flag" label="SKJAALD.Languages" }}
+        {{!-- {{> "traits" values=traits.languages key="languages" icon="fas fa-flag" label="SKJAALD.Languages" }} --}}
 
+        
     </div>
 </div>

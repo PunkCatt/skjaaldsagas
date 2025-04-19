@@ -110,26 +110,12 @@
             {{!-- Item Activation Template --}}
             {{> "skjaald.item-activation"}}
 
-            <h3 class="form-header">{{ localize "SKJAALD.SpellEffects" }}</h3>
+            <h3 class="form-header">{{ localize "SKJAALD.SpellEffects" }} <a class="action-control add-activatedAction"><i class="fas fa-plus"></i></a></h3>
+
 
             {{!-- Item Action Template --}}
             {{> "skjaald.item-action"}}
 
-            {{!-- Spell Level Scaling --}}
-            <div class="form-group">
-                <label>{{ localize "SKJAALD.LevelScaling" }}</label>
-                <div class="form-fields">
-                    <select name="system.scaling.mode">
-                        {{#select system.scaling.mode}}
-                        {{#each config.spellScalingModes as |name key|}}
-                        <option value="{{key}}">{{name}}</option>
-                        {{/each}}
-                        {{/select}}
-                    </select>
-                    <input type="text" name="system.scaling.formula" value="{{system.scaling.formula}}"
-                           placeholder="{{ localize 'SKJAALD.ScalingFormula' }}" data-formula-editor>
-                </div>
-            </div>
         </div>
 
         {{!-- Effects Tab --}}

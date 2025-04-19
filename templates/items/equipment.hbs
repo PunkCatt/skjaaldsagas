@@ -4,6 +4,8 @@
     <header class="sheet-header flexrow">
         <img class="profile" src="{{item.img}}" data-tooltip="{{item.name}}" data-edit="img">
 
+        {{log 'in equipment html'}}
+
         <div class="header-details flexrow">
             <h1 class="charname">
                 {{#if system.identified}}
@@ -40,6 +42,7 @@
 
             <ul class="summary flexrow">
                 <li>{{ system.type.label }}</li>
+
                 <li>
                     {{#if concealDetails}}
                     <span>{{ localize "SKJAALD.Unidentified.Title" }}</span>
@@ -171,7 +174,7 @@
             {{#if system.isMountable}}
             {{> "skjaald.item-mountable"}}
             <div class="form-group">
-                <label>{{localize 'SKJAALD.Speed'}}</label>
+                <label>{{localize "SKJAALD.Speed"}}</label>
                 <div class="form-fields">
                     {{numberInput system.speed.value name="system.speed.value" placeholder="0"}}
                     <span class="sep">{{localize 'SKJAALD.FeetAbbr'}}</span>
@@ -186,7 +189,8 @@
             {{!-- Item Activation Template --}}
             {{> "skjaald.item-activation"}}
 
-            <h3 class="form-header">{{ localize "SKJAALD.ItemEquipmentAction" }}</h3>
+            <h3 class="form-header">{{ localize "SKJAALD.ItemEquipmentAction" }} <a class="action-control add-activatedAction"><i class="fas fa-plus"></i></a></h3>
+
 
             {{!-- Item Action Template --}}
             {{> "skjaald.item-action"}}

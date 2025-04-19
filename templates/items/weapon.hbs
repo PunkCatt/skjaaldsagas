@@ -107,8 +107,8 @@
             <div class="form-group">
                 <label>{{localize "SKJAALD.Proficiency"}}</label>
                 <select name="system.proficient" data-dtype="Number">
-                    {{selectOptions config.weaponAndArmorProficiencyLevels selected=system.proficient
-                                    blank=(localize "SKJAALD.Automatic")}}
+                    {{selectOptions config.proficiencyLevels selected=system.proficient
+                                    blank=(localize "SKJAALD.Untrained")}}
                 </select>
             </div>
             {{/unless}}
@@ -149,7 +149,8 @@
             {{!-- Item Activation Template --}}
             {{> "skjaald.item-activation"}}
 
-            <h3 class="form-header">{{ localize "SKJAALD.ItemWeaponAttack" }}</h3>
+            <h3 class="form-header">{{ localize "SKJAALD.ItemWeaponAttacks" }} <a class="action-control add-activatedAction"><i class="fas fa-plus"></i></a></h3>
+            
 
             {{!-- Item Action Template --}}
             {{> "skjaald.item-action"}}
