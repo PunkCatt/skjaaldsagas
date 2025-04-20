@@ -4767,7 +4767,7 @@ flex-wrap: wrap;
 /* TODO UPDATE GRID TEMPLATE */
   flex: 0 0 var(--skjaald-sheet-header-height);
   /* background: transparent url("ui/official/banner-character.jpg") no-repeat center / cover; */
-  background: url("ui/Skjaald/Bookmark.png");
+  background: url("ui/skjaald/bookmark.png");
   border: none;
   border-radius: 5px 5px 0 0;
   /* display: grid;
@@ -4976,7 +4976,7 @@ flex-wrap: wrap;
   border-radius: 5px;
   position: relative;
   /* background: url("ui/texture1.webp") no-repeat top center / auto 770px, url("ui/texture2.webp") no-repeat bottom center / auto 704px; */
-  background: url(ui/skjaald/CharacterPageBookOnly.png) no-repeat top center / cover;
+  background: url(ui/skjaald/characterPageBookOnly.png) no-repeat top center / cover;
   /* Main Content */
   /* Sidebar */
   /* Tabbed Content */
