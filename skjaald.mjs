@@ -26076,13 +26076,63 @@ preLocalize("languages.standard.children", { key: "label", sort: true });
  * Maximum allowed character level.
  * @type {number}
  */
-SKJAALD.maxLevel = 20;
+SKJAALD.maxLevel = 200;
 
 /**
  * Maximum ability score value allowed by default.
  * @type {number}
  */
-SKJAALD.maxAbilityScore = 20;
+SKJAALD.maxAbilityScore = 100;
+
+/**
+ * Ability Score modifiers.
+ * @type {number}
+ */
+SKJAALD.abilityScoreModifiers = {
+  1: -10,
+  2: -9,
+  3: -8,
+  4: -7,
+  5: -6,
+  6: -5,
+  7: -5,
+  8: -4,
+  9: -4,
+  10: -3,
+  11: -3,
+  12: -3,
+  13: -2,
+  14: -2,
+  15: -2,
+  16: -1,
+  17: -1,
+  18: -1,
+  19: -1,
+  20: 0,
+  21: 1,
+  22: 1,
+  23: 1,
+  24: 2,
+  25: 2,
+  26: 2,
+  27: 2,
+  28: 3,
+  29: 3,
+  30: 3,
+  31: 4,
+  32: 4,
+  33: 5,
+  34: 5,
+  35: 6,
+  36: 6,
+  37: 7,
+  38: 7,
+  39: 8,
+  40: 8
+};
+
+preLocalize("abilityMods");
+
 
 /**
  * XP required to achieve each character level.
@@ -31523,10 +31573,17 @@ class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplate) {
     const saveBonus = simplifyBonus(this.bonuses?.abilities?.save, rollData);
     const dcBonus = simplifyBonus(this.bonuses?.spell?.dc, rollData);
     for ( const [id, abl] of Object.entries(this.abilities) ) {
-      if ( flags.diamondSoul ) abl.proficient = 1;  // Diamond Soul is proficient in all saves
+      // if ( flags.diamondSoul ) abl.proficient = 1;  // Diamond Soul is proficient in all saves
 
-      abl.mod = Math.floor((abl.value - 9));
-      if ( abl.mod > 0 ) abl.mod = Math.floor(abl.mod / 3);
+
+      // calculate the ability modifier
+      if (abl.value > 40) {
+        abl.mod = 8 + (abl.value - 40);
+      } else if (abl.value < 1){
+        abl.mod = 0;
+      } else {
+        abl.mod = CONFIG.SKJAALD.abilityScoreModifiers[abl.value];
+      }
 
       const isRA = this.parent._isRemarkableAthlete(id);
       abl.checkProf = new Proficiency(prof, (isRA || flags.jackOfAllTrades) ? 0.5 : 0, !isRA);
@@ -31547,7 +31604,14 @@ class CommonTemplate extends ActorDataModel.mixin(CurrencyTemplate) {
       if ( originalSaves && abl.proficient ) abl.save = Math.max(abl.save, originalSaves[id].save);
     }
   }
+
+
 }
+
+  /* -------------------------------------------- */
+
+
+  
 
 /**
  * @typedef {object} SkillData
@@ -32016,25 +32080,25 @@ class CharacterData extends CreatureTemplate {
         ap: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.AP"}),
         hp: new SchemaField$5({
           body: new SchemaField$5({
-            chunkSize: new NumberField$7({nullable: true, integer: true, min: 1, initial: 1, label: "SKJAALD.HitPointsChunkSize"}),
+            chunkSize: new NumberField$7({nullable: true, integer: true, min: 1, initial: 5, label: "SKJAALD.HitPointsChunkSize"}),
             chunkQuantity: new NumberField$7({nullable: true, integer: true, min: 0, initial: 1, label: "SKJAALD.HitPointsChunkQuantity"}), 
             thresholds: new ArrayField$1(new SchemaField$5({
-              overides: new SchemaField$5({
-                woundedOveride: new BooleanField$5({required: true, initial: false, label: "SKJAALD.BodyThresholdWounded"})
-              }),
-              currentHP: new NumberField$7({nullable: true, integer: true, min: 0, initial: 3, label: "SKJAALD.BodyThresholdCurrentHP"}),
-              bodyChunkSize: new NumberField$7({nullable: true, integer: true, min: 0, initial: 3, label: "SKJAALD.HitPointsBodyChunkSize"}),
+              // overides: new SchemaField$5({
+              //   woundedOveride: new BooleanField$5({required: true, initial: false, label: "SKJAALD.BodyThresholdWounded"})
+              // }),
+              currentHP: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.BodyThresholdCurrentHP"}),
+              bodyChunkSize: new NumberField$7({nullable: true, integer: true, min: 1, initial: 5, label: "SKJAALD.HitPointsBodyChunkSize"}),
               chunkSizeMod: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.HitPointsBodyChunkSizeMod"}),
+              scars: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.ThresholdScar"}), 
+              negation: new NumberField$7({nullable: true, integer: true, min: 0, initial: 1, label: "SKJAALD.ThresholdNegation"}), 
+              detailsToggle: new BooleanField$5({ initial: false, label: "SKJAALD.ThresholdDetailsToggle"}),
               wounded: new BooleanField$5({required: true, initial: false, label: "SKJAALD.BodyThresholdWounded"}),
               injuries: new ArrayField$1(new SchemaField$5({
                 injurySeverity: new StringField$7({required: false, label: "SKJAALD.ThresholdWoundSev"}),
                 injuryDetails: new StringField$7({required: false, label: "SKJAALD.ThresholdWoundDetails"}),
                 woundDC: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.ThresholdWoundDC"}),
-                effects: new StringField$7({required: false, label: "SKJAALD.ThresholdWoundEffects"}),
+                effects: new StringField$7({required: false, label: "SKJAALD.ThresholdWoundEffects"})
               }), {label: "SKJAALD.HitPointsBodyThresholdInjuries"}),
-              scars: new NumberField$7({nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.ThresholdScar"}), 
-              negation: new NumberField$7({nullable: true, integer: true, min: 0, initial: 1, label: "SKJAALD.ThresholdNegation"}), 
-              detailsToggle: new BooleanField$5({ initial: false, label: "SKJAALD.ThresholdDetailsToggle"})
             }, {label: "SKJAALD.HPBodyThresholds"}),)
           }, {label: "SKJAALD.HPBodyThresholds"}),
           essence: new SchemaField$5({
@@ -32049,10 +32113,10 @@ class CharacterData extends CreatureTemplate {
             }, { label: "SKJAALD.HPEssenceThresholds"}),)
           }, {label: "SKJAALD.HPBodyThresholds"}),
           value: new NumberField$7({
-            nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.HitPointsCurrent"
+            nullable: false, integer: true, min: 0, initial: 10, label: "SKJAALD.HitPointsCurrent"
           }),
           max: new NumberField$7({
-            nullable: true, integer: true, min: 0, initial: null, label: "SKJAALD.HitPointsOverride"
+            nullable: false, integer: true, min: 0, initial: 10, label: "SKJAALD.HitPointsOverride"
           }),
           grit: new NumberField$7({
             nullable: true, integer: true, min: 0, initial: 0, label: "SKJAALD.Grit"
@@ -33061,68 +33125,98 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
    */
   _checkBodyThreshold(){
     //TO DO: Implement Essence threshold changes
-    
-        var thresholds = this.object.system.attributes.hp.body.thresholds;
-        var chunks = this.object.system.attributes.hp.body.chunkQuantity;
-        var chunkSize = this.object.system.attributes.hp.body.chunkSize;
+  
+    var currentThresholds = this.object.system.attributes.hp.body.thresholds;
+    var updatedThresholds = this.object.system.attributes.hp.body.thresholds;
+    var baseChunkQuantity = this.object.system.attributes.hp.body.chunkQuantity;
+    var baseChunkSize = parseInt(this.object.system.attributes.hp.body.chunkSize);
+    var hpCounter = 0;
+    var currentHP = 0;
 
-        //calculate chunk quantity
-        var maxHP = this.object.system.attributes.hp.max;
-        chunks = Math.ceil(maxHP / chunkSize);
-        this.actor.update({"system.attributes.hp.body.chunkQuantity": chunks});
+    //calculate chunk quantity
+    var maxHP = this.object.system.attributes.hp.max;
+    baseChunkQuantity = Math.ceil(maxHP / baseChunkSize);
+    var remainderHP = parseInt(maxHP % baseChunkSize);
 
-      
-        // enforce limits of chunk quantity and size
-        if (chunks < 1){
-          chunks = 1;
+  
+    // enforce limits of chunk quantity and size
+    if (baseChunkQuantity < 1){
+      baseChunkQuantity = 1;
+    }
+    if (baseChunkSize < 1){
+      baseChunkSize = 1;
+    }
+
+  
+    if (currentThresholds.length == 0){
+      // initial chunk set-up
+      console.log("initial body chunk set-up");
+      if (remainderHP > 0){
+        for (var i = 0; i < (baseChunkQuantity - 1 ); i++){
+          updatedThresholds.push({currentHP: baseChunkSize, bodyChunkSize: baseChunkSize});
         }
-        if (chunkSize < 1){
-          chunkSize = 1;
+        updatedThresholds.push({currentHP: remainderHP, bodyChunkSize: remainderHP});
+      } else {
+        for (var i = 0; i < baseChunkQuantity; i++){
+          updatedThresholds.push({currentHP: baseChunkSize, bodyChunkSize: baseChunkSize});
         }
-        // implement chunk quantity changes
-        if (thresholds.length == 0){
-          for (var i = 0; i < chunks; i++){
-            thresholds.push({currentHP: chunkSize, bodyChunkSize: chunkSize});
-          }
-        } 
-        if (chunks != thresholds.length){
-          console.log("chunk change needed");
-          if (chunks > thresholds.length){
-            for (var i = 0; i < chunks - thresholds.length; i++){
-              thresholds.unshift({currentHP: chunkSize, bodyChunkSize: chunkSize});
-            }
-          }
-          if (chunks < thresholds.length){
-            for(var i = 0; i < thresholds.length - chunks; i++){
-              thresholds.shift();
-            }
-          }
-        }else{
-          console.log("no chunk change ");
+      }
+      currentHP = maxHP;
+    } else{
+      // Check for any changes
+
+      console.log("chunk change needed");
+      // add chunks
+      if (currentThresholds.length < baseChunkQuantity ){
+        for (var i = 0; i < baseChunkQuantity - currentThresholds.length; i++){
+          updatedThresholds.unshift({currentHP: baseChunkSize, bodyChunkSize: baseChunkSize});
         }
-
-        var hpCounter = 0;
-        var remainderHP = maxHP % chunkSize;
-        var currentHP = 0;
-
+      }
+      // remove chunks
+      if (baseChunkQuantity < currentThresholds.length){
+        for(var i = 0; i < currentThresholds.length - baseChunkQuantity; i++){
+          updatedThresholds.shift();
+        }
+      }
+      console.log("calculate total HP");
       // implement chunk size changes
-      thresholds.forEach( element => {
-        if(hpCounter <= (maxHP - chunkSize)){
-          hpCounter += chunkSize;
-          element.bodyChunkSize = chunkSize;
+      updatedThresholds.forEach( element => {
+        if(hpCounter <= (maxHP - baseChunkSize)){
+          hpCounter += baseChunkSize;
+          element.bodyChunkSize = baseChunkSize;
           currentHP += element.currentHP
+          console.log(currentHP);
 
         } else{
           element.bodyChunkSize = remainderHP;
           currentHP += element.currentHP;
-        }
+          console.log(currentHP);
 
-      });
-        this.actor.update({"system.attributes.hp.value": currentHP});
-        this.actor.update({"system.attributes.hp.body.thresholds": thresholds});
+        }
+      })
+    }
+
+    console.log(currentHP);
+    // implement chunk size changes
+    // thresholds.forEach( element => {
+    //   if(hpCounter <= (maxHP - baseChunkSize)){
+    //     hpCounter += baseChunkSize;
+    //     element.bodyChunkSize = baseChunkSize;
+    //     currentHP += element.currentHP
+
+    //   } else{
+    //     element.bodyChunkSize = remainderHP;
+    //     currentHP += element.currentHP;
+    //   }
+
+    // })
+
+      this.actor.update({"system.attributes.hp.body.chunkQuantity": baseChunkQuantity});
+      this.actor.update({"system.attributes.hp.value": currentHP});
+      this.actor.update({"system.attributes.hp.body.thresholds": updatedThresholds});
     
-        return;
-      }
+    return;
+  }
     
       /* -------------------------------------------- */
     
