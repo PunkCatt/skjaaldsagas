@@ -26523,43 +26523,43 @@ SKJAALD.defaultArtwork = {
  */
 SKJAALD.ruleTypes = {
   rule: {
-    label: "SKJAALD.Rule.Type.Rule",
+    label: "DND5E.Rule.Type.Rule",
     references: "rules"
   },
   ability: {
-    label: "SKJAALD.Ability",
+    label: "DND5E.Ability",
     references: "enrichmentLookup.abilities"
   },
   areaOfEffect: {
-    label: "SKJAALD.AreaOfEffect",
+    label: "DND5E.AreaOfEffect",
     references: "areaTargetTypes"
   },
   condition: {
-    label: "SKJAALD.Rule.Type.Condition",
+    label: "DND5E.Rule.Type.Condition",
     references: "conditionTypes"
   },
   creatureType: {
-    label: "SKJAALD.CreatureType",
+    label: "DND5E.CreatureType",
     references: "creatureTypes"
   },
   damage: {
-    label: "SKJAALD.DamageType",
+    label: "DND5E.DamageType",
     references: "damageTypes"
   },
   skill: {
-    label: "SKJAALD.Skill",
+    label: "DND5E.Skill",
     references: "enrichmentLookup.skills"
   },
   spellComponent: {
-    label: "SKJAALD.SpellComponent",
+    label: "DND5E.SpellComponent",
     references: "itemProperties"
   },
   spellSchool: {
-    label: "SKJAALD.SpellSchool",
+    label: "DND5E.SpellSchool",
     references: "enrichmentLookup.spellSchools"
   },
   spellTag: {
-    label: "SKJAALD.SpellTag",
+    label: "DND5E.SpellTag",
     references: "itemProperties"
   }
 };
@@ -32999,7 +32999,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
    */
   _checkEssenceThreshold(){
 //TO DO: Implement Essence threshold changes
-  console.log("in check essence threshold");
+  // console.log("in check essence threshold");
 
 
     var thresholds = this.object.system.attributes.hp.essence.thresholds;
@@ -33031,7 +33031,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
         }
       }
     }else{
-      console.log("no chunk change ");
+      // console.log("no chunk change ");
     }
     
   // implement chunk size changes
@@ -33150,7 +33150,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
   
     if (currentThresholds.length == 0){
       // initial chunk set-up
-      console.log("initial body chunk set-up");
+      // console.log("initial body chunk set-up");
       if (remainderHP > 0){
         for (var i = 0; i < (baseChunkQuantity - 1 ); i++){
           updatedThresholds.push({currentHP: baseChunkSize, bodyChunkSize: baseChunkSize});
@@ -33165,7 +33165,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     } else{
       // Check for any changes
 
-      console.log("chunk change needed");
+      // console.log("chunk change needed");
       // add chunks
       if (currentThresholds.length < baseChunkQuantity ){
         for (var i = 0; i < baseChunkQuantity - currentThresholds.length; i++){
@@ -33178,25 +33178,25 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
           updatedThresholds.shift();
         }
       }
-      console.log("calculate total HP");
+      // console.log("calculate total HP");
       // implement chunk size changes
       updatedThresholds.forEach( element => {
         if(hpCounter <= (maxHP - baseChunkSize)){
           hpCounter += baseChunkSize;
           element.bodyChunkSize = baseChunkSize;
           currentHP += element.currentHP
-          console.log(currentHP);
+          // console.log(currentHP);
 
         } else{
           element.bodyChunkSize = remainderHP;
           currentHP += element.currentHP;
-          console.log(currentHP);
+          // console.log(currentHP);
 
         }
       })
     }
 
-    console.log(currentHP);
+    // console.log(currentHP);
     // implement chunk size changes
     // thresholds.forEach( element => {
     //   if(hpCounter <= (maxHP - baseChunkSize)){
