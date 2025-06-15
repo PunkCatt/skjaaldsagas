@@ -6,12 +6,7 @@
 
         <div class="header-details flexrow">
             <h1 class="charname">
-                {{#if system.identified}}
                 <input name="name" type="text" value="{{item.name}}" placeholder="{{ localize 'SKJAALD.ItemName' }}">
-                {{else}}
-                <input name="system.unidentified.name" type="text" value="{{system.unidentified.name}}"
-                       placeholder="{{ localize 'SKJAALD.NameUnidentified' }}">
-                {{/if}}
             </h1>
 
             <div class="item-subtitle">
@@ -26,28 +21,18 @@
                         {{#if editable}}<i class="fa-solid fa-toggle-off"></i>{{/if}}
                     {{/if}}
                 </label>
-                <label class="identified">
-                    <input type="checkbox" name="system.identified" {{checked system.identified}}>
-                    {{#if system.identified}}
-                        {{ localize "SKJAALD.Identified" }}
-                        {{#if editable}}<i class="fa-solid fa-toggle-on"></i>{{/if}}
-                    {{else}}
-                        {{ localize "SKJAALD.Unidentified.Title" }}
-                        {{#if editable}}<i class="fa-solid fa-toggle-off"></i>{{/if}}
-                    {{/if}}
-                </label>
             </div>
 
             <ul class="summary flexrow">
                 <li>{{ itemStatus }}</li>
                 <li>
-                    {{#if concealDetails}}
-                    <span>{{ localize "SKJAALD.Unidentified.Title" }}</span>
-                    {{else}}
-                    <select name="system.rarity" {{~#if concealDetails}} inert{{/if}}>
-                        {{selectOptions config.itemRarity selected=system.rarity blank=""}}
+
+                    <select name="system.source" {{~#if concealDetails}} inert{{/if}}>
+                        <option value="racial">{{ localize "SKJAALD.Racial" }}</option>
+                        <option value="archetype">{{ localize "SKJAALD.Archetype" }}</option>
+                        <option value="calling">{{ localize "SKJAALD.Calling" }}</option>
+                        <option value="perk">{{ localize "SKJAALD.Perk" }}</option>
                     </select>
-                    {{/if}}
                 </li>
                 <li>
                     {{> "skjaald.item-source"}}
@@ -73,73 +58,31 @@
         <div class="tab details" data-group="primary" data-tab="details">
             {{#skjaald-concealSection concealDetails}}
 
-            <h3 class="form-header">{{ localize "SKJAALD.ItemConsumableDetails" }}</h3>
+            <h3 class="form-header">{{ localize "SKJAALD.ItemDieDetails" }}</h3>
 
             {{!-- Consumable Type --}}
             <div class="form-group">
-                <label>{{ localize "SKJAALD.ItemConsumableType" }}</label>
-                <select name="system.type.value">
-                    {{selectOptions config.consumableTypes selected=system.type.value labelAttr="label"}}
+                <label>{{ localize "SKJAALD.ItemDieSize" }}</label>
+                <select name="system.dieSize">
+                    {{selectOptions config.dieTypes selected=system.type.value labelAttr="label"}}
                 </select>
             </div>
-            {{#if itemSubtypes}}
-            <div class="form-group">
-                <label>
-                    {{localize "SKJAALD.ItemConsumableSubtype"
-                        category=(lookup (lookup config.consumableTypes system.type.value) "label")}}
-                </label>
-                <select name="system.type.subtype">
-                    {{selectOptions itemSubtypes selected=system.type.subtype blank=""}}
-                </select>
-            </div>
-            {{/if}}
 
-            <div class="form-group input-select">
-                <label>{{localize "SKJAALD.Attunement"}}</label>
+            <div class="form-group">
+                <label>{{ localize "SKJAALD.DieValue" }}</label>
                 <div class="form-fields">
-                    <input type="checkbox" name="system.attuned" {{ checked system.attuned }}
-                           {{ disabled (not system.attunement) }}
-                           data-tooltip="SKJAALD.Attuned" aria-label="{{ localize 'SKJAALD.Attuned' }}">
-                    <select name="system.attunement">
-                        {{selectOptions config.attunementTypes selected=system.attunement
-                                        blank=(localize "SKJAALD.AttunementNone")}}
-                    </select>
+                    {{ numberInput system.dieValue name="system.dieValue" min="0" step="1" placeholder="0" }}
                 </div>
             </div>
 
-            {{!-- Consumable Properties --}}
-            <div class="form-group stacked weapon-properties">
-                {{#if (eq system.type.value "ammo")}}
-                <label>{{ localize "SKJAALD.ItemAmmoProperties" }}</label>
-                {{else}}
-                <label>{{ localize "SKJAALD.ItemConsumableProperties" }}</label>
-                {{/if}}
-                {{#each properties}}
-                <label class="checkbox">
-                    <input type="checkbox" name="system.properties.{{ @key }}" {{ checked selected }}>
-                    {{ label }}
-                </label>
-                {{/each}}
-            </div>
-
-            {{#if (and properties.mgc.selected (eq system.type.value "ammo"))}}
+            
             <div class="form-group">
-                <label>{{ localize "SKJAALD.MagicalBonus" }}</label>
+                <label>{{ localize "SKJAALD.MaxQuantity" }}</label>
                 <div class="form-fields">
-                    {{ numberInput system.magicalBonus name="system.magicalBonus" min="0" step="1" placeholder="0" }}
+                    {{ numberInput system.dieValue name="system.maxQuantity" min="1" step="1" placeholder="1" }}
                 </div>
             </div>
-            {{/if}}
 
-            <h3 class="form-header">{{ localize "SKJAALD.ItemConsumableUsage" }}</h3>
-
-            {{!-- Item Activation Template --}}
-            {{> "skjaald.item-activation"}}
-
-            <h3 class="form-header">{{ localize "SKJAALD.ItemConsumableActivation" }}</h3>
-
-            {{!-- Item Action Template --}}
-            {{> "skjaald.item-action"}}
 
             {{/skjaald-concealSection}}
         </div>

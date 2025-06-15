@@ -2788,6 +2788,7 @@ async function preloadHandlebarsTemplates() {
     "systems/skjaald/templates/actors/parts/armor-dude.hbs",
     "systems/skjaald/templates/actors/parts/actor-inventory.hbs",
     "systems/skjaald/templates/actors/parts/actor-features.hbs",
+    "systems/skjaald/templates/actors/parts/actor-resourceDice.hbs",
     "systems/skjaald/templates/actors/parts/actor-spellbook.hbs",
     "systems/skjaald/templates/actors/parts/actor-warnings.hbs",
     "systems/skjaald/templates/actors/tabs/character-details.hbs",
@@ -2807,6 +2808,7 @@ async function preloadHandlebarsTemplates() {
     "systems/skjaald/templates/items/parts/item-activation.hbs",
     "systems/skjaald/templates/items/parts/item-advancement.hbs",
     "systems/skjaald/templates/items/parts/item-description.hbs",
+    "systems/skjaald/templates/items/parts/item-description-custom.hbs",
     "systems/skjaald/templates/items/parts/item-mountable.hbs",
     "systems/skjaald/templates/items/parts/item-spellcasting.hbs",
     "systems/skjaald/templates/items/parts/item-source.hbs",
@@ -21625,7 +21627,7 @@ class ItemGrantAdvancement extends Advancement {
    * The item types that are supported in Item Grant.
    * @type {Set<string>}
    */
-  static VALID_TYPES = new Set(["feat", "spell", "consumable", "container", "die", "equipment", "loot", "tool", "weapon"]);
+  static VALID_TYPES = new Set(["feat", "spell", "consumable", "container", "die", "archetype", "calling", "equipment", "loot", "tool", "weapon"]);
 
   /* -------------------------------------------- */
   /*  Display Methods                             */
@@ -22914,6 +22916,657 @@ SKJAALD.defaultAbilities = {
 /* -------------------------------------------- */
 
 /**
+ * Configuration data for talents.
+ *
+ * @typedef {object} SkillConfiguration
+ * @property {string} label        Localized label.
+ * @property {string} ability      Key for the default ability used by this talent.
+ * @property {string} fullKey      Fully written key used as alternate for enrichers.
+ * @property {string} [reference]  Reference to a rule page describing this talent.
+ */
+
+/**
+ * The set of skill which can be trained with their default ability scores.
+ * @enum {SkillConfiguration}
+ */
+SKJAALD.talents = {
+  fitness: {
+    label: "SKJAALD.SkillFit",
+    ability: ["strength", "durability"],
+    children: {
+      athletics: {
+        label: "SKJAALD.SkillAth",
+        ability: ["strength", "durability"],
+        children: {
+          brawn: {
+            label: "SKJAALD.SkillBrawn",
+            ability: ["strength"]
+          },
+          endurance: {
+            label: "SKJAALD.SkillEnd",
+            ability: ["durability"]
+          }
+        }
+      },
+      acrobatics: {
+        label: "SKJAALD.SkillAcr",
+        ability: ["coordination", "swiftness"],
+        children: {
+          agility: {
+            label: "SKJAALD.SkillAgi",
+            ability: ["swiftness"]
+          },
+          flexibility: {
+            label: "SKJAALD.SkillFle",
+            ability: ["coordination"]
+          },
+          slightHand: {
+            label: "SKJAALD.SkillSlt",
+            ability: ["coordination", "swiftness"]
+          }
+        }
+      },
+      resilience: {
+        label: "SKJAALD.SkillRes",
+        ability: ["durability", "resolve"]
+      }          
+    }
+  },
+  knowledge: {
+    label: "SKJAALD.SkillKno",
+    ability: ["intuition", "comprehension"],
+    children: {
+      aptitude: {
+        label: "SKJAALD.SkillApt",
+        ability: ["intuition", "comprehension"],
+        children: {
+          learning: {
+            label: "SKJAALD.SkillLrn",
+            ability: ["intuition", "comprehension"]
+          },
+          training: {
+            label: "SKJAALD.SkillTra",
+            ability: ["intuition", "comprehension"]
+          },
+          teaching: {
+            label: "SKJAALD.SkillTea",
+            ability: ["charisma", "intuition", "comprehension"]
+          }
+        }
+      },
+      history: {
+        label: "SKJAALD.SkillHis",
+        ability: ["intuition", "comprehension"],
+        children: {
+          culture: {
+            label: "SKJAALD.SkillCul",
+            ability: ["intuition", "comprehension"],
+            children: {
+              language: {
+                label: "SKJAALD.SkillLan",
+                ability: ["intuition", "comprehension"], 
+                children: {
+                  writing: {
+                    label: "SKJAALD.SkillWri",
+                    ability: ["intuition", "comprehension"],
+                    children: {
+                      caligraphy: {
+                        label: "SKJAALD.SkillCal",
+                        ability: ["intuition", "comprehension", "coordination"]
+                      }
+                    }
+                  }
+                }
+              }
+
+            }
+          }
+        }
+      },
+      nature: {
+        label: "SKJAALD.SkillNat",
+        ability: ["intuition", "comprehension"],
+        children: {
+          climate: {
+            label: "SKJAALD.SkillCli",
+            ability: ["intuition", "comprehension"]
+          },
+          chemistry: {
+            label: "SKJAALD.SkillChe",
+            ability: ["intuition", "comprehension"]
+          },
+          geography: {
+            label: "SKJAALD.SkillGeo",
+            ability: ["intuition", "comprehension"],
+            children: {
+              navigation: {
+                // Details needed for this skill, currently missing from Mechanics Manual
+                label: "SKJAALD.SkillNav",
+                ability: ""
+              }
+            }
+          },
+          survival: {
+            label: "SKJAALD.SkillSur",
+            ability: ["intuition", "comprehension"],
+            children: {
+              anatomy: {
+                label: "SKJAALD.SkillAna",
+                ability: ["intuition", "comprehension"],
+                children: {
+                  harvesting: {
+                    label: "SKJAALD.SkillHar",
+                    ability: [""]
+                  }
+                }
+              },
+              anibehavior: {
+                label: "SKJAALD.SkillAniBeh",
+                ability: ["intuition", "comprehension"],
+                children: {
+                  trapping: {
+                    label: "SKJAALD.SkillTra",
+                    ability: ["intuition", "comprehension"]
+                  }
+                }
+              },
+              herbalism: {
+                label: "SKJAALD.SkillHer",
+                ability: ["intuition", "comprehension"]
+              }
+            }
+          }
+        }
+      },
+      occult: {
+        label: "SKJAALD.SkillOcc",
+        ability: "",
+        children: {
+          arcana: {
+            label: "SKJAALD.SkillArc",
+            ability: "",
+            children: {
+              rituals: {
+                label: "SKJAALD.SkillRit",
+                ability: ""
+              }
+            }
+          }, 
+          dracology: {
+            label: "SKJAALD.SkillDra",
+            ability: "",
+            children: {
+              anatomy: {
+                label: "SKJAALD.SkillAna",
+                ability: "", 
+                children: {
+                  harvesting: {
+                    label: "SKJAALD.SkillHar",
+                    ability: ""
+                  }
+                }, 
+                behavior: {
+                  label: "SKJAALD.SkillBeh",
+                  ability: "",
+                }, 
+                materials: {
+                  label: "SKJAALD.SkillMat",
+                  ability: ""
+                }
+              }
+            }
+          }, 
+          mythology: {
+            label: "SKJAALD.SkillMyt",
+            ability: "",
+            children: {
+              anatomy: {
+                label: "SKJAALD.SkillAna",
+                ability: "", 
+                children: {
+                  harvesting: {
+                    label: "SKJAALD.SkillHar",
+                    ability: ""
+                  }
+                },
+                behavior: {
+                  label: "SKJAALD.SkillBeh",
+                  ability: ""
+                }
+              }
+            }
+          }, 
+          religion: {
+            label: "SKJAALD.SkillRel",
+            ability: "",
+            children: {
+              rites: {
+                label: "SKJAALD.SkillRit",
+                ability: ""
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  presence: {
+    label: "SKJAALD.SkillPre",
+    ability: ["charisma", "resolve"],
+    children: {
+      communication: {
+        label: "SKJAALD.SkillCom",
+        ability: ["communication"],
+        children: {
+          insight: {
+            label: "SKJAALD.SkillIns",
+            ability: ["intuition"],
+            children: {
+              deception: {
+                label: "SKJAALD.SkillDec",
+                ability: ["charisma"]
+              }, 
+              persuasion: {
+                label: "SKJAALD.SkillPer",
+                ability: ["charisma"]
+              }
+            }
+          }
+        }
+      }, 
+      inspiration: {
+        label: "SKJAALD.SkillInp",
+        ability: ["charisma"]
+      },
+      intimidation: {
+        label: "SKJAALD.SkillItm",
+        ability: ["charisma"]
+      },
+      //placeholder - mentoring part of knowledge skills as well - compound?
+      mentoring: {
+        label: "SKJAALD.SkillMen",
+        ability: ""
+      }
+
+    }
+  },
+  //creativity needs to be better definined in Mechanics Manual - this section is a placeholder and will need to be updated
+  creativity: {
+    label: "SKJAALD.SkillCre",
+    ability: "",
+    children: {
+      artistry:{
+        label: "SKJAALD.SkillArt",
+        ability: "",
+        children: {
+          acting: {
+            label: "SKJAALD.SkillAct",
+            ability: ""
+          },
+          music: {
+            label: "SKJAALD.SkillMus",
+            ability: "",
+            children: {
+              singing: {
+                label: "SKJAALD.SkillSin",
+                ability: ""
+              },
+              instruments: {
+                label: "SKJAALD.SkillIns",
+                ability: ""
+              }
+            }
+          }
+        }
+      },
+      crafting: {
+        label: "SKJAALD.SkillCra",
+        ability: "",
+        children: {
+          tinkering: {
+            label: "SKJAALD.SkillTin",
+            ability: "", 
+            children: {
+              tailoring: {
+                label: "SKJAALD.SkillTai",
+                ability: ""
+              },
+            }
+          },
+          smithing: {
+            label: "SKJAALD.SkillSmi",
+            ability: ""
+          },
+          architecture: {
+            label: "SKJAALD.SkillArc",
+            ability: ""
+          },
+          masonry: {
+            label: "SKJAALD.SkillMas",
+            ability: ""
+          },
+          carpentry: {
+            label: "SKJAALD.SkillCar",
+            ability: ""
+          },
+          ceramics: {
+            label: "SKJAALD.SkillCer",
+            ability: ""
+          },
+          forging: {
+            label: "SKJAALD.SkillFor",
+            ability: ""
+          }
+        }
+      }
+    }
+  },
+  compound: {
+    label: "SKJAALD.SkillCom",
+    ability: "",
+    children: {
+      grappling: {
+        label: "SKJAALD.SkillGrap",
+        ability: "",
+        parent: ["athletics", "acrobatics"],
+        children: null
+      },
+      alchemy: {
+        label: "SKJAALD.SkillAlc",
+        ability: "",
+        parent: ["nature, occult"],
+        children: {
+          medicine: {
+            label: "SKJAALD.SkillMed",
+            ability: "",
+            variable: true,
+            parent: ["alchemy", "herabilism", "medicine"],
+            children: {
+              diagnosis: {
+                label: "SKJAALD.SkillDia",
+                ability: "",
+                children: {
+                  treatment: {
+                    label: "SKJAALD.SkillTre",
+                    ability: ""
+                  },
+                  surgery: {
+                    label: "SKJAALD.SkillSur",
+                    ability: ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      animalHandling: {
+        label: "SKJAALD.SkillAni",
+        ability: "",
+        parent: ["presence", "anibehavior"],
+        children: {
+          dragonHandling: {
+            label: "SKJAALD.SkillDra",
+            ability: ""
+            // parent: ["anibehavior", "dracology"],
+            // children: {
+            //   training: {
+            //     label: "SKJAALD.SkillTra",
+            //     ability: ""
+            //   },
+            //   riding: {
+            //     label: "SKJAALD.SkillRid",
+            //     ability: ""
+            //   }
+            // }
+          },
+          monsterHandling: {
+            label: "SKJAALD.SkillMon",
+            ability: ""
+          }
+        }
+      },
+      architecture: {
+        label: "SKJAALD.SkillArc",
+        ability: ""
+      },
+      awareness: {
+        label: "SKJAALD.SkillAwa",
+        ability: "",
+        children: {
+          investigation: {
+            label: "SKJAALD.SkillInv",
+            ability: ""
+          },
+          tracking: {
+            label: "SKJAALD.SkillTra",
+            ability: "",
+            children: {
+              stealth: {
+                label: "SKJAALD.SkillSte",
+                ability: ""
+              }
+            }
+          }
+        }
+      },
+      cooking: {
+        label: "SKJAALD.SkillCoo",
+        ability: "",
+        variable: true
+      },
+      lore: {
+        label: "SKJAALD.SkillLor",
+        ability: ""
+      },
+      performance: {
+        label: "SKJAALD.SkillPer",
+        ability: "",
+        parent: ["presence", "acting"]
+      },
+      smithing: {
+        // This is a duplicate of the crafting skill, but it is included here for compatibility with existing data.
+        label: "SKJAALD.SkillSmi",
+        ability: "",
+        variable: true
+      },
+      riding: {
+        label: "SKJAALD.SkillRid",
+        ability: "",
+        children: {
+          vehicle: {
+            label: "SKJAALD.SkillVeh",
+            ability: "",
+            children: {
+              animal: {
+                label: "SKJAALD.SkillAni",
+                ability: ""
+              },
+              dragon: {
+                label: "SKJAALD.SkillDra",
+                ability: ""
+              },
+              monster: {
+                label: "SKJAALD.SkillMon",
+                ability: ""
+              },
+            }
+          }
+        }
+      }
+    },
+  },
+  tools: {
+    label: "SKJAALD.SkillToo",
+    ability: "", 
+    children: {
+
+    }
+  },
+  weapons: {
+    label: "SKJAALD.SkillWea",
+    ability: "",
+    children: {
+      oneHand: {
+        label: "SKJAALD.SkillOneHand",
+        ability: "",
+        children: {
+          swords: {
+            label: "SKJAALD.SkillSwo",
+            ability: ""
+          },
+          axes: {
+            label: "SKJAALD.SkillAxe",
+            ability: ""
+          },
+          bludgeons: {
+            label: "SKJAALD.SkillBlu",
+            ability: ""
+          },
+          bows: {
+            label: "SKJAALD.SkillBow",
+            ability: ""
+          },
+          thrusting: {
+            label: "SKJAALD.SkillThrust",
+            ability: ""
+          }
+        },
+      },
+      twoHand: {
+        label: "SKJAALD.SkillTwoHand",
+        ability: "",
+        children: {
+          swords: {
+            label: "SKJAALD.SkillSwo",
+            ability: ""
+          },
+          axes: {
+            label: "SKJAALD.SkillAxe",
+            ability: ""
+          },
+          bludgeons: {
+            label: "SKJAALD.SkillBlu",
+            ability: ""
+          },
+          bows: {
+            label: "SKJAALD.SkillBow",
+            ability: ""
+          },
+          thrusting: {
+            label: "SKJAALD.SkillThrust",
+            ability: ""
+          }
+        }
+      },
+      polearms: {
+        label: "SKJAALD.SkillPolearm",
+        ability: "",
+        children: {
+          swords: {
+            label: "SKJAALD.SkillSwo",
+            ability: ""
+          },
+          axes: {
+            label: "SKJAALD.SkillAxe",
+            ability: ""
+          },
+          thrusting: {
+            label: "SKJAALD.SkillThrust",
+            ability: ""
+          }
+        }
+      },
+      greatWeapons: {
+        label: "SKJAALD.SkillGreatWeapons",
+        ability: "",
+        children: {
+          swords: {
+            label: "SKJAALD.SkillSwo",
+            ability: ""
+          },
+          axes: {
+            label: "SKJAALD.SkillAxe",
+            ability: ""
+          },
+          bows: {
+            label: "SKJAALD.SkillBow",
+            ability: ""
+          }
+        }
+      },
+      thrown: {
+        label: "SKJAALD.SkillThrown",
+        ability: "",
+        children: {
+          handheld: {
+            label: "SKJAALD.SkillHandheld",
+            ability: ""
+          },
+          large: {
+            label: "SKJAALD.SkillLarge",
+            ability: ""
+          }
+        }
+      },
+      monk: {
+        label: "SKJAALD.SkillMonk",
+        ability: "",
+      },
+      tethered: {
+        label: "SKJAALD.SkillTethered",
+        ability: ""
+      },
+      magitech: {
+        label: "SKJAALD.SkillMagitech",
+        ability: ""
+      },
+      special: {
+        label: "SKJAALD.SkillSpecial",
+        ability: ""
+      },
+      natural: {
+        label: "SKJAALD.SkillNatural",
+        ability: "",
+        children: {
+          hands: {
+            label: "SKJAALD.SkillHands",
+            ability: "",
+            children: {
+              claws: {
+                label: "SKJAALD.SkillClaws",
+                ability: ""
+              }
+            }
+          },
+          head: {
+            label: "SKJAALD.SkillHead",
+            ability: "",
+            children: {
+              bite: {
+                label: "SKJAALD.SkillBite",
+                ability: ""
+              },
+              horns: {
+                label: "SKJAALD.SkillHorns",
+                ability: ""
+              }
+            }
+          },
+          tail: {
+            label: "SKJAALD.SkillTail",
+            ability: ""
+          }
+        }
+      }
+    }
+  }
+};
+preLocalize("skills", { key: "label", sort: true });
+
+/* -------------------------------------------- */
+
+/**
  * Configuration data for skills.
  *
  * @typedef {object} SkillConfiguration
@@ -22930,232 +23583,135 @@ SKJAALD.defaultAbilities = {
 SKJAALD.skills = {
   acr: {
     label: "SKJAALD.SkillAcr",
-    ability: "str",
+    ability: "dex",
     fullKey: "acrobatics",
-    //reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AvvBLEHNl7kuwPkN",
-    //icon: "icons/equipment/feet/shoes-simple-leaf-green.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.AvvBLEHNl7kuwPkN",
+    // icon: "icons/equipment/feet/shoes-simple-leaf-green.webp"
   },
   ani: {
     label: "SKJAALD.SkillAni",
-    ability: "str",
+    ability: "wis",
     fullKey: "animalHandling",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xb3MCjUvopOU4viE",
-   // icon: "icons/environment/creatures/horse-brown.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.xb3MCjUvopOU4viE",
+    // icon: "icons/environment/creatures/horse-brown.webp"
   },
   arc: {
     label: "SKJAALD.SkillArc",
-    ability: "str",
+    ability: "int",
     fullKey: "arcana",
-    //reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.h3bYSPge8IOqne1N",
-    //icon: "icons/sundries/books/book-embossed-jewel-silver-green.webp"
-  },
-  alc: {
-    label: "SKJAALD.SkillAlc",
-    ability: "str",
-    fullKey: "alchemy",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
-   // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.h3bYSPge8IOqne1N",
+    // icon: "icons/sundries/books/book-embossed-jewel-silver-green.webp"
   },
   ath: {
     label: "SKJAALD.SkillAth",
     ability: "str",
     fullKey: "athletics",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
-   // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
-  },
-  com: {
-    label: "SKJAALD.SkillCom",
-    ability: "str",
-    fullKey: "communication",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
-   // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
-  },
-  cop: {
-    label: "SKJAALD.SkillCop",
-    ability: "str",
-    fullKey: "comprehension",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
-   // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
-  },
-  cra: {
-    label: "SKJAALD.SkillCra",
-    ability: "str",
-    fullKey: "crafting",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
-   // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.rIR7ttYDUpH3tMzv",
+    // icon: "icons/magic/control/buff-strength-muscle-damage-orange.webp"
   },
   dec: {
     label: "SKJAALD.SkillDec",
-    ability: "str",
+    ability: "cha",
     fullKey: "deception",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.mqVZ2fz0L7a9VeKJ",
-   // icon: "icons/magic/control/mouth-smile-deception-purple.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.mqVZ2fz0L7a9VeKJ",
+    // icon: "icons/magic/control/mouth-smile-deception-purple.webp"
   },
-  end: {
-    label: "SKJAALD.SkillEnd",
-    ability: "str",
-    fullKey: "endurance",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.mqVZ2fz0L7a9VeKJ",
-   // icon: "icons/magic/control/mouth-smile-deception-purple.webp"
+  his: {
+    label: "SKJAALD.SkillHis",
+    ability: "int",
+    fullKey: "history",
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.kRBZbdWMGW9K3wdY",
+    // icon: "icons/sundries/books/book-embossed-bound-brown.webp"
   },
   ins: {
     label: "SKJAALD.SkillIns",
-    ability: "str",
+    ability: "wis",
     fullKey: "insight",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8R5SMbAGbECNgO8z",
-   // icon: "icons/magic/perception/orb-crystal-ball-scrying-blue.webp"
-  },
-  inp: {
-    label: "SKJAALD.SkillInp",
-    ability: "str",
-    fullKey: "inspiration",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8R5SMbAGbECNgO8z",
-   // icon: "icons/magic/perception/orb-crystal-ball-scrying-blue.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.8R5SMbAGbECNgO8z",
+    // icon: "icons/magic/perception/orb-crystal-ball-scrying-blue.webp"
   },
   itm: {
     label: "SKJAALD.SkillItm",
-    ability: "str",
+    ability: "cha",
     fullKey: "intimidation",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4VHHI2gJ1jEsppfg",
-   // icon: "icons/skills/social/intimidation-impressing.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4VHHI2gJ1jEsppfg",
+    // icon: "icons/skills/social/intimidation-impressing.webp"
   },
   inv: {
     label: "SKJAALD.SkillInv",
-    ability: "str",
+    ability: "int",
     fullKey: "investigation",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Y7nmbQAruWOs7WRM",
-   // icon: "icons/tools/scribal/magnifying-glass.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.Y7nmbQAruWOs7WRM",
+    // icon: "icons/tools/scribal/magnifying-glass.webp"
   },
   med: {
     label: "SKJAALD.SkillMed",
     ability: "wis",
     fullKey: "medicine",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GeYmM7BVfSCAga4o",
-   // icon: "icons/tools/cooking/mortar-herbs-yellow.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.GeYmM7BVfSCAga4o",
+    // icon: "icons/tools/cooking/mortar-herbs-yellow.webp"
   },
-  lrn: {
-    label: "SKJAALD.SkillLrn",
-    ability: "str",
-    fullKey: "learning",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ueMx3uF2PQlcye31",
-   // icon: "icons/magic/nature/plant-sprout-snow-green.webp"
+  nat: {
+    label: "SKJAALD.SkillNat",
+    ability: "int",
+    fullKey: "nature",
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.ueMx3uF2PQlcye31",
+    // icon: "icons/magic/nature/plant-sprout-snow-green.webp"
+  },
+  prc: {
+    label: "SKJAALD.SkillPrc",
+    ability: "wis",
+    fullKey: "perception",
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.zjEeHCUqfuprfzhY",
+    // icon: "icons/magic/perception/eye-ringed-green.webp"
   },
   prf: {
     label: "SKJAALD.SkillPrf",
-    ability: "str",
+    ability: "cha",
     fullKey: "performance",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hYT7Z06yDNBcMtGe",
-   // icon: "icons/tools/instruments/lute-gold-brown.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.hYT7Z06yDNBcMtGe",
+    // icon: "icons/tools/instruments/lute-gold-brown.webp"
   },
   per: {
     label: "SKJAALD.SkillPer",
-    ability: "str",
+    ability: "cha",
     fullKey: "persuasion",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
-   // icon: "icons/skills/social/diplomacy-handshake.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
+    // icon: "icons/skills/social/diplomacy-handshake.webp"
   },
-  pla: {
-    label: "SKJAALD.SkillPla",
-    ability: "str",
-    fullKey: "plants",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
-   // icon: "icons/skills/social/diplomacy-handshake.webp"
-  },
-  prs: {
-    label: "SKJAALD.SkillPrs",
-    ability: "str",
-    fullKey: "presence",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
-   // icon: "icons/skills/social/diplomacy-handshake.webp"
-  },
-  prs: {
-    label: "SKJAALD.SkillRes",
-    ability: "str",
-    fullKey: "resilience",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4R5H8iIsdFQTsj3X",
-   // icon: "icons/skills/social/diplomacy-handshake.webp"
+  rel: {
+    label: "SKJAALD.SkillRel",
+    ability: "int",
+    fullKey: "religion",
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.CXVzERHdP4qLhJXM",
+    // icon: "icons/magic/holy/saint-glass-portrait-halo.webp"
   },
   slt: {
     label: "SKJAALD.SkillSlt",
-    ability: "str",
+    ability: "dex",
     fullKey: "sleightOfHand",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.yg6SRpGNVz9nDW0A",
-   // icon: "icons/sundries/gaming/playing-cards.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.yg6SRpGNVz9nDW0A",
+    // icon: "icons/sundries/gaming/playing-cards.webp"
   },
   ste: {
     label: "SKJAALD.SkillSte",
-    ability: "str",
+    ability: "dex",
     fullKey: "stealth",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4MfrpERNiQXmvgCI",
-   // icon: "icons/magic/perception/shadow-stealth-eyes-purple.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.4MfrpERNiQXmvgCI",
+    // icon: "icons/magic/perception/shadow-stealth-eyes-purple.webp"
   },
   sur: {
     label: "SKJAALD.SkillSur",
-    ability: "str",
+    ability: "wis",
     fullKey: "survival",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
-   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
-  },
-  wri: {
-    label: "SKJAALD.SkillWri",
-    ability: "str",
-    fullKey: "writing",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
-   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
-  },
-  tra: {
-    label: "SKJAALD.SkillTra",
-    ability: "str",
-    fullKey: "training",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
-   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
-  },
-  tea: {
-    label: "SKJAALD.SkillTea",
-    ability: "str",
-    fullKey: "teaching",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
-   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
-  },
-  apt: {
-    label: "SKJAALD.SkillApt",
-    ability: "str",
-    fullKey: "aptitude",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
-   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
-  },
-  awr: {
-    label: "SKJAALD.SkillAwr",
-    ability: "str",
-    fullKey: "awareness",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
-   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
-  },
-  Sed: {
-    label: "SKJAALD.SkillSed",
-    ability: "str",
-    fullKey: "seduction",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
-   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
-  },
-  fit: {
-    label: "SKJAALD.SkillFit",
-    ability: "str",
-    fullKey: "fitness",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
-   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
-  },
-  fle: {
-    label: "SKJAALD.SkillFle",
-    ability: "str",
-    fullKey: "flexibility",
-   // reference: "Compendium.skjaald.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
-   // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
+    // reference: "Compendium.dnd5e.rules.JournalEntry.NizgRXLNUqtdlC1s.JournalEntryPage.t3EzDU5b9BVAIEVi",
+    // icon: "icons/magic/fire/flame-burning-campfire-yellow-blue.webp"
   }
 };
 preLocalize("skills", { key: "label", sort: true });
 
 /* -------------------------------------------- */
+
 
 /**
  * Character alignment options.
@@ -25156,6 +25712,8 @@ preLocalize("targetTypes", { sort: true });
  * @type {string[]}
  */
 SKJAALD.hitDieTypes = ["d2", "d3","d4", "d6", "d8", "d10", "d12"];
+SKJAALD.dieTypes = ["d2", "d3","d4", "d6", "d8", "d10", "d12", "d14", "d16", "d20", "d50", "d100"];
+preLocalize("dieTypes", { sort: true });
 
 /* -------------------------------------------- */
 
@@ -26444,7 +27002,7 @@ preLocalize("groupTypes");
  * @property {boolean} [hidden]                  Should this advancement type be hidden in the selection dialog?
  */
 
-const _ALL_ITEM_TYPES = ["background", "class", "race", "subclass"];
+const _ALL_ITEM_TYPES = ["background", "class", "race", "subclass", "archetype", "calling"];
 
 /**
  * Advancement types that can be added to items.
@@ -26453,7 +27011,7 @@ const _ALL_ITEM_TYPES = ["background", "class", "race", "subclass"];
 SKJAALD.advancementTypes = {
   AbilityScoreImprovement: {
     documentClass: AbilityScoreImprovementAdvancement,
-    validItemTypes: new Set(["background", "class", "race"])
+    validItemTypes: new Set(["background", "class", "race", "archetype", "calling"])
   },
   HitPoints: {
     documentClass: HitPointsAdvancement,
@@ -27924,7 +28482,20 @@ class ActorAbilityConfig extends BaseConfigSheet {
       abilityId: this._abilityId,
       proficiencyLevels: {
         0: CONFIG.SKJAALD.proficiencyLevels[0],
-        1: CONFIG.SKJAALD.proficiencyLevels[1]
+        1: CONFIG.SKJAALD.proficiencyLevels[1],
+        2: CONFIG.SKJAALD.proficiencyLevels[2],
+        3: CONFIG.SKJAALD.proficiencyLevels[3],
+        4: CONFIG.SKJAALD.proficiencyLevels[4],
+        5: CONFIG.SKJAALD.proficiencyLevels[5],
+        6: CONFIG.SKJAALD.proficiencyLevels[6],
+        7: CONFIG.SKJAALD.proficiencyLevels[7],
+        8: CONFIG.SKJAALD.proficiencyLevels[8],
+        9: CONFIG.SKJAALD.proficiencyLevels[9],
+        10: CONFIG.SKJAALD.proficiencyLevels[10],
+        11: CONFIG.SKJAALD.proficiencyLevels[11],
+        12: CONFIG.SKJAALD.proficiencyLevels[12],
+        13: CONFIG.SKJAALD.proficiencyLevels[13],
+        14: CONFIG.SKJAALD.proficiencyLevels[14]
       },
       bonusGlobalSave: src.system.bonuses?.abilities?.save,
       bonusGlobalCheck: src.system.bonuses?.abilities?.check
@@ -30587,7 +31158,7 @@ class ActorSheet5eCharacter extends ActorSheet5e {
     }
 
     // Partition items by category
-    let {items, spells, feats, races, backgrounds, classes, subclasses} = context.items.reduce((obj, item) => {
+    let {items, spells, feats, races, backgrounds, classes, subclasses, archetypes, callings, weapons, dice, note} = context.items.reduce((obj, item) => {
       const {quantity, uses, recharge} = item.system;
 
       // Item details
@@ -30636,9 +31207,14 @@ class ActorSheet5eCharacter extends ActorSheet5e {
       else if ( item.type === "background" ) obj.backgrounds.push(item);
       else if ( item.type === "class" ) obj.classes.push(item);
       else if ( item.type === "subclass" ) obj.subclasses.push(item);
+      else if ( item.type === "archetype" ) obj.archetype.push(item);
+      else if ( item.type === "calling" ) obj.calling.push(item);
+      else if ( item.type === "weapon" ) obj.weapons.push(item);
+      else if ( item.type === "die" ) obj.dice.push(item);
+      else if ( item.type === "note") obj.notes.push(item);
       else if ( Object.keys(inventory).includes(item.type) ) obj.items.push(item);
       return obj;
-    }, { items: [], spells: [], feats: [], races: [], backgrounds: [], classes: [], subclasses: [] });
+    }, { items: [], spells: [], feats: [], races: [], backgrounds: [], archetypes: [], callings: [], classes: [], subclasses: [], weapons: [], dice: [], notes: [] });
 
     // Organize items
     for ( let i of items ) {
@@ -30700,6 +31276,8 @@ class ActorSheet5eCharacter extends ActorSheet5e {
       if ( feat.system.activation?.type ) features.active.items.push(feat);
       else features.passive.items.push(feat);
     }
+    console.log("in items sorting method");
+    console.log(dice);
 
     // Assign and return
     context.inventoryFilters = true;
@@ -30707,6 +31285,8 @@ class ActorSheet5eCharacter extends ActorSheet5e {
     context.spellbook = spellbook;
     context.preparedSpells = nPrepared;
     context.features = Object.values(features);
+    context.dice = Object.values(dice);
+    // context.notes = Object.values(note);
   }
 
   /* -------------------------------------------- */
@@ -34282,7 +34862,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
 
     let types = {
       inventory: ["weapon", "equipment", "consumable", "tool", "container", "loot"],
-      features: ["feat", "race", "background", "class", "subclass", "die"]
+      features: ["feat", "race", "background", "class", "subclass", "die", "archetype", "calling"]
     }[activeTab] ?? [];
 
     types = types.filter(type => {
@@ -39547,6 +40127,10 @@ class ItemSheet5e extends ItemSheet {
         const t = event.currentTarget;
         if ( t.dataset.action ) this._onAdvancementAction(t, t.dataset.action);
       });
+      html.find(".item-properties .item-control").click(event => {
+        const t = event.currentTarget;
+        if ( t.dataset.action ) this._onItemAction(t, t.dataset.action);
+      });
       html.find(".description-edit").click(event => {
         if ( event.currentTarget.ariaDisabled ) return;
         this.editingDescriptionTarget = event.currentTarget.dataset.target;
@@ -39917,6 +40501,41 @@ class ItemSheet5e extends ItemSheet {
    */
   _onAdvancementAction(target, action) {
     const id = target.closest(".advancement-item")?.dataset.id;
+    const advancement = this.item.advancement.byId[id];
+    let manager;
+    if ( ["edit", "delete", "duplicate"].includes(action) && !advancement ) return;
+    switch (action) {
+      case "add": return game.skjaald.applications.advancement.AdvancementSelection.createDialog(this.item);
+      case "edit": return new advancement.constructor.metadata.apps.config(advancement).render(true);
+      case "delete":
+        if ( this.item.actor?.system.metadata?.supportsAdvancement
+            && !game.settings.get("skjaald", "disableAdvancements") ) {
+          manager = AdvancementManager.forDeletedAdvancement(this.item.actor, this.item.id, id);
+          if ( manager.steps.length ) return manager.render(true);
+        }
+        return this.item.deleteAdvancement(id);
+      case "duplicate": return this.item.duplicateAdvancement(id);
+      case "modify-choices":
+        const level = target.closest("li")?.dataset.level;
+        manager = AdvancementManager.forModifyChoices(this.item.actor, this.item.id, Number(level));
+        if ( manager.steps.length ) manager.render(true);
+        return;
+      case "toggle-configuration":
+        this.advancementConfigurationMode = !this.advancementConfigurationMode;
+        return this.render();
+    }
+  }
+
+    /* -------------------------------------------- */
+
+  /**
+   * Handle one of the advancement actions from the buttons or context menu.
+   * @param {Element} target  Button or context menu entry that triggered this action.
+   * @param {string} action   Action being triggered.
+   * @returns {Promise|void}
+   */
+  _onItemAction(target, action) {
+    const id = target.closest(".item-properties")?.dataset.id;
     const advancement = this.item.advancement.byId[id];
     let manager;
     if ( ["edit", "delete", "duplicate"].includes(action) && !advancement ) return;
@@ -44403,6 +45022,52 @@ class DieData extends ItemDataModel.mixin(
 
  /* -------------------------------------------- */
 
+/**
+ * Data definition for Archetype items.
+ * @mixes ItemDescriptionTemplate
+ * @mixes ItemTypeTemplate
+ * @mixes IdentifiableTemplate
+ * @mixes PhysicalItemTemplate
+ */
+class ArchetypeData extends ItemDataModel.mixin(
+  ItemDescriptionTemplate, ItemTypeTemplate, PhysicalItemTemplate
+) {
+  /** @inheritdoc */
+  static defineSchema() {
+    return this.mergeSchema(super.defineSchema(), {
+      properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
+        label: "SKJAALD.ItemArchetypeProperties"
+      }),
+      type: new ItemTypeField({baseItem: false}, {label: "SKJAALD.ItemArchetypeType"})
+    });
+  }
+}
+
+ /* -------------------------------------------- */
+
+ /**
+ * Data definition for Calling items.
+ * @mixes ItemDescriptionTemplate
+ * @mixes ItemTypeTemplate
+ * @mixes IdentifiableTemplate
+ * @mixes PhysicalItemTemplate
+ */
+class CallingData extends ItemDataModel.mixin(
+  ItemDescriptionTemplate, ItemTypeTemplate, PhysicalItemTemplate
+) {
+  /** @inheritdoc */
+  static defineSchema() {
+    return this.mergeSchema(super.defineSchema(), {
+      properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
+        label: "SKJAALD.ItemCallingProperties"
+      }),
+      type: new ItemTypeField({baseItem: false}, {label: "SKJAALD.ItemCallingType"})
+    });
+  }
+}
+
+ /* -------------------------------------------- */
+
  /**
  * Data definition for Movement items.
  * @mixes ItemDescriptionTemplate
@@ -45067,6 +45732,8 @@ const config$1 = {
   class: ClassData,
   consumable: ConsumableData,
   die: DieData,
+  archetype: ArchetypeData,
+  calling: CallingData,
   note: NoteData,
   equipment: EquipmentData,
   feat: FeatData,
@@ -45101,6 +45768,8 @@ var _module$4 = /*#__PURE__*/Object.freeze({
   LootData: LootData,
   LanguageData: LanguageData,
   DieData: DieData,
+  ArchetypeData: ArchetypeData,
+  CallingData: CallingData,
   NoteData: NoteData,
   MountableTemplate: MountableTemplate,
   MovementData: MovementData,

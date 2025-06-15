@@ -1,0 +1,93 @@
+<form class="{{cssClass}} flexcol" autocomplete="off">
+
+    {{!-- Item Sheet Header --}}
+    <header class="sheet-header flexrow">
+        <img class="profile" src="{{item.img}}" data-tooltip="{{item.name}}" data-edit="img">
+
+        <div class="header-details flexrow">
+            <h1 class="charname">
+                <input name="name" type="text" value="{{item.name}}" placeholder="{{ localize 'SKJAALD.ItemName' }}">
+            </h1>
+
+            <div class="item-subtitle">
+                <h4 class="item-type">{{ itemType }}</h4>
+                <label class="equipped">
+                    <input type="checkbox" name="system.equipped" {{checked system.equipped}}>
+                    {{#if system.equipped}}
+                        {{ localize "SKJAALD.Equipped" }}
+                        {{#if editable}}<i class="fa-solid fa-toggle-on"></i>{{/if}}
+                    {{else}}
+                        {{ localize "SKJAALD.Unequipped" }}
+                        {{#if editable}}<i class="fa-solid fa-toggle-off"></i>{{/if}}
+                    {{/if}}
+                </label>
+            </div>
+
+            <ul class="summary flexrow">
+                <li>{{ itemStatus }}</li>
+                <li>
+
+                    <select name="system.source" {{~#if concealDetails}} inert{{/if}}>
+                        <option value="racial">{{ localize "SKJAALD.Racial" }}</option>
+                        <option value="archetype">{{ localize "SKJAALD.Archetype" }}</option>
+                        <option value="calling">{{ localize "SKJAALD.Calling" }}</option>
+                        <option value="perk">{{ localize "SKJAALD.Perk" }}</option>
+                    </select>
+                </li>
+                <li>
+                    {{> "skjaald.item-source"}}
+                </li>
+            </ul>
+        </div>
+    </header>
+
+    {{!-- Item Sheet Navigation --}}
+    <nav class="sheet-navigation tabs" data-group="primary">
+        <a class="item active" data-tab="description">{{ localize "SKJAALD.Description" }}</a>
+        <a class="item" data-tab="details">{{ localize "SKJAALD.Details" }}</a>
+        <a class="item" data-tab="advancement">{{ localize "SKJAALD.AdvancementTitle" }}</a>
+    </nav>
+
+    {{!-- Item Sheet Body --}}
+    <section class="sheet-body">
+
+        {{!-- Description Tab --}}
+        {{> "skjaald.item-description-custom"}}
+
+        {{!-- Details Tab --}}
+        <div class="tab details" data-group="primary" data-tab="details">
+            {{#skjaald-concealSection concealDetails}}
+
+            <h3 class="form-header">{{ localize "SKJAALD.ItemDieDetails" }}</h3>
+
+            {{!-- Consumable Type --}}
+            <div class="form-group">
+                <label>{{ localize "SKJAALD.ItemDieSize" }}</label>
+                <select name="system.dieSize">
+                    {{selectOptions config.dieTypes selected=system.type.value labelAttr="label"}}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>{{ localize "SKJAALD.DieValue" }}</label>
+                <div class="form-fields">
+                    {{ numberInput system.dieValue name="system.dieValue" min="0" step="1" placeholder="0" }}
+                </div>
+            </div>
+
+            
+            <div class="form-group">
+                <label>{{ localize "SKJAALD.MaxQuantity" }}</label>
+                <div class="form-fields">
+                    {{ numberInput system.dieValue name="system.maxQuantity" min="1" step="1" placeholder="1" }}
+                </div>
+            </div>
+
+
+            {{/skjaald-concealSection}}
+        </div>
+
+        {{!-- Advancement Tab --}}
+        {{> "skjaald.item-advancement"}}
+    </section>
+</form>

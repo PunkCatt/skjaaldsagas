@@ -1,14 +1,17 @@
 <{{elements.inventory}} class="inventory-element">
   {{#unless isVehicle}}
+
   <div class="inventory-filters inventory-header flexrow">
     <ul class="filter-list flexrow" data-filter="features">
         <li class="filter-item" data-filter="action">{{localize "SKJAALD.Action"}}</li>
         <li class="filter-item" data-filter="bonus">{{localize "SKJAALD.BonusAction"}}</li>
         <li class="filter-item" data-filter="reaction">{{localize "SKJAALD.Reaction"}}</li>
+        {{!-- <li class="filter-item" data-filter="race">{{localize "SKJAALD.Racial"}}</li> --}}
+
     </ul>
   </div>
   {{/unless}}
-
+    {{log 'in feature items'}}
   <ol class="items-list inventory-list">
   {{#each sections as |section sid|}}
     <li class="items-header flexrow">

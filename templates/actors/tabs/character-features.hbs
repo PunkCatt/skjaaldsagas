@@ -59,121 +59,346 @@
     </div>
     {{/each}}
 </section> --}}
-
 {{!-- Features --}}
 <{{elements.inventory}} class="inventory-element" v2>
 
-    {{!-- Searching, Filtering, & Sorting --}}
-    <item-list-controls for="features" label="{{ localize "SKJAALD.FeatureSearch" }}" sort="toggle" group
-                        group-label="{{ localize "SKJAALD.FilterGroupOrigin" }}" collection="items">
-        <datalist>
-            <option value="action">{{ localize "SKJAALD.Action" }}</option>
-            <option value="bonus">{{ localize "SKJAALD.BonusAction" }}</option>
-            <option value="reaction">{{ localize "SKJAALD.Reaction" }}</option>
-            <option value="sr">{{ localize "SKJAALD.ShortRest" }}</option>
-            <option value="lr">{{ localize "SKJAALD.LongRest" }}</option>
-            <option value="concentration">{{ localize "SKJAALD.Concentration" }}</option>
-            <option value="mgc">{{ localize "SKJAALD.Item.Property.Magical" }}</option>
-        </datalist>
-    </item-list-controls>
+    {{!-- Features --}}
+    {{#if (eq label "features")}}
 
-    {{!-- Features List --}}
-    <section class="items-list features-list" data-item-list="features">
+        {{!-- Searching, Filtering, & Sorting --}}
+        <item-list-controls for="features" label="{{ localize "SKJAALD.FeatureSearch" }}" sort="toggle" group
+                            group-label="{{ localize "SKJAALD.FilterGroupOrigin" }}" collection="items">
+            <datalist>
+                <option value="action">{{ localize "SKJAALD.Action" }}</option>
+                <option value="bonus">{{ localize "SKJAALD.BonusAction" }}</option>
+                <option value="reaction">{{ localize "SKJAALD.Reaction" }}</option>
+                <option value="sr">{{ localize "SKJAALD.ShortRest" }}</option>
+                <option value="lr">{{ localize "SKJAALD.LongRest" }}</option>
+                <option value="concentration">{{ localize "SKJAALD.Concentration" }}</option>
+                <option value="mgc">{{ localize "SKJAALD.Item.Property.Magical" }}</option>
+            </datalist>
+        </item-list-controls>
 
-        {{!-- Sections / Categories --}}
-        {{#each sections}}
-        <div class="items-section card" {{ skjaald-dataset dataset }}>
+        {{!-- Features List --}}
+        <section class="items-list features-list" data-item-list="features">
+            {{log 'in features list'}}
+            {{!-- Sections / Categories --}}
+            {{#each sections}}
 
-            {{!-- Section Header --}}
-            <div class="items-header header">
-                <h3 class="item-name">{{ localize label }}</h3>
-                <div class="item-header item-uses">{{ localize "SKJAALD.Uses" }}</div>
-                <div class="item-header item-recovery">{{ localize "SKJAALD.Recovery" }}</div>
-                <div class="item-header item-controls"></div>
+            <div class="items-section card" {{ skjaald-dataset dataset }}>
+
+                {{!-- Section Header --}}
+                <div class="items-header header">
+                    <h3 class="item-name">{{ localize label }}</h3>
+                    <div class="item-header item-uses">{{ localize "SKJAALD.Uses" }}</div>
+                    <div class="item-header item-recovery">{{ localize "SKJAALD.Recovery" }}</div>
+                    <div class="item-header item-controls"></div>
+                </div>
+
+                {{!-- Section Contents --}}
+                <ol class="item-list unlist">
+                    {{#each items as |item|}}
+                    {{#skjaald-itemContext item as |ctx|}}
+                    {{!-- Items --}}
+                    <li class="item" data-item-id="{{ item.id }}" data-entry-id="{{ item.id }}"
+                        data-item-name="{{ item.name }}" data-item-sort="{{ item.sort }}" data-grouped="{{ ctx.group }}"
+                        data-ungrouped="{{#if ../hasActions}}active{{else}}passive{{/if}}">
+
+                        {{!-- Item Name --}}
+                        <div class="item-name item-action item-tooltip {{ @root.rollableClass }}" role="button"
+                            data-action="use" aria-label="{{ item.name }}">
+                            <img class="item-image gold-icon" src="{{ item.img }}" alt="{{ item.name }}">
+                            <div class="name name-stacked">
+                                <span class="title">{{ item.name }}</span>
+                                {{#if ctx.subtitle}}
+                                <span class="subtitle">{{{ ctx.subtitle }}}</span>
+                                {{/if}}
+                            </div>
+                            <div class="tags">
+                                {{#each item.labels.properties}}
+                                {{#if icon}}
+                                <span aria-label="{{ label }}">
+                                    <skjaald-icon src="{{ icon }}"></skjaald-icon>
+                                </span>
+                                {{/if}}
+                                {{/each}}
+                            </div>
+                        </div>
+
+                        {{!-- Item Uses --}}
+                        <div class="item-detail item-uses {{#unless ctx.hasUses}}empty{{/unless}}">
+                            {{#if ctx.hasUses}}
+                            <input type="text" value="{{ item.system.uses.value }}" placeholder="0" data-dtype="Number"
+                                data-name="system.uses.value" inputmode="numeric" pattern="[+=\-]?\d*">
+                            <span class="separator">&sol;</span>
+                            <span class="max">{{ item.system.uses.max }}</span>
+                            {{/if}}
+                        </div>
+
+                        {{!-- Item Recovery --}}
+                        <div class="item-detail item-recovery {{#unless item.system.uses.per}}empty{{/unless}}">
+                            {{#if item.system.uses.per}}
+                            <span class="condensed">{{ item.labels.recovery }}</span>
+                            {{/if}}
+                        </div>
+
+                        {{!-- Item Status --}}
+                        <div class="item-detail item-controls">
+
+                            {{#if @root.editable}}
+                            {{!-- Editing --}}
+                            <a class="item-control item-action" data-action="edit" data-tooltip="SKJAALD.ItemEdit"
+                            aria-label="{{ localize "SKJAALD.ItemEdit" }}">
+                                <i class="fas fa-pen-to-square"></i>
+                            </a>
+
+                            {{!-- Deleting --}}
+                            <a class="item-control item-action" data-action="delete" data-tooltip="SKJAALD.ItemDelete"
+                            aria-label="{{ localize "SKJAALD.ItemDelete" }}">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            {{/if}}
+
+                            {{!-- Context Menu --}}
+                            <a class="item-control interface-only" data-context-menu
+                            aria-label="{{ localize "SKJAALD.AdditionalControls" }}">
+                                <i class="fas fa-ellipsis-vertical"></i>
+                            </a>
+
+                        </div>
+
+                    </li>
+
+                    {{/skjaald-itemContext}}
+                    {{/each}}
+                </ol>
+
+            </div>
+            {{/each}}
+
+        </section>
+
+    {{!-- Dice --}}
+    {{else if (eq label "dice")}}
+
+        {{!-- Searching, Filtering, & Sorting --}}
+        <item-list-controls for="features" label="{{ localize "SKJAALD.DiceSearch" }}" sort="toggle" group
+                            group-label="{{ localize "SKJAALD.FilterGroupOrigin" }}" collection="items">
+            <datalist>
+                <option value="racial">{{ localize "SKJAALD.Racial" }}</option>
+                <option value="archetype">{{ localize "SKJAALD.Archetype" }}</option>
+                <option value="calling">{{ localize "SKJAALD.Calling" }}</option>
+                <option value="perk">{{ localize "SKJAALD.Perk" }}</option>
+
+            </datalist>
+        </item-list-controls>
+
+        {{!-- Dice List --}}
+        <section class="items-list features-list" data-item-list="dice">
+            {{!-- Sections / Categories --}}
+            {{log 'in dice list'}}
+
+            <div class="items-section card" {{ skjaald-dataset dataset }}>
+
+                {{!-- Section Header --}}
+                <div class="items-header header">
+                    <h3 class="item-name">{{ localize label }}</h3>
+                    <div class="item-header item-uses">{{ localize "SKJAALD.Value" }}</div>
+                    <div class="item-header item-recovery">{{ localize "SKJAALD.Size" }}</div>
+                    <div class="item-header item-controls"></div>
+                </div>
+
+                {{!-- Section Contents --}}
+                <ol class="item-list unlist">
+                    {{#each items as |item|}}
+                        {{#if (eq item.type "die")}}
+                            {{#skjaald-itemContext item as |ctx|}}
+                            {{!-- Items --}}
+                            <li class="item" data-item-id="{{ item.id }}" data-entry-id="{{ item.id }}"
+                                data-item-name="{{ item.name }}" data-item-sort="{{ item.sort }}" data-grouped="{{ ctx.group }}"
+                                data-ungrouped="{{#if ../hasActions}}active{{else}}passive{{/if}}">
+
+                                {{!-- Item Name --}}
+                                <div class="item-name item-action item-tooltip {{ @root.rollableClass }}" role="button"
+                                    data-action="use" aria-label="{{ item.name }}">
+
+                                    <div class="name name-stacked">
+                                        <span class="title">{{ item.name }}</span>
+                                        {{#if ctx.subtitle}}
+                                        <span class="subtitle">{{{ ctx.subtitle }}}</span>
+                                        {{/if}}
+                                    </div>
+                                    <div class="tags">
+                                        {{#each item.labels.properties}}
+                                        {{#if icon}}
+                                        <span aria-label="{{ label }}">
+                                            <skjaald-icon src="{{ icon }}"></skjaald-icon>
+                                        </span>
+                                        {{/if}}
+                                        {{/each}}
+                                    </div>
+                                </div>
+
+                                {{!-- Item Uses --}}
+                                <div class="item-detail item-uses">
+                                    <input type="text" value="{{ item.system.  }}" placeholder="0" data-dtype="Number"
+                                        data-name="system.uses.value" inputmode="numeric" pattern="[+=\-]?\d*">
+                                    <span class="separator">&sol;</span>
+                                    <span class="max">{{ item.system.uses.max }}</span>
+                                </div>
+
+                                {{!-- Item Recovery --}}
+                                <div class="item-detail item-recovery {{#unless item.system.uses.per}}empty{{/unless}}">
+                                    {{#if item.system.uses.per}}
+                                    <span class="condensed">{{ item.labels.recovery }}</span>
+                                    {{/if}}
+                                </div>
+
+                                {{!-- Item Status --}}
+                                <div class="item-detail item-controls">
+
+                                    {{#if @root.editable}}
+                                    {{!-- Editing --}}
+                                    <a class="item-control item-action" data-action="edit" data-tooltip="SKJAALD.ItemEdit"
+                                    aria-label="{{ localize "SKJAALD.ItemEdit" }}">
+                                        <i class="fas fa-pen-to-square"></i>
+                                    </a>
+
+                                    {{!-- Deleting --}}
+                                    <a class="item-control item-action" data-action="delete" data-tooltip="SKJAALD.ItemDelete"
+                                    aria-label="{{ localize "SKJAALD.ItemDelete" }}">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                    {{/if}}
+
+                                    {{!-- Context Menu --}}
+                                    <a class="item-control interface-only" data-context-menu
+                                    aria-label="{{ localize "SKJAALD.AdditionalControls" }}">
+                                        <i class="fas fa-ellipsis-vertical"></i>
+                                    </a>
+
+                                </div>
+
+                            </li>
+
+                            {{/skjaald-itemContext}}
+                        {{/if}}
+                    {{/each}}
+
+                </ol>
+
             </div>
 
-            {{!-- Section Contents --}}
-            <ol class="item-list unlist">
-                {{#each items as |item|}}
-                {{#skjaald-itemContext item as |ctx|}}
+        </section>
+    {{else}}
+        {{!-- Searching, Filtering, & Sorting --}}
+        <item-list-controls for="features" label="{{ localize "SKJAALD.FeatureSearch" }}" sort="toggle" group
+                            group-label="{{ localize "SKJAALD.FilterGroupOrigin" }}" collection="items">
+            <datalist>
+                <option value="racial">{{ localize "SKJAALD.Racial" }}</option>
+                <option value="archetype">{{ localize "SKJAALD.Archetype" }}</option>
+                <option value="calling">{{ localize "SKJAALD.Calling" }}</option>
+            </datalist>
+        </item-list-controls>
 
-                {{!-- Items --}}
-                <li class="item" data-item-id="{{ item.id }}" data-entry-id="{{ item.id }}"
-                    data-item-name="{{ item.name }}" data-item-sort="{{ item.sort }}" data-grouped="{{ ctx.group }}"
-                    data-ungrouped="{{#if ../hasActions}}active{{else}}passive{{/if}}">
+        {{!-- Features List --}}
+        <section class="items-list features-list" data-item-list="features">
+            {{log 'in features list'}}
+            {{!-- Sections / Categories --}}
+            {{#each sections}}
 
-                    {{!-- Item Name --}}
-                    <div class="item-name item-action item-tooltip {{ @root.rollableClass }}" role="button"
-                         data-action="use" aria-label="{{ item.name }}">
-                        <img class="item-image gold-icon" src="{{ item.img }}" alt="{{ item.name }}">
-                        <div class="name name-stacked">
-                            <span class="title">{{ item.name }}</span>
-                            {{#if ctx.subtitle}}
-                            <span class="subtitle">{{{ ctx.subtitle }}}</span>
+            <div class="items-section card" {{ skjaald-dataset dataset }}>
+
+                {{!-- Section Header --}}
+                <div class="items-header header">
+                    <h3 class="item-name">{{ localize label }}</h3>
+                    <div class="item-header item-uses">{{ localize "SKJAALD.Uses" }}</div>
+                    <div class="item-header item-recovery">{{ localize "SKJAALD.Recovery" }}</div>
+                    <div class="item-header item-controls"></div>
+                </div>
+
+                {{!-- Section Contents --}}
+                <ol class="item-list unlist">
+                    {{#each items as |item|}}
+                    {{#skjaald-itemContext item as |ctx|}}
+                    {{!-- Items --}}
+                    <li class="item" data-item-id="{{ item.id }}" data-entry-id="{{ item.id }}"
+                        data-item-name="{{ item.name }}" data-item-sort="{{ item.sort }}" data-grouped="{{ ctx.group }}"
+                        data-ungrouped="{{#if ../hasActions}}active{{else}}passive{{/if}}">
+
+                        {{!-- Item Name --}}
+                        <div class="item-name item-action item-tooltip {{ @root.rollableClass }}" role="button"
+                            data-action="use" aria-label="{{ item.name }}">
+                            <img class="item-image gold-icon" src="{{ item.img }}" alt="{{ item.name }}">
+                            <div class="name name-stacked">
+                                <span class="title">{{ item.name }}</span>
+                                {{#if ctx.subtitle}}
+                                <span class="subtitle">{{{ ctx.subtitle }}}</span>
+                                {{/if}}
+                            </div>
+                            <div class="tags">
+                                {{#each item.labels.properties}}
+                                {{#if icon}}
+                                <span aria-label="{{ label }}">
+                                    <skjaald-icon src="{{ icon }}"></skjaald-icon>
+                                </span>
+                                {{/if}}
+                                {{/each}}
+                            </div>
+                        </div>
+
+                        {{!-- Item Uses --}}
+                        <div class="item-detail item-uses {{#unless ctx.hasUses}}empty{{/unless}}">
+                            {{#if ctx.hasUses}}
+                            <input type="text" value="{{ item.system.uses.value }}" placeholder="0" data-dtype="Number"
+                                data-name="system.uses.value" inputmode="numeric" pattern="[+=\-]?\d*">
+                            <span class="separator">&sol;</span>
+                            <span class="max">{{ item.system.uses.max }}</span>
                             {{/if}}
                         </div>
-                        <div class="tags">
-                            {{#each item.labels.properties}}
-                            {{#if icon}}
-                            <span aria-label="{{ label }}">
-                                <skjaald-icon src="{{ icon }}"></skjaald-icon>
-                            </span>
+
+                        {{!-- Item Recovery --}}
+                        <div class="item-detail item-recovery {{#unless item.system.uses.per}}empty{{/unless}}">
+                            {{#if item.system.uses.per}}
+                            <span class="condensed">{{ item.labels.recovery }}</span>
                             {{/if}}
-                            {{/each}}
                         </div>
-                    </div>
 
-                    {{!-- Item Uses --}}
-                    <div class="item-detail item-uses {{#unless ctx.hasUses}}empty{{/unless}}">
-                        {{#if ctx.hasUses}}
-                        <input type="text" value="{{ item.system.uses.value }}" placeholder="0" data-dtype="Number"
-                               data-name="system.uses.value" inputmode="numeric" pattern="[+=\-]?\d*">
-                        <span class="separator">&sol;</span>
-                        <span class="max">{{ item.system.uses.max }}</span>
-                        {{/if}}
-                    </div>
+                        {{!-- Item Status --}}
+                        <div class="item-detail item-controls">
 
-                    {{!-- Item Recovery --}}
-                    <div class="item-detail item-recovery {{#unless item.system.uses.per}}empty{{/unless}}">
-                        {{#if item.system.uses.per}}
-                        <span class="condensed">{{ item.labels.recovery }}</span>
-                        {{/if}}
-                    </div>
+                            {{#if @root.editable}}
+                            {{!-- Editing --}}
+                            <a class="item-control item-action" data-action="edit" data-tooltip="SKJAALD.ItemEdit"
+                            aria-label="{{ localize "SKJAALD.ItemEdit" }}">
+                                <i class="fas fa-pen-to-square"></i>
+                            </a>
 
-                    {{!-- Item Status --}}
-                    <div class="item-detail item-controls">
+                            {{!-- Deleting --}}
+                            <a class="item-control item-action" data-action="delete" data-tooltip="SKJAALD.ItemDelete"
+                            aria-label="{{ localize "SKJAALD.ItemDelete" }}">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            {{/if}}
 
-                        {{#if @root.editable}}
-                        {{!-- Editing --}}
-                        <a class="item-control item-action" data-action="edit" data-tooltip="SKJAALD.ItemEdit"
-                           aria-label="{{ localize "SKJAALD.ItemEdit" }}">
-                            <i class="fas fa-pen-to-square"></i>
-                        </a>
+                            {{!-- Context Menu --}}
+                            <a class="item-control interface-only" data-context-menu
+                            aria-label="{{ localize "SKJAALD.AdditionalControls" }}">
+                                <i class="fas fa-ellipsis-vertical"></i>
+                            </a>
 
-                        {{!-- Deleting --}}
-                        <a class="item-control item-action" data-action="delete" data-tooltip="SKJAALD.ItemDelete"
-                           aria-label="{{ localize "SKJAALD.ItemDelete" }}">
-                            <i class="fas fa-trash"></i>
-                        </a>
-                        {{/if}}
+                        </div>
 
-                        {{!-- Context Menu --}}
-                        <a class="item-control interface-only" data-context-menu
-                           aria-label="{{ localize "SKJAALD.AdditionalControls" }}">
-                            <i class="fas fa-ellipsis-vertical"></i>
-                        </a>
+                    </li>
 
-                    </div>
+                    {{/skjaald-itemContext}}
+                    {{/each}}
+                </ol>
 
-                </li>
+            </div>
+            {{/each}}
 
-                {{/skjaald-itemContext}}
-                {{/each}}
-            </ol>
-
-        </div>
-        {{/each}}
-
-    </section>
+        </section>
+    {{/if}}
 
 </{{elements.inventory}}>
