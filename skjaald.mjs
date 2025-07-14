@@ -2799,6 +2799,7 @@ async function preloadHandlebarsTemplates() {
     "systems/skjaald/templates/actors/tabs/character-spells.hbs",
     "systems/skjaald/templates/actors/tabs/character-biography.hbs",
     "systems/skjaald/templates/actors/tabs/character-learning.hbs",
+    "systems/skjaald/templates/actors/tabs/character-talents.hbs",
     "systems/skjaald/templates/actors/tabs/group-members.hbs",
     "systems/skjaald/templates/actors/parts/actor-textblocks.hbs",
     "systems/skjaald/templates/actors/tabs/character-active.hbs",
@@ -31158,7 +31159,7 @@ class ActorSheet5eCharacter extends ActorSheet5e {
     }
 
     // Partition items by category
-    let {items, spells, feats, races, backgrounds, classes, subclasses, archetypes, callings, weapons, dice, note} = context.items.reduce((obj, item) => {
+    let {items, spells, feats, races, backgrounds, classes, subclasses, archetypes, callings, weapons, dice, note, talent} = context.items.reduce((obj, item) => {
       const {quantity, uses, recharge} = item.system;
 
       // Item details
@@ -31207,14 +31208,15 @@ class ActorSheet5eCharacter extends ActorSheet5e {
       else if ( item.type === "background" ) obj.backgrounds.push(item);
       else if ( item.type === "class" ) obj.classes.push(item);
       else if ( item.type === "subclass" ) obj.subclasses.push(item);
-      else if ( item.type === "archetype" ) obj.archetype.push(item);
-      else if ( item.type === "calling" ) obj.calling.push(item);
+      else if ( item.type === "archetype" ) obj.archetypes.push(item);
+      else if ( item.type === "talent" ) obj.talents.push(item);
+      else if ( item.type === "calling" ) obj.callings.push(item);
       else if ( item.type === "weapon" ) obj.weapons.push(item);
       else if ( item.type === "die" ) obj.dice.push(item);
       else if ( item.type === "note") obj.notes.push(item);
       else if ( Object.keys(inventory).includes(item.type) ) obj.items.push(item);
       return obj;
-    }, { items: [], spells: [], feats: [], races: [], backgrounds: [], archetypes: [], callings: [], classes: [], subclasses: [], weapons: [], dice: [], notes: [] });
+    }, { items: [], spells: [], feats: [], races: [], backgrounds: [], archetypes: [], callings: [], classes: [], subclasses: [], weapons: [], dice: [], notes: [], talents: [] });
 
     // Organize items
     for ( let i of items ) {
@@ -33171,6 +33173,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
   static TABS = [
     { tab: "details", label: "SKJAALD.Details", icon: "fas fa-cog" },
     { tab: "notes", label: "SKJAALD.Notes", icon: "fas fa-book" },
+    { tab: "talents", label: "SKJAALD.Talents", icon: "fas fa-list" },
     { tab: "combat", label: "SKJAALD.Active", icon: "fa-solid fa-sword"},
     { tab: "inventory", label: "SKJAALD.Inventory", svg: "backpack" },
     { tab: "learning", label: "SKJAALD.Learning", icon: "fas fa-list" },
@@ -34862,7 +34865,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
 
     let types = {
       inventory: ["weapon", "equipment", "consumable", "tool", "container", "loot"],
-      features: ["feat", "race", "background", "class", "subclass", "die", "archetype", "calling"]
+      features: ["feat", "race", "background", "class", "subclass", "die", "archetype", "calling", "talent"]
     }[activeTab] ?? [];
 
     types = types.filter(type => {
@@ -40122,6 +40125,7 @@ class ItemSheet5e extends ItemSheet {
       html.find(".config-button").click(this._onConfigMenu.bind(this));
       html.find(".damage-control").click(this._onDamageControl.bind(this));
       html.find(".action-control").click(this._onActionControl.bind(this));
+      html.find(".connection-control").click(this._onConnectionControl.bind(this));
       html.find(".enchantment-button").click(this._onEnchantmentAction.bind(this));
       html.find(".advancement .item-control").click(event => {
         const t = event.currentTarget;
@@ -40307,6 +40311,37 @@ class ItemSheet5e extends ItemSheet {
         const removed = action.splice(index, 1);
         return this.item.update({"system.activatedActions": action});
       }
+    }
+  
+    /* -------------------------------------------- */
+
+  /**
+   * Add or remove a parent talents.
+   * @param {Event} event             The original click event.
+   * @returns {Promise<Item5e>|null}  Item with updates applied.
+   * @private
+   */
+    async _onConnectionControl(event) {
+      event.preventDefault();
+      const a = event.currentTarget;
+      const index = a.classList[1];
+
+      // Add new action component
+      if ( a.classList.contains("add-parent") ) {
+        await this._onSubmit(event);  // Submit any unsaved changes
+        console.log(this.item);
+        // const action = this.item.system.activatedActions;
+
+        // return this.item.update({"system.activatedActions": action.concat([["", ""]])});
+      }
+  
+      // // Remove a action component
+      // if ( a.classList.contains("delete-activatedAction") ) {
+      //   await this._onSubmit(event);  // Submit any unsaved changes
+      //   const action = this.item.system.activatedActions;
+      //   const removed = action.splice(index, 1);
+      //   return this.item.update({"system.activatedActions": action});
+      // }
     }
   
     /* -------------------------------------------- */
@@ -45023,6 +45058,31 @@ class DieData extends ItemDataModel.mixin(
  /* -------------------------------------------- */
 
 /**
+ * Data definition for Talent items.
+ * @mixes ItemDescriptionTemplate
+ * @mixes ItemTypeTemplate
+ * @mixes IdentifiableTemplate
+ * @mixes PhysicalItemTemplate
+ */
+class TalentData extends ItemDataModel.mixin(
+  ItemDescriptionTemplate, ItemTypeTemplate, PhysicalItemTemplate
+) {
+  /** @inheritdoc */
+  static defineSchema() {
+    return this.mergeSchema(super.defineSchema(), {
+      properties: new foundry.data.fields.SetField(new foundry.data.fields.StringField(), {
+        label: "SKJAALD.ItemTalentProperties"
+      }),
+      type: new ItemTypeField({baseItem: false}, {label: "SKJAALD.ItemTalentType"}),
+      calc: new StringField$7({initial: "default", label: "SKJAALD.ArmorClassCalculation"}),
+    });
+  }
+}
+
+
+ /* -------------------------------------------- */
+
+/**
  * Data definition for Archetype items.
  * @mixes ItemDescriptionTemplate
  * @mixes ItemTypeTemplate
@@ -45733,6 +45793,7 @@ const config$1 = {
   consumable: ConsumableData,
   die: DieData,
   archetype: ArchetypeData,
+  talent: TalentData,
   calling: CallingData,
   note: NoteData,
   equipment: EquipmentData,
@@ -45769,6 +45830,7 @@ var _module$4 = /*#__PURE__*/Object.freeze({
   LanguageData: LanguageData,
   DieData: DieData,
   ArchetypeData: ArchetypeData,
+  TalentData: TalentData,
   CallingData: CallingData,
   NoteData: NoteData,
   MountableTemplate: MountableTemplate,
