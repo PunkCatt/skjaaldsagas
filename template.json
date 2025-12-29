@@ -11,6 +11,7 @@
     "htmlFields": [
       "details.biography.value",
       "details.biography.public",
+      "details.talents.value",
       "description.full",
       "description.summary"
     ]

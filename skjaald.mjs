@@ -17577,6 +17577,14 @@ class Actor5e extends SystemDocumentMixin(Actor) {
    */
   sourcedItems = this.sourcedItems;
 
+  /**
+   * The description currently being edited.
+   * @type {string}
+   */
+  editingDescriptionTarget;
+
+  /* -------------------------------------------- */
+
   /* -------------------------------------------- */
   /*  Properties                                  */
   /* -------------------------------------------- */
@@ -30035,6 +30043,32 @@ class ActorSheet5e extends ActorSheetMixin(ActorSheet) {
     }
 
     // Biography HTML enrichment
+    console.log("actorHTML: ");
+    console.log(context);
+    context.actorTalentHTML = await TextEditor.enrichHTML(context.system.details.talents, {
+      secrets: this.actor.isOwner,
+      rollData: context.rollData,
+      async: true,
+      relativeTo: this.actor
+    });
+
+    // Enrich HTML description
+    const enrichmentOptions = {
+      secrets: this.actor.isOwner, async: true, relativeTo: this.actor, rollData: context.rollData
+    };
+    context.enriched = {
+      talents: await TextEditor.enrichHTML(this.actor.system.details.talents, enrichmentOptions),
+      notes: await TextEditor.enrichHTML(this.actor.system.details.backgrounds, enrichmentOptions)
+    };
+    if ( this.editingDescriptionTarget ) {
+      context.editingDescriptionTarget = this.editingDescriptionTarget;
+      context.enriched.editing = await TextEditor.enrichHTML(
+        foundry.utils.getProperty(context, this.editingDescriptionTarget), enrichmentOptions
+      );
+    }
+
+
+    // Biography HTML enrichment
     context.biographyHTML = await TextEditor.enrichHTML(context.system.details.biography.value, {
       secrets: this.actor.isOwner,
       rollData: context.rollData,
@@ -31159,7 +31193,7 @@ class ActorSheet5eCharacter extends ActorSheet5e {
     }
 
     // Partition items by category
-    let {items, spells, feats, races, backgrounds, classes, subclasses, archetypes, callings, weapons, dice, note, talent} = context.items.reduce((obj, item) => {
+    let {items, spells, feats, races, backgrounds, classes, subclasses, archetypes, callings, weapons, dice, notes, talents} = context.items.reduce((obj, item) => {
       const {quantity, uses, recharge} = item.system;
 
       // Item details
@@ -31214,14 +31248,17 @@ class ActorSheet5eCharacter extends ActorSheet5e {
       else if ( item.type === "weapon" ) obj.weapons.push(item);
       else if ( item.type === "die" ) obj.dice.push(item);
       else if ( item.type === "note") obj.notes.push(item);
-      else if ( Object.keys(inventory).includes(item.type) ) obj.items.push(item);
+      if ( Object.keys(inventory).includes(item.type) ) obj.items.push(item);
       return obj;
     }, { items: [], spells: [], feats: [], races: [], backgrounds: [], archetypes: [], callings: [], classes: [], subclasses: [], weapons: [], dice: [], notes: [], talents: [] });
-
+    console.log("before organize items");
+ 
     // Organize items
     for ( let i of items ) {
+      console.log("organize items");
       const ctx = context.itemContext[i.id] ??= {};
       ctx.totalWeight = i.system.totalWeight?.toNearest(0.1);
+      console.log(i.type);
       inventory[i.type].items.push(i);
     }
 
@@ -31279,7 +31316,8 @@ class ActorSheet5eCharacter extends ActorSheet5e {
       else features.passive.items.push(feat);
     }
     console.log("in items sorting method");
-    console.log(dice);
+    console.log(items);
+  
 
     // Assign and return
     context.inventoryFilters = true;
@@ -31288,7 +31326,10 @@ class ActorSheet5eCharacter extends ActorSheet5e {
     context.preparedSpells = nPrepared;
     context.features = Object.values(features);
     context.dice = Object.values(dice);
+    context.talents = Object.values(talents);
     // context.notes = Object.values(note);
+
+    return context;
   }
 
   /* -------------------------------------------- */
@@ -32820,9 +32861,9 @@ class CharacterData extends CreatureTemplate {
       details: new SchemaField$5({
         ...DetailsField.common,
         ...DetailsField.creature,
-        background: new LocalDocumentField(foundry.documents.BaseItem, {
-          required: true, fallback: true, label: "SKJAALD.Background"
-        }),
+        talents: new HTMLField$4({required: true, nullable: true, label: "SKJAALD.Description"}),
+        health: new HTMLField$4({required: true, nullable: true, label: "SKJAALD.HealthDescription"}),
+        background: new HTMLField$4({required: true, nullable: true, label: "SKJAALD.Background"}),
         originalClass: new StringField$7({required: true, label: "SKJAALD.ClassOriginal"}),
         xp: new SchemaField$5({
           value: new NumberField$7({
@@ -33171,16 +33212,16 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
    * @type {SheetTabDescriptor5e[]}
    */
   static TABS = [
-    { tab: "details", label: "SKJAALD.Details", icon: "fas fa-cog" },
+    // { tab: "details", label: "SKJAALD.Details", icon: "fas fa-cog" },
     { tab: "notes", label: "SKJAALD.Notes", icon: "fas fa-book" },
     { tab: "talents", label: "SKJAALD.Talents", icon: "fas fa-list" },
-    { tab: "combat", label: "SKJAALD.Active", icon: "fa-solid fa-sword"},
+    // { tab: "combat", label: "SKJAALD.Active", icon: "fa-solid fa-sword"},
     { tab: "inventory", label: "SKJAALD.Inventory", svg: "backpack" },
-    { tab: "learning", label: "SKJAALD.Learning", icon: "fas fa-list" },
-    { tab: "spells", label: "TYPES.Item.spellPl", icon: "fas fa-book" },
-    { tab: "effects", label: "SKJAALD.Effects", icon: "fas fa-bolt" },
-    { tab: "biography", label: "SKJAALD.Biography", icon: "fas fa-feather" },
-    { tab: "settings", label: "SKJAALD.Settings", icon: "fas fa-cog" }
+    // { tab: "learning", label: "SKJAALD.Learning", icon: "fas fa-list" },
+    // { tab: "spells", label: "TYPES.Item.spellPl", icon: "fas fa-book" },
+    // { tab: "effects", label: "SKJAALD.Effects", icon: "fas fa-bolt" },
+    { tab: "biography", label: "SKJAALD.Health", icon: "fas fa-feather" }
+    // { tab: "settings", label: "SKJAALD.Settings", icon: "fas fa-cog" }
   ];
 
   /**
@@ -33805,6 +33846,7 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     
 
   /** @inheritDoc */
+  //Actor Sheet Setup
   //TODO: set initial/update character values - set-up
   async getData(options) {
 
@@ -34184,6 +34226,8 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     context.favorites.sort((a, b) => a.sort - b.sort);
 
 
+
+
     return context;
   }
 
@@ -34416,7 +34460,11 @@ class ActorSheet5eCharacter2 extends ActorSheet5eCharacter {
     html.find(".sidebar .collapser").on("click", this._onToggleSidebar.bind(this));
     html.find(".threshold-details-toggle").on("click", this._onToggleThresholdDetails.bind(this));
     html.find(".injury-control").click(this._onInjuryControl.bind(this));
-
+     html.find(".description-character-edit").click(event => {
+        if ( event.currentTarget.ariaDisabled ) return;
+        this.editingDescriptionTarget = event.currentTarget.dataset.target;
+        this.render();
+      });
 
     // html.find(".exhaustion-updates").change(this._changeExhaustion.bind(this));
     this.form.querySelectorAll(".item-tooltip").forEach(this._applyItemTooltips.bind(this));
@@ -39615,6 +39663,9 @@ class SummoningConfig extends DocumentSheet {
 /**
  * Override and extend the core ItemSheet implementation to handle specific item types.
  */
+
+//Start Item Sheet/Items
+
 class ItemSheet5e extends ItemSheet {
   constructor(...args) {
     super(...args);
@@ -40136,6 +40187,8 @@ class ItemSheet5e extends ItemSheet {
         if ( t.dataset.action ) this._onItemAction(t, t.dataset.action);
       });
       html.find(".description-edit").click(event => {
+                console.log("in edit description");
+
         if ( event.currentTarget.ariaDisabled ) return;
         this.editingDescriptionTarget = event.currentTarget.dataset.target;
         this.render();

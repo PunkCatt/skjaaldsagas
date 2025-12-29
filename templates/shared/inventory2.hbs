@@ -127,6 +127,7 @@
             <ol class="item-list unlist">
                 {{#each items as |item|}}
                 {{#skjaald-itemContext item as |ctx|}}
+                {{log item}}
 
                 {{!-- Items --}}
                 <li class="item" data-item-id="{{ item.id }}" data-entry-id="{{ item.id }}"

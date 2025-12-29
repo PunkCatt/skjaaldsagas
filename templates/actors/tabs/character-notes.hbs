@@ -5,29 +5,14 @@
             {{~else if svg}}<skjaald-icon src="systems/skjaald/icons/svg/{{svg}}.svg"></skjaald-icon>{{/if}}
             <span class="roboto-upper">{{ localize label }}</span>
         </h3>
-        <textarea class="untext" name="{{ name }}">{{ value }}</textarea>
+        <textarea class="untext" name="{{ name }}" style="height: 450px" >{{ value }}</textarea>
 
     </div>
 {{/inline}}
 
 <div class="tab notes col-2" data-group="primary" data-tab="notes">
+    <div class="left"></div>
+    <div class="right">
 
-
-    <div class="notes-people sheet-container-box container-panel">
-        {{!-- Allies & Organizations --}}
-        {{> "systems/skjaald/templates/actors/parts/actor-textblocks.html" sections=allies}}
     </div>
-
-    <div class="notes-additional sheet-container-box container-panel">
-        {{!-- Notes --}}
-        {{> "systems/skjaald/templates/actors/parts/actor-textblocks.html" sections=notes}}
-    </div>
-
-    <div class="notes-backstory sheet-container-box container-panel">
-        {{!-- Backstory --}}
-        {{> "systems/skjaald/templates/actors/parts/actor-textblocks.html" sections=backstory}}
-    </div>
-
-    {{~> "textbox" name="system.details.background" value=system.details.background label="SKJAALD.PlaytestNotes"
-        icon="fas fa-heart-crack" style="height: 600px" ~}}
 </div>

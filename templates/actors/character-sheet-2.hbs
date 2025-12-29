@@ -108,41 +108,6 @@
 
     </div>
 
-
-
-
-
-    {{!-- Inspiration --}}
-    <div class="counter flexrow inspiration">
-    <label class="flexrow">
-        <h4>{{ localize "SKJAALD.Inspiration" }}</h4>
-        <input type="checkbox" name="system.attributes.inspiration.inspir1"
-                {{checked system.attributes.inspiration.inspir1}}>
-        <input type="checkbox" name="system.attributes.inspiration.inspir2"
-                {{checked system.attributes.inspiration.inspir2}}>
-        <input type="checkbox" name="system.attributes.inspiration.inspir3"
-                {{checked system.attributes.inspiration.inspir3}}>
-    </label>
-
-    <label class="flexrow">
-        <h4>{{ localize "SKJAALD.Legend" }}</h4>
-        <input type="checkbox" name="system.attributes.inspiration.legend1"
-                {{checked system.attributes.inspiration.legend1}}>
-        <input type="checkbox" name="system.attributes.inspiration.legend2"
-                {{checked system.attributes.inspiration.legend2}}>
-        <input type="checkbox" name="system.attributes.inspiration.legend3"
-                {{checked system.attributes.inspiration.legend3}}>
-    </label>
-
-    
-    <label class="flexrow">
-        <h4>{{ localize "SKJAALD.Fate" }}</h4>
-        <input type="checkbox" name="system.attributes.inspiration.fate"
-                {{checked system.attributes.inspiration.fate}}>
-    </label>
-    
-    </div>
-
     </header>
 
     {{!-- Body --}}
@@ -234,12 +199,12 @@
 
                 {{!-- Talents --}}
                 <div class="tab talents" data-group="primary" data-tab="talents">
-                    {{> "skjaald.character-talents" sections=features}}
+                    {{> "skjaald.character-talents" sections=talents}}
                 </div>
 
                 {{!-- Character Notes --}}
                 
-                    {{> "skjaald.character-active" }}
+                    {{> "skjaald.character-active"  }}
 
                 {{!-- Inventory --}}
                 <div class="tab inventory page-2 col-2" data-group="primary" data-tab="inventory">
@@ -262,7 +227,7 @@
                 </div>
 
                 {{!-- Effects --}}
-                <div class="tab effects" data-group="primary" data-tab="effects">
+                <div class="tab effects page-2 col-2" data-group="primary" data-tab="effects">
                     {{> "skjaald.active-effects2" }}
                 </div>
 

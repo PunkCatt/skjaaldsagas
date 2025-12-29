@@ -3053,9 +3053,13 @@ p:empty:has(+ .content-embed),
 }
 .journal-editor .prosemirror menu {
   border-radius: 0;
+  
 }
 .journal-editor .prosemirror .editor-container {
   overflow-y: auto;
+}
+.prosemirror .editor-container .editor-content{
+  position:relative;
 }
 .journal-entry-page.sheet:is(.class-journal, .spells) {
   min-block-size: 600px;
@@ -5574,7 +5578,9 @@ flex-wrap: wrap;
 }
 .skjaald2.sheet.actor.character .sheet-body .tab-body .tab:not(.details) {
   padding-inline: 0.5rem;
-  padding-bottom: calc(1.5rem + 30px);
+}
+.skjaald2.sheet.actor.character .sheet-body .health-notes {
+  grid-column: 2 / span 3;
 }
 .skjaald2.sheet.actor.character .sheet-body .tab-body .tab.settings {
   padding-inline: 0.5rem;
@@ -6091,24 +6097,33 @@ flex-wrap: wrap;
   inset: auto auto -1px 100%;
   font-size: var(--font-size-18);
 }
-.skjaald2.sheet.actor.character .tab.biography > .bottom .editor {
+.skjaald2.sheet.actor.character .tab.biography > .bottom .editor,
+.skjaald2.sheet.actor.character .tab.talents > .editor {
   flex: 1;
   min-height: 500px;
   overflow-y: visible;
 }
-.skjaald2.sheet.actor.character .tab.biography > .bottom .editor .editor-content {
+.skjaald2.sheet.actor.character .tab.biography > .bottom .editor .editor-content,
+.skjaald2.sheet.actor.character .tab.talents > .editor .editor-content {
   font-family: var(--skjaald-font-roboto-condensed);
   font-size: var(--font-size-14);
   scrollbar-width: thin;
   scrollbar-color: var(--skjaald-color-scrollbar) transparent;
 }
-.skjaald2.sheet.actor.character .tab.biography > .bottom .editor .editor-content::-webkit-scrollbar-track {
+.skjaald2.sheet.actor.character .tab.biography > .bottom .editor .editor-content::-webkit-scrollbar-track,
+.skjaald2.sheet.actor.character .tab.talents > .editor .editor-content::-webkit-scrollbar-track {
   box-shadow: none;
   border-radius: 0;
 }
-.skjaald2.sheet.actor.character .tab.biography > .bottom .editor .editor-content::-webkit-scrollbar-thumb {
+.skjaald2.sheet.actor.character .tab.biography > .bottom .editor .editor-content::-webkit-scrollbar-thumb,
+.skjaald2.sheet.actor.character .tab.talents > .editor .editor-content::-webkit-scrollbar-thumb {
   border: none;
   background: var(--skjaald-color-scrollbar);
+}
+.skjaald2.sheet.actor.character .tab.talents > .editor .editor-container{
+  position: relative;
+  min-height: 478px;
+
 }
 .skjaald2.sheet.actor.character .tab.biography .characteristics {
   width: 520px;
@@ -6163,20 +6178,26 @@ flex-wrap: wrap;
   border: none;
   background: var(--skjaald-color-scrollbar);
 }
-.skjaald2.sheet.actor.character .tab.biography .prosemirror menu .pm-dropdown {
-  background: none;
+.skjaald2.sheet.actor.character .prosemirror menu  {
+  gap: 2px;
+  padding: 4px;
 }
-.skjaald2.sheet.actor.character .tab.biography .prosemirror menu .pm-dropdown:hover {
+.skjaald2.sheet.actor.character .prosemirror menu .pm-dropdown {
+  background: none;
+
+}
+.skjaald2.sheet.actor.character .prosemirror menu .pm-dropdown:hover {
   background: var(--color-hover-bg);
 }
-.skjaald2.sheet.actor.character .tab.biography .prosemirror menu button {
+.skjaald2.sheet.actor.character .prosemirror menu button {
   display: unset;
   text-transform: unset;
   box-shadow: none;
   font-family: var(--font-primary);
-  font-size: var(--font-size-14);
+  font-size: var(--font-size-12);
   font-weight: normal;
   line-height: 28px;
+
 }
 .skjaald2.sheet.actor.character form.collapsed .main-content {
   grid-template-columns: 0 1fr;
@@ -6234,6 +6255,10 @@ flex-wrap: wrap;
 .skjaald2.sheet.actor.character.limited .tab.biography > .bottom .editor {
   min-height: unset;
 }
+.skjaald2.sheet.actor.character.limited .tab.talents > .bottom .editor{
+  min-height:500px;
+}
+
 .skjaald2.sheet.actor.character.limited .main-content {
   display: unset;
 }
